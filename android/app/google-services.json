@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "926739474102",
+    "firebase_url": "https://monapp-1aa68-default-rtdb.firebaseio.com",
+    "project_id": "monapp-1aa68",
+    "storage_bucket": "monapp-1aa68.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:926739474102:android:f8090db40b350cf52e2817",
+        "android_client_info": {
+          "package_name": "com.yourname.skeleton"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATnjGFW7E-V9_gSxC_8eYcKLjWScjcjGU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
