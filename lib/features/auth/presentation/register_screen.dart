@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_routes.dart';
 import '../../../core/utils/validators.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_snackbar.dart';
 import '../../../shared/widgets/app_text_field.dart';
@@ -43,16 +44,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     ref.listen<AsyncValue<void>>(authControllerProvider, (previous, next) {
       if (next.hasError && !next.isLoading) {
-        showMessage(context, authErrorMessage(next.error!));
+        showMessage(context, authErrorMessage(l10n, next.error!));
       }
     });
     final loading = ref.watch(authControllerProvider).isLoading;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create account'),
+        title: Text(l10n.createAccount),
         leading: BackButton(onPressed: () => context.go(AppRoutes.login)),
       ),
       body: SafeArea(
@@ -69,16 +72,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   children: [
                     AppTextField(
                       controller: _name,
-                      label: 'Full name',
-                      validator: (v) => Validators.required(v, 'Name'),
+                      label: l10n.fullName,
+                      validator: Validators.nameRequired(l10n),
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.name],
                     ),
                     const SizedBox(height: 16),
                     AppTextField(
                       controller: _email,
-                      label: 'Email',
-                      validator: Validators.email,
+                      label: l10n.email,
+                      validator: Validators.email(l10n),
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.email],
@@ -86,30 +89,30 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     const SizedBox(height: 16),
                     AppTextField(
                       controller: _password,
-                      label: 'Password',
-                      validator: Validators.password,
+                      label: l10n.password,
+                      validator: Validators.password(l10n),
                       obscure: true,
                       textInputAction: TextInputAction.next,
                     ),
                     const SizedBox(height: 16),
                     AppTextField(
                       controller: _confirm,
-                      label: 'Confirm password',
+                      label: l10n.confirmPassword,
                       validator: (v) =>
-                          v != _password.text ? 'Passwords do not match' : null,
+                          v != _password.text ? l10n.passwordsDoNotMatch : null,
                       obscure: true,
                       textInputAction: TextInputAction.done,
                       onSubmitted: (_) => _submit(),
                     ),
                     const SizedBox(height: 24),
                     AppButton(
-                        label: 'Create account',
+                        label: l10n.createAccount,
                         onPressed: _submit,
                         loading: loading),
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: () => context.go(AppRoutes.login),
-                      child: const Text('I already have an account'),
+                      child: Text(l10n.haveAccount),
                     ),
                   ],
                 ),

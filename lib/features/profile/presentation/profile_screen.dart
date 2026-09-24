@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/validators.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_snackbar.dart';
 import '../../../shared/widgets/app_text_field.dart';
@@ -36,9 +37,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       await ref
           .read(profileRepositoryProvider)
           .updateName(user, _name.text.trim());
-      if (mounted) showMessage(context, 'Profile updated');
+      if (mounted) {
+        showMessage(context, AppLocalizations.of(context).profileUpdated);
+      }
     } catch (_) {
-      if (mounted) showMessage(context, 'Could not save. Please try again.');
+      if (mounted) {
+        showMessage(context, AppLocalizations.of(context).saveFailed);
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -46,14 +51,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final profile = ref.watch(profileProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(title: Text(l10n.profile)),
       body: profile.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) =>
-            const Center(child: Text('Could not load your profile.')),
+        error: (error, stack) => Center(child: Text(l10n.profileLoadFailed)),
         data: (p) {
           if (p == null) return const SizedBox.shrink();
           if (!_initialized) {
@@ -81,14 +86,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     AppTextField(
                       controller: _name,
-                      label: 'Full name',
-                      validator: (v) => Validators.required(v, 'Name'),
+                      label: l10n.fullName,
+                      validator: Validators.nameRequired(l10n),
                       textInputAction: TextInputAction.done,
                       onSubmitted: (_) => _save(),
                     ),
                     const SizedBox(height: 24),
                     AppButton(
-                        label: 'Save changes',
+                        label: l10n.saveChanges,
                         onPressed: _save,
                         loading: _saving),
                   ],

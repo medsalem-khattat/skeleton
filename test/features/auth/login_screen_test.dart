@@ -3,13 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:skeleton/features/auth/application/auth_providers.dart';
 import 'package:skeleton/features/auth/presentation/login_screen.dart';
+import 'package:skeleton/l10n/app_localizations.dart';
 
 import '../../helpers/fake_auth_repository.dart';
 
-Widget _wrap(FakeAuthRepository fake) {
+Widget _wrap(FakeAuthRepository fake, {Locale locale = const Locale('en')}) {
   return ProviderScope(
     overrides: [authRepositoryProvider.overrideWithValue(fake)],
-    child: const MaterialApp(home: LoginScreen()),
+    child: MaterialApp(
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: const LoginScreen(),
+    ),
   );
 }
 
@@ -50,5 +56,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Incorrect email or password.'), findsOneWidget);
+  });
+
+  testWidgets('renders in French when the locale is fr', (tester) async {
+    await tester.pumpWidget(
+        _wrap(FakeAuthRepository(), locale: const Locale('fr')));
+
+    expect(find.text('Se connecter'), findsOneWidget);
+    expect(find.text('Sign in'), findsNothing);
   });
 }

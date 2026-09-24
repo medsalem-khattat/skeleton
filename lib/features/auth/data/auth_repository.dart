@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../l10n/app_localizations.dart';
 
 class AuthRepository {
   AuthRepository(this._auth, this._db);
@@ -44,29 +45,29 @@ class AuthRepository {
       _auth.sendPasswordResetEmail(email: email.trim());
 }
 
-/// Turns any error into a message that is safe to show to the user.
-String authErrorMessage(Object error) {
+/// Turns any error into a localized message that is safe to show to the user.
+String authErrorMessage(AppLocalizations l10n, Object error) {
   if (error is FirebaseAuthException) {
     switch (error.code) {
       case 'invalid-email':
-        return 'The email address is not valid.';
+        return l10n.errorInvalidEmail;
       case 'user-disabled':
-        return 'This account has been disabled.';
+        return l10n.errorUserDisabled;
       case 'user-not-found':
       case 'wrong-password':
       case 'invalid-credential':
-        return 'Incorrect email or password.';
+        return l10n.errorWrongCredentials;
       case 'email-already-in-use':
-        return 'An account already exists for this email.';
+        return l10n.errorEmailInUse;
       case 'weak-password':
-        return 'Password is too weak. Use at least 6 characters.';
+        return l10n.errorWeakPassword;
       case 'network-request-failed':
-        return 'No internet connection. Please try again.';
+        return l10n.errorNetwork;
       case 'too-many-requests':
-        return 'Too many attempts. Please try again later.';
+        return l10n.errorTooManyAttempts;
       default:
-        return 'Something went wrong (${error.code}).';
+        return l10n.errorUnknownCode(error.code);
     }
   }
-  return 'Something went wrong. Please try again.';
+  return l10n.errorGeneric;
 }

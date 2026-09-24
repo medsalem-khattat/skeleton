@@ -2,26 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../auth/application/auth_providers.dart';
+import '../application/locale_controller.dart';
 import '../application/theme_controller.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Log out?'),
-        content: const Text('You will need to sign in again.'),
+        title: Text(l10n.logOutQuestion),
+        content: Text(l10n.logOutBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Log out'),
+            child: Text(l10n.logOut),
           ),
         ],
       ),
@@ -34,34 +37,37 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final mode = ref.watch(themeModeProvider);
+    final locale = ref.watch(localeProvider);
+    final languageValue = locale?.languageCode ?? 'system';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(l10n.settings)),
       body: ListView(
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text('Appearance'),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(l10n.appearance),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: SegmentedButton<ThemeMode>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: ThemeMode.system,
-                  label: Text('System'),
-                  icon: Icon(Icons.brightness_auto),
+                  label: Text(l10n.themeSystem),
+                  icon: const Icon(Icons.brightness_auto),
                 ),
                 ButtonSegment(
                   value: ThemeMode.light,
-                  label: Text('Light'),
-                  icon: Icon(Icons.light_mode),
+                  label: Text(l10n.themeLight),
+                  icon: const Icon(Icons.light_mode),
                 ),
                 ButtonSegment(
                   value: ThemeMode.dark,
-                  label: Text('Dark'),
-                  icon: Icon(Icons.dark_mode),
+                  label: Text(l10n.themeDark),
+                  icon: const Icon(Icons.dark_mode),
                 ),
               ],
               selected: {mode},
@@ -70,16 +76,37 @@ class SettingsScreen extends ConsumerWidget {
                   .setMode(selection.first),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+            child: Text(l10n.language),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SegmentedButton<String>(
+              segments: [
+                ButtonSegment(value: 'system', label: Text(l10n.languageSystem)),
+                const ButtonSegment(value: 'en', label: Text('English')),
+                const ButtonSegment(value: 'fr', label: Text('Français')),
+              ],
+              selected: {languageValue},
+              onSelectionChanged: (selection) {
+                final code = selection.first;
+                ref
+                    .read(localeProvider.notifier)
+                    .setLocale(code == 'system' ? null : Locale(code));
+              },
+            ),
+          ),
           const SizedBox(height: 16),
           const Divider(),
-          const ListTile(
-            leading: Icon(Icons.info_outline),
-            title: Text('Version'),
-            trailing: Text(AppConfig.appVersion),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: Text(l10n.version),
+            trailing: const Text(AppConfig.appVersion),
           ),
           ListTile(
             leading: const Icon(Icons.logout),
-            title: const Text('Log out'),
+            title: Text(l10n.logOut),
             onTap: () => _confirmLogout(context, ref),
           ),
         ],

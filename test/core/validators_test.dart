@@ -1,41 +1,57 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:skeleton/core/utils/validators.dart';
+import 'package:skeleton/l10n/app_localizations.dart';
 
 void main() {
+  final l10n = lookupAppLocalizations(const Locale('en'));
+
   group('Validators.email', () {
+    final validate = Validators.email(l10n);
+
     test('rejects empty and malformed emails', () {
-      expect(Validators.email(null), isNotNull);
-      expect(Validators.email('  '), isNotNull);
-      expect(Validators.email('not-an-email'), isNotNull);
-      expect(Validators.email('a@b'), isNotNull);
+      expect(validate(null), 'Email is required');
+      expect(validate('  '), 'Email is required');
+      expect(validate('not-an-email'), 'Enter a valid email');
+      expect(validate('a@b'), 'Enter a valid email');
     });
 
     test('accepts a valid email', () {
-      expect(Validators.email('user@example.com'), isNull);
-      expect(Validators.email('  user@example.com  '), isNull);
+      expect(validate('user@example.com'), isNull);
+      expect(validate('  user@example.com  '), isNull);
     });
   });
 
   group('Validators.password', () {
+    final validate = Validators.password(l10n);
+
     test('rejects empty and short passwords', () {
-      expect(Validators.password(null), isNotNull);
-      expect(Validators.password(''), isNotNull);
-      expect(Validators.password('12345'), isNotNull);
+      expect(validate(null), 'Password is required');
+      expect(validate(''), 'Password is required');
+      expect(validate('12345'), 'Use at least 6 characters');
     });
 
     test('accepts 6+ characters', () {
-      expect(Validators.password('123456'), isNull);
+      expect(validate('123456'), isNull);
     });
   });
 
-  group('Validators.required', () {
-    test('rejects blank values and uses the label', () {
-      expect(Validators.required('  ', 'Name'), 'Name is required');
-      expect(Validators.required(null), 'This field is required');
+  group('Validators.nameRequired', () {
+    final validate = Validators.nameRequired(l10n);
+
+    test('rejects blank values', () {
+      expect(validate('  '), 'Name is required');
+      expect(validate(null), 'Name is required');
     });
 
     test('accepts non-empty values', () {
-      expect(Validators.required('Sam'), isNull);
+      expect(validate('Sam'), isNull);
     });
+  });
+
+  test('messages are translated', () {
+    final fr = lookupAppLocalizations(const Locale('fr'));
+    expect(Validators.email(fr)(''), fr.emailRequired);
+    expect(fr.emailRequired, isNot(l10n.emailRequired));
   });
 }

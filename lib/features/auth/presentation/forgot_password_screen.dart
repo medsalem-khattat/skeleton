@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_routes.dart';
 import '../../../core/utils/validators.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_snackbar.dart';
 import '../../../shared/widgets/app_text_field.dart';
@@ -34,7 +35,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         .read(authControllerProvider.notifier)
         .sendPasswordReset(_email.text);
     if (!mounted || !ok) return;
-    showMessage(context, 'Password reset email sent. Check your inbox.');
+    showMessage(context, AppLocalizations.of(context).resetLinkSent);
     if (context.canPop()) {
       context.pop();
     } else {
@@ -44,15 +45,17 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     ref.listen<AsyncValue<void>>(authControllerProvider, (previous, next) {
       if (next.hasError && !next.isLoading) {
-        showMessage(context, authErrorMessage(next.error!));
+        showMessage(context, authErrorMessage(l10n, next.error!));
       }
     });
     final loading = ref.watch(authControllerProvider).isLoading;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Reset password')),
+      appBar: AppBar(title: Text(l10n.resetPassword)),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -65,21 +68,19 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
-                      'Enter your email and we will send you a link to reset your password.',
-                    ),
+                    Text(l10n.resetInstructions),
                     const SizedBox(height: 24),
                     AppTextField(
                       controller: _email,
-                      label: 'Email',
-                      validator: Validators.email,
+                      label: l10n.email,
+                      validator: Validators.email(l10n),
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.done,
                       onSubmitted: (_) => _submit(),
                     ),
                     const SizedBox(height: 24),
                     AppButton(
-                        label: 'Send reset link',
+                        label: l10n.sendResetLink,
                         onPressed: _submit,
                         loading: loading),
                   ],

@@ -1,14 +1,17 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:skeleton/features/auth/application/auth_providers.dart';
 import 'package:skeleton/features/auth/data/auth_repository.dart';
+import 'package:skeleton/l10n/app_localizations.dart';
 
 import '../../helpers/fake_auth_repository.dart';
 
 void main() {
   late FakeAuthRepository fake;
   late ProviderContainer container;
+  final l10n = lookupAppLocalizations(const Locale('en'));
 
   setUp(() {
     fake = FakeAuthRepository();
@@ -47,19 +50,35 @@ void main() {
   group('authErrorMessage', () {
     test('maps known Firebase codes to friendly messages', () {
       expect(
-        authErrorMessage(FirebaseAuthException(code: 'wrong-password')),
+        authErrorMessage(l10n, FirebaseAuthException(code: 'wrong-password')),
         'Incorrect email or password.',
       );
       expect(
-        authErrorMessage(FirebaseAuthException(code: 'email-already-in-use')),
+        authErrorMessage(
+            l10n, FirebaseAuthException(code: 'email-already-in-use')),
         'An account already exists for this email.',
       );
     });
 
-    test('falls back for unknown errors', () {
+    test('includes the code for unknown Firebase errors', () {
       expect(
-        authErrorMessage(Exception('boom')),
+        authErrorMessage(l10n, FirebaseAuthException(code: 'weird-code')),
+        'Something went wrong (weird-code).',
+      );
+    });
+
+    test('falls back for non-Firebase errors', () {
+      expect(
+        authErrorMessage(l10n, Exception('boom')),
         'Something went wrong. Please try again.',
+      );
+    });
+
+    test('is translated', () {
+      final fr = lookupAppLocalizations(const Locale('fr'));
+      expect(
+        authErrorMessage(fr, FirebaseAuthException(code: 'wrong-password')),
+        'E-mail ou mot de passe incorrect.',
       );
     });
   });

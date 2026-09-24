@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/utils/validators.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_snackbar.dart';
 import '../../../shared/widgets/app_text_field.dart';
@@ -40,9 +41,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     ref.listen<AsyncValue<void>>(authControllerProvider, (previous, next) {
       if (next.hasError && !next.isLoading) {
-        showMessage(context, authErrorMessage(next.error!));
+        showMessage(context, authErrorMessage(l10n, next.error!));
       }
     });
     final loading = ref.watch(authControllerProvider).isLoading;
@@ -66,13 +69,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SizedBox(height: 8),
-                    const Text('Sign in to continue',
-                        textAlign: TextAlign.center),
+                    Text(l10n.signInToContinue, textAlign: TextAlign.center),
                     const SizedBox(height: 32),
                     AppTextField(
                       controller: _email,
-                      label: 'Email',
-                      validator: Validators.email,
+                      label: l10n.email,
+                      validator: Validators.email(l10n),
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.email],
@@ -80,8 +82,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const SizedBox(height: 16),
                     AppTextField(
                       controller: _password,
-                      label: 'Password',
-                      validator: Validators.password,
+                      label: l10n.password,
+                      validator: Validators.password(l10n),
                       obscure: true,
                       textInputAction: TextInputAction.done,
                       autofillHints: const [AutofillHints.password],
@@ -89,15 +91,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 24),
                     AppButton(
-                        label: 'Sign in', onPressed: _submit, loading: loading),
+                        label: l10n.signIn,
+                        onPressed: _submit,
+                        loading: loading),
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: () => context.push(AppRoutes.forgotPassword),
-                      child: const Text('Forgot password?'),
+                      child: Text(l10n.forgotPassword),
                     ),
                     TextButton(
                       onPressed: () => context.go(AppRoutes.register),
-                      child: const Text('Create an account'),
+                      child: Text(l10n.createAnAccount),
                     ),
                   ],
                 ),
