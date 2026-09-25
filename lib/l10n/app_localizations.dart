@@ -194,11 +194,29 @@ abstract class AppLocalizations {
   /// **'Welcome, {name}'**
   String welcomeName(String name);
 
-  /// No description provided for @homePlaceholder.
+  /// No description provided for @dashboardProfileTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your app content goes here.'**
-  String get homePlaceholder;
+  /// **'Your profile'**
+  String get dashboardProfileTitle;
+
+  /// No description provided for @dashboardProfileDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'View and update your personal details.'**
+  String get dashboardProfileDescription;
+
+  /// No description provided for @dashboardSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'App preferences'**
+  String get dashboardSettingsTitle;
+
+  /// No description provided for @dashboardSettingsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your theme and language.'**
+  String get dashboardSettingsDescription;
 
   /// No description provided for @home.
   ///
@@ -241,6 +259,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load your profile.'**
   String get profileLoadFailed;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get retry;
 
   /// No description provided for @appearance.
   ///
@@ -397,6 +421,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong. Please try again.'**
   String get errorGeneric;
+
+  /// No description provided for @accountSetupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account was created, but profile setup did not finish. Sign in and complete your profile.'**
+  String get accountSetupFailed;
+
+  /// No description provided for @showPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get showPassword;
+
+  /// No description provided for @hidePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get hidePassword;
 }
 
 class _AppLocalizationsDelegate

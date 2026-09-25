@@ -26,14 +26,24 @@ class AuthRepository {
       password: password,
     );
     final user = cred.user!;
-    await user.updateDisplayName(name.trim());
-    await firestoreRetry(
-      () => _db.collection(AppConfig.usersCollection).doc(user.uid).set({
-        'name': name.trim(),
-        'email': user.email,
-        'createdAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true)),
-    );
+    try {
+      await user.updateDisplayName(name.trim());
+      await firestoreRetry(
+        () => _db.collection(AppConfig.usersCollection).doc(user.uid).set({
+          'name': name.trim(),
+          'email': user.email,
+          'createdAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true)),
+      );
+    } catch (error) {
+      Object? signOutError;
+      try {
+        await signOut();
+      } catch (cleanupError) {
+        signOutError = cleanupError;
+      }
+      throw AccountProfileSetupException(error, signOutError: signOutError);
+    }
   }
 
   Future<void> signIn({required String email, required String password}) async {
@@ -44,19 +54,28 @@ class AuthRepository {
   }
 
   Future<void> signOut() async {
-    await _auth.signOut();
     // Clears any sensitive values the app may have cached locally,
-    // so nothing lingers after logout - even before this holds
-    // anything real.
+    // so a storage failure does not happen after authentication has ended.
     await SecureStorage.clearAll();
+    await _auth.signOut();
   }
 
   Future<void> sendPasswordReset(String email) =>
       _auth.sendPasswordResetEmail(email: email.trim());
 }
 
+class AccountProfileSetupException implements Exception {
+  const AccountProfileSetupException(this.cause, {this.signOutError});
+
+  final Object cause;
+  final Object? signOutError;
+}
+
 /// Turns any error into a localized message that is safe to show to the user.
 String authErrorMessage(AppLocalizations l10n, Object error) {
+  if (error is AccountProfileSetupException) {
+    return l10n.accountSetupFailed;
+  }
   if (error is FirebaseAuthException) {
     switch (error.code) {
       case 'invalid-email':

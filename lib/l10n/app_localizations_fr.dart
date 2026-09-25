@@ -61,8 +61,18 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get homePlaceholder =>
-      'Le contenu de votre application apparaîtra ici.';
+  String get dashboardProfileTitle => 'Votre profil';
+
+  @override
+  String get dashboardProfileDescription =>
+      'Consultez et modifiez vos informations personnelles.';
+
+  @override
+  String get dashboardSettingsTitle => 'Préférences de l’application';
+
+  @override
+  String get dashboardSettingsDescription =>
+      'Choisissez votre thème et votre langue.';
 
   @override
   String get home => 'Accueil';
@@ -84,6 +94,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get profileLoadFailed => 'Impossible de charger votre profil.';
+
+  @override
+  String get retry => 'Réessayer';
 
   @override
   String get appearance => 'Apparence';
@@ -165,4 +178,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get errorGeneric => 'Un problème est survenu. Veuillez réessayer.';
+
+  @override
+  String get accountSetupFailed =>
+      'Votre compte a été créé, mais la configuration du profil a échoué. Connectez-vous et complétez votre profil.';
+
+  @override
+  String get showPassword => 'Afficher le mot de passe';
+
+  @override
+  String get hidePassword => 'Masquer le mot de passe';
 }

@@ -16,7 +16,10 @@
   "resetLinkSent": "E-mail de réinitialisation envoyé. Vérifiez votre boîte de réception.",
   "welcome": "Bienvenue",
   "welcomeName": "Bienvenue, {name}",
-  "homePlaceholder": "Le contenu de votre application apparaîtra ici.",
+  "dashboardProfileTitle": "Votre profil",
+  "dashboardProfileDescription": "Consultez et modifiez vos informations personnelles.",
+  "dashboardSettingsTitle": "Préférences de l’application",
+  "dashboardSettingsDescription": "Choisissez votre thème et votre langue.",
   "home": "Accueil",
   "profile": "Profil",
   "settings": "Paramètres",
@@ -24,6 +27,7 @@
   "profileUpdated": "Profil mis à jour",
   "saveFailed": "Échec de l’enregistrement. Veuillez réessayer.",
   "profileLoadFailed": "Impossible de charger votre profil.",
+  "retry": "Réessayer",
   "appearance": "Apparence",
   "themeSystem": "Système",
   "themeLight": "Clair",
@@ -49,5 +53,8 @@
   "errorNetwork": "Pas de connexion Internet. Veuillez réessayer.",
   "errorTooManyAttempts": "Trop de tentatives. Réessayez plus tard.",
   "errorUnknownCode": "Un problème est survenu ({code}).",
-  "errorGeneric": "Un problème est survenu. Veuillez réessayer."
+  "errorGeneric": "Un problème est survenu. Veuillez réessayer.",
+  "accountSetupFailed": "Votre compte a été créé, mais la configuration du profil a échoué. Connectez-vous et complétez votre profil.",
+  "showPassword": "Afficher le mot de passe",
+  "hidePassword": "Masquer le mot de passe"
 }

@@ -23,7 +23,10 @@
       }
     }
   },
-  "homePlaceholder": "Your app content goes here.",
+  "dashboardProfileTitle": "Your profile",
+  "dashboardProfileDescription": "View and update your personal details.",
+  "dashboardSettingsTitle": "App preferences",
+  "dashboardSettingsDescription": "Choose your theme and language.",
   "home": "Home",
   "profile": "Profile",
   "settings": "Settings",
@@ -31,6 +34,7 @@
   "profileUpdated": "Profile updated",
   "saveFailed": "Could not save. Please try again.",
   "profileLoadFailed": "Could not load your profile.",
+  "retry": "Try again",
   "appearance": "Appearance",
   "themeSystem": "System",
   "themeLight": "Light",
@@ -63,5 +67,8 @@
       }
     }
   },
-  "errorGeneric": "Something went wrong. Please try again."
+  "errorGeneric": "Something went wrong. Please try again.",
+  "accountSetupFailed": "Your account was created, but profile setup did not finish. Sign in and complete your profile.",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password"
 }

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../profile/application/profile_providers.dart';
 
-/// Placeholder home screen. Replace the body with your app's real content.
+/// Dashboard for the profile and settings features currently in the skeleton.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -24,11 +26,24 @@ class HomeScreen extends ConsumerWidget {
             name.isEmpty ? l10n.welcome : l10n.welcomeName(name),
             style: Theme.of(context).textTheme.headlineSmall,
           ),
-          SizedBox(height: AppSpacing.md),
+          SizedBox(height: AppSpacing.lg),
           Card(
-            child: Padding(
-              padding: EdgeInsets.all(AppSpacing.md),
-              child: Text(l10n.homePlaceholder),
+            child: ListTile(
+              leading: const CircleAvatar(child: Icon(Icons.person_outline)),
+              title: Text(l10n.dashboardProfileTitle),
+              subtitle: Text(l10n.dashboardProfileDescription),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.go(AppRoutes.profile),
+            ),
+          ),
+          SizedBox(height: AppSpacing.sm),
+          Card(
+            child: ListTile(
+              leading: const CircleAvatar(child: Icon(Icons.tune)),
+              title: Text(l10n.dashboardSettingsTitle),
+              subtitle: Text(l10n.dashboardSettingsDescription),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.go(AppRoutes.settings),
             ),
           ),
         ],

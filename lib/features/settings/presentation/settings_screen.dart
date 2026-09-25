@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../../auth/application/auth_providers.dart';
+import '../../auth/data/auth_repository.dart';
 import '../application/locale_controller.dart';
 import '../application/theme_controller.dart';
 
@@ -31,8 +33,16 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
     if (confirmed == true) {
-      // The router redirects to the login screen once signed out.
-      await ref.read(authControllerProvider.notifier).signOut();
+      final succeeded = await ref
+          .read(authControllerProvider.notifier)
+          .signOut();
+      if (!succeeded && context.mounted) {
+        final error = ref.read(authControllerProvider).error;
+        showMessage(
+          context,
+          authErrorMessage(l10n, error ?? StateError('Sign out failed')),
+        );
+      }
     }
   }
 
@@ -49,7 +59,11 @@ class SettingsScreen extends ConsumerWidget {
         children: [
           Padding(
             padding: EdgeInsets.fromLTRB(
-                AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.sm),
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.sm,
+            ),
             child: Text(l10n.appearance),
           ),
           Padding(
@@ -73,21 +87,27 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
               selected: {mode},
-              onSelectionChanged: (selection) => ref
-                  .read(themeModeProvider.notifier)
-                  .setMode(selection.first),
+              onSelectionChanged: (selection) =>
+                  ref.read(themeModeProvider.notifier).setMode(selection.first),
             ),
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(
-                AppSpacing.md, AppSpacing.lg, AppSpacing.md, AppSpacing.sm),
+              AppSpacing.md,
+              AppSpacing.lg,
+              AppSpacing.md,
+              AppSpacing.sm,
+            ),
             child: Text(l10n.language),
           ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
             child: SegmentedButton<String>(
               segments: [
-                ButtonSegment(value: 'system', label: Text(l10n.languageSystem)),
+                ButtonSegment(
+                  value: 'system',
+                  label: Text(l10n.languageSystem),
+                ),
                 const ButtonSegment(value: 'en', label: Text('English')),
                 const ButtonSegment(value: 'fr', label: Text('Français')),
               ],

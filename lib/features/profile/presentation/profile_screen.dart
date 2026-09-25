@@ -59,7 +59,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       appBar: AppBar(title: Text(l10n.profile)),
       body: profile.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text(l10n.profileLoadFailed)),
+        error: (error, stack) => Center(
+          child: Padding(
+            padding: EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(l10n.profileLoadFailed),
+                SizedBox(height: AppSpacing.sm),
+                TextButton(
+                  onPressed: () => ref.invalidate(profileProvider),
+                  child: Text(l10n.retry),
+                ),
+              ],
+            ),
+          ),
+        ),
         data: (p) {
           if (p == null) return const SizedBox.shrink();
           if (!_initialized) {
@@ -73,8 +88,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Center(
                 child: CircleAvatar(
                   radius: 40,
-                  child: Text(initial,
-                      style: Theme.of(context).textTheme.headlineMedium),
+                  child: Text(
+                    initial,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
                 ),
               ),
               SizedBox(height: AppSpacing.md),
@@ -94,9 +111,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                     SizedBox(height: AppSpacing.lg),
                     AppButton(
-                        label: l10n.saveChanges,
-                        onPressed: _save,
-                        loading: _saving),
+                      label: l10n.saveChanges,
+                      onPressed: _save,
+                      loading: _saving,
+                    ),
                   ],
                 ),
               ),

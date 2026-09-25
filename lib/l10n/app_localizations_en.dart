@@ -60,7 +60,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get homePlaceholder => 'Your app content goes here.';
+  String get dashboardProfileTitle => 'Your profile';
+
+  @override
+  String get dashboardProfileDescription =>
+      'View and update your personal details.';
+
+  @override
+  String get dashboardSettingsTitle => 'App preferences';
+
+  @override
+  String get dashboardSettingsDescription => 'Choose your theme and language.';
 
   @override
   String get home => 'Home';
@@ -82,6 +92,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileLoadFailed => 'Could not load your profile.';
+
+  @override
+  String get retry => 'Try again';
 
   @override
   String get appearance => 'Appearance';
@@ -164,4 +177,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorGeneric => 'Something went wrong. Please try again.';
+
+  @override
+  String get accountSetupFailed =>
+      'Your account was created, but profile setup did not finish. Sign in and complete your profile.';
+
+  @override
+  String get showPassword => 'Show password';
+
+  @override
+  String get hidePassword => 'Hide password';
 }

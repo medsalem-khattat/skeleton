@@ -55,7 +55,9 @@ void main() {
       );
       expect(
         authErrorMessage(
-            l10n, FirebaseAuthException(code: 'email-already-in-use')),
+          l10n,
+          FirebaseAuthException(code: 'email-already-in-use'),
+        ),
         'An account already exists for this email.',
       );
     });
@@ -71,6 +73,17 @@ void main() {
       expect(
         authErrorMessage(l10n, Exception('boom')),
         'Something went wrong. Please try again.',
+      );
+    });
+
+    test('explains when account setup is incomplete', () {
+      expect(
+        authErrorMessage(
+          l10n,
+          AccountProfileSetupException(Exception('Firestore failed')),
+        ),
+        'Your account was created, but profile setup did not finish. '
+        'Sign in and complete your profile.',
       );
     });
 
