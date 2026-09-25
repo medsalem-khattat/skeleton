@@ -96,8 +96,9 @@ Before running a workflow, configure these items in Codemagic:
    - `API_BASE_URL` (optional; leave empty if the app does not use the API)
    - `API_KEY` (optional; use a Codemagic secret variable)
    - `CM_PUBLISH_EMAIL` (the address that receives build notifications)
-2. Add an Android keystore with the Codemagic credential/reference name
-   `android_keystore`.
+2. Add or select an Android keystore with the Codemagic credential/reference
+   name `medsalem`. If your keystore uses a different reference, update the
+   `android_signing` value in `codemagic.yaml` to match it exactly.
 3. Create an App Store Connect API-key integration named `codemagic`.
 4. In the iOS workflow settings, make sure the App Store distribution
    certificate and provisioning profile for `com.yourname.skeleton` are
