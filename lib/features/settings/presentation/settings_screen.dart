@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/auth_providers.dart';
 import '../application/locale_controller.dart';
@@ -47,11 +48,12 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            padding: EdgeInsets.fromLTRB(
+                AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.sm),
             child: Text(l10n.appearance),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
             child: SegmentedButton<ThemeMode>(
               segments: [
                 ButtonSegment(
@@ -77,11 +79,12 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+            padding: EdgeInsets.fromLTRB(
+                AppSpacing.md, AppSpacing.lg, AppSpacing.md, AppSpacing.sm),
             child: Text(l10n.language),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
             child: SegmentedButton<String>(
               segments: [
                 ButtonSegment(value: 'system', label: Text(l10n.languageSystem)),
@@ -97,7 +100,7 @@ class SettingsScreen extends ConsumerWidget {
               },
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: AppSpacing.md),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.info_outline),

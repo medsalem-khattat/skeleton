@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/validators.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_button.dart';
@@ -54,7 +55,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(AppSpacing.lg),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
               child: Form(
@@ -68,9 +69,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: AppSpacing.sm),
                     Text(l10n.signInToContinue, textAlign: TextAlign.center),
-                    const SizedBox(height: 32),
+                    SizedBox(height: AppSpacing.xl),
                     AppTextField(
                       controller: _email,
                       label: l10n.email,
@@ -79,7 +80,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.email],
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: AppSpacing.md),
                     AppTextField(
                       controller: _password,
                       label: l10n.password,
@@ -89,12 +90,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       autofillHints: const [AutofillHints.password],
                       onSubmitted: (_) => _submit(),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: AppSpacing.lg),
                     AppButton(
                         label: l10n.signIn,
                         onPressed: _submit,
                         loading: loading),
-                    const SizedBox(height: 8),
+                    SizedBox(height: AppSpacing.sm),
                     TextButton(
                       onPressed: () => context.push(AppRoutes.forgotPassword),
                       child: Text(l10n.forgotPassword),

@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../core/network/firestore_retry.dart';
+import '../../../core/storage/secure_storage.dart';
 import '../../../l10n/app_localizations.dart';
 
 class AuthRepository {
@@ -25,11 +27,13 @@ class AuthRepository {
     );
     final user = cred.user!;
     await user.updateDisplayName(name.trim());
-    await _db.collection(AppConfig.usersCollection).doc(user.uid).set({
-      'name': name.trim(),
-      'email': user.email,
-      'createdAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    await firestoreRetry(
+      () => _db.collection(AppConfig.usersCollection).doc(user.uid).set({
+        'name': name.trim(),
+        'email': user.email,
+        'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true)),
+    );
   }
 
   Future<void> signIn({required String email, required String password}) async {
@@ -39,7 +43,13 @@ class AuthRepository {
     );
   }
 
-  Future<void> signOut() => _auth.signOut();
+  Future<void> signOut() async {
+    await _auth.signOut();
+    // Clears any sensitive values the app may have cached locally,
+    // so nothing lingers after logout - even before this holds
+    // anything real.
+    await SecureStorage.clearAll();
+  }
 
   Future<void> sendPasswordReset(String email) =>
       _auth.sendPasswordResetEmail(email: email.trim());

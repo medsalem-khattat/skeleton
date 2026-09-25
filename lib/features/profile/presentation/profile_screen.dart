@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/validators.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_button.dart';
@@ -67,7 +68,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           }
           final initial = p.name.isNotEmpty ? p.name[0].toUpperCase() : '?';
           return ListView(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(AppSpacing.lg),
             children: [
               Center(
                 child: CircleAvatar(
@@ -76,9 +77,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       style: Theme.of(context).textTheme.headlineMedium),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: AppSpacing.md),
               Center(child: Text(p.email)),
-              const SizedBox(height: 32),
+              SizedBox(height: AppSpacing.xl),
               Form(
                 key: _formKey,
                 child: Column(
@@ -91,7 +92,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       textInputAction: TextInputAction.done,
                       onSubmitted: (_) => _save(),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: AppSpacing.lg),
                     AppButton(
                         label: l10n.saveChanges,
                         onPressed: _save,
