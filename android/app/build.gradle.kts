@@ -24,21 +24,30 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.yourname.skeleton"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            val keystorePath = System.getenv("CM_KEYSTORE_PATH")
+                ?: error("CM_KEYSTORE_PATH is required for release signing")
+            storeFile = file(keystorePath)
+            storePassword = System.getenv("CM_KEYSTORE_PASSWORD")
+                ?: error("CM_KEYSTORE_PASSWORD is required for release signing")
+            keyAlias = System.getenv("CM_KEY_ALIAS")
+                ?: error("CM_KEY_ALIAS is required for release signing")
+            keyPassword = System.getenv("CM_KEY_PASSWORD")
+                ?: error("CM_KEY_PASSWORD is required for release signing")
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

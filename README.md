@@ -98,7 +98,9 @@ Before running a workflow, configure these items in Codemagic:
    - `CM_PUBLISH_EMAIL` (the address that receives build notifications)
 2. Add or select an Android keystore with the Codemagic credential/reference
    name `medsalem`. If your keystore uses a different reference, update the
-   `android_signing` value in `codemagic.yaml` to match it exactly.
+   `android_signing` value in `codemagic.yaml` to match it exactly. The release
+   Gradle configuration consumes Codemagic's `CM_KEYSTORE_PATH`,
+   `CM_KEYSTORE_PASSWORD`, `CM_KEY_ALIAS`, and `CM_KEY_PASSWORD` variables.
 3. In Apple Developer, register the App ID `com.yourname.skeleton` under
    **Certificates, Identifiers & Profiles → Identifiers**. Enable the
    capabilities used by the app, then create an App Store provisioning profile
