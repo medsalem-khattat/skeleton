@@ -7,14 +7,20 @@ class AppConfig {
   AppConfig._();
 
   // --- Identity (edit per clone) ---
+  // NOTE: bundleId here is documentation only - the values that actually
+  // matter are in android/app/build.gradle (applicationId) and the iOS
+  // Xcode project. Keep this in sync with those, and with whatever
+  // `flutterfire configure` reports, or it will silently drift like it
+  // just did (this pointed at 'skeleton-d295d' while firebase_options.dart
+  // was actually generated for the 'monapp-1aa68' project).
   static const String appName = 'Skeleton';
-  static const String bundleId = 'com.medsalem.skeleton';
+  static const String bundleId = 'com.yourname.skeleton';
   static const String supportEmail = 'support@example.com';
   static const String appVersion = '1.0.0';
 
   // --- Firebase (details live in firebase_options.dart,
   //     regenerated with `flutterfire configure` per clone) ---
-  static const String firebaseProjectId = 'skeleton-d295d';
+  static const String firebaseProjectId = 'monapp-1aa68';
   static const String usersCollection = 'users';
 
   // --- Design (edit per clone: this single seed drives the whole
