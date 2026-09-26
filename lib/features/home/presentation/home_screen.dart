@@ -7,6 +7,7 @@ import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../profile/application/profile_providers.dart';
+import 'home_shell.dart';
 
 /// Dashboard for the profile and settings features currently in the skeleton.
 class HomeScreen extends ConsumerWidget {
@@ -18,7 +19,14 @@ class HomeScreen extends ConsumerWidget {
     final name = ref.watch(profileProvider).value?.name ?? '';
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppConfig.appName)),
+      appBar: AppBar(
+        title: const Text(AppConfig.appName),
+        leading: IconButton(
+          tooltip: l10n.openMenu,
+          icon: const Icon(Icons.menu),
+          onPressed: () => appShellScaffoldKey.currentState?.openDrawer(),
+        ),
+      ),
       body: ListView(
         padding: EdgeInsets.all(AppSpacing.md),
         children: [
@@ -26,24 +34,14 @@ class HomeScreen extends ConsumerWidget {
             name.isEmpty ? l10n.welcome : l10n.welcomeName(name),
             style: Theme.of(context).textTheme.headlineSmall,
           ),
-          SizedBox(height: AppSpacing.lg),
+          SizedBox(height: AppSpacing.md),
           Card(
             child: ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.person_outline)),
+              leading: const Icon(Icons.person_outline),
               title: Text(l10n.dashboardProfileTitle),
               subtitle: Text(l10n.dashboardProfileDescription),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.go(AppRoutes.profile),
-            ),
-          ),
-          SizedBox(height: AppSpacing.sm),
-          Card(
-            child: ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.tune)),
-              title: Text(l10n.dashboardSettingsTitle),
-              subtitle: Text(l10n.dashboardSettingsDescription),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.go(AppRoutes.settings),
             ),
           ),
         ],

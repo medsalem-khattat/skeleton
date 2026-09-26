@@ -21,7 +21,7 @@ class ProfileRepository {
       final data = snap.data();
       return UserProfile(
         name: (data?['name'] as String?) ?? user.displayName ?? '',
-        email: (data?['email'] as String?) ?? user.email ?? '',
+        email: user.email ?? (data?['email'] as String?) ?? '',
       );
     });
   }
@@ -29,10 +29,9 @@ class ProfileRepository {
   Future<void> updateName(User user, String name) async {
     await user.updateDisplayName(name);
     await firestoreRetry(
-      () => _doc(user.uid).set(
-        {'name': name, 'email': user.email},
-        SetOptions(merge: true),
-      ),
+      () => _doc(
+        user.uid,
+      ).set({'name': name, 'email': user.email}, SetOptions(merge: true)),
     );
   }
 }

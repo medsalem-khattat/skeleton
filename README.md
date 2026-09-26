@@ -9,11 +9,15 @@ Only the features every app needs:
 | Feature | What it does |
 |---|---|
 | **Auth** | Register, login, logout, forgot password (Firebase Auth, email/password) |
-| **Home** | Placeholder screen inside a bottom navigation bar |
-| **Profile** | View and edit your name, stored in Firestore `users/{uid}` |
-| **Settings** | Light / dark / system theme (saved on the device), app version, logout |
+| **Home** | Dashboard for existing features, with navigation through the drawer |
+| **Profile** | Edit your name, change your password, and request an email change with verification |
+| **Settings** | Theme, language, app version, and logout in the navigation drawer |
 
 Also included: theme, router with an auth redirect, global error handling with Crashlytics (release builds), form validators, reusable widgets, and a test baseline.
+
+Password and email changes require the current password to reauthenticate.
+Firebase sends a verification link for email changes; the account continues
+using its current address until that link is confirmed.
 
 ## Stack
 
@@ -71,7 +75,13 @@ Each feature follows the same three layers:
    firebase login
    flutterfire configure --project=<your-project-id>
    ```
-4. Publish the Firestore rules from `firestore.rules` (Firebase console → Firestore → Rules).
+4. Deploy the Firestore rules from this repository:
+   ```
+   firebase deploy --only firestore:rules --project monapp-1aa68
+   ```
+   These rules let each signed-in user read and write only their own
+   `users/{uid}` profile document. Use your actual Firebase project ID if it
+   differs from `monapp-1aa68`.
 5. Run the app:
    ```
    flutter run
@@ -135,6 +145,6 @@ locally and commit the regenerated files before triggering a release build.
 
 - [x] Auth, home, profile, settings
 - [x] Test baseline
-- [ ] Localization (English plus a language picker in Settings)
+- [ ] Localization (English plus a language picker in the navigation drawer)
 - [ ] CI with GitHub Actions (analyze, test, build)
 - [ ] Dev and prod Firebase projects with flavors

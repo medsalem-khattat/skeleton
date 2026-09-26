@@ -6,6 +6,9 @@ class FakeAuthRepository implements AuthRepository {
   bool shouldFail = false;
   String? lastEmail;
   int signOutCalls = 0;
+  String? lastCurrentPassword;
+  String? lastNewPassword;
+  String? lastNewEmail;
 
   @override
   Future<void> signIn({required String email, required String password}) async {
@@ -32,6 +35,26 @@ class FakeAuthRepository implements AuthRepository {
   Future<void> sendPasswordReset(String email) async {
     if (shouldFail) throw FirebaseAuthException(code: 'user-not-found');
     lastEmail = email;
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    if (shouldFail) throw FirebaseAuthException(code: 'wrong-password');
+    lastCurrentPassword = currentPassword;
+    lastNewPassword = newPassword;
+  }
+
+  @override
+  Future<void> verifyEmailChange({
+    required String currentPassword,
+    required String newEmail,
+  }) async {
+    if (shouldFail) throw FirebaseAuthException(code: 'wrong-password');
+    lastCurrentPassword = currentPassword;
+    lastNewEmail = newEmail;
   }
 
   @override

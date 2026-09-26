@@ -67,10 +67,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'View and update your personal details.';
 
   @override
-  String get dashboardSettingsTitle => 'App preferences';
-
-  @override
-  String get dashboardSettingsDescription => 'Choose your theme and language.';
+  String get openMenu => 'Open menu';
 
   @override
   String get home => 'Home';
@@ -95,6 +92,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get retry => 'Try again';
+
+  @override
+  String get accountSecurity => 'Account security';
+
+  @override
+  String get changePassword => 'Change password';
+
+  @override
+  String get changeEmail => 'Change email';
+
+  @override
+  String get currentPassword => 'Current password';
+
+  @override
+  String get newPassword => 'New password';
+
+  @override
+  String get confirmNewPassword => 'Confirm new password';
+
+  @override
+  String get newEmail => 'New email';
+
+  @override
+  String get passwordChanged => 'Password changed successfully.';
+
+  @override
+  String get emailVerificationSent =>
+      'A verification link was sent to your new email. Your email changes after you verify it.';
+
+  @override
+  String get emailUnchanged =>
+      'Enter an email address different from your current one.';
 
   @override
   String get appearance => 'Appearance';
@@ -155,6 +184,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorWrongCredentials => 'Incorrect email or password.';
+
+  @override
+  String get errorRecentLogin =>
+      'Please check your current password and try again.';
 
   @override
   String get errorEmailInUse => 'An account already exists for this email.';

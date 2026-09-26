@@ -206,17 +206,11 @@ abstract class AppLocalizations {
   /// **'View and update your personal details.'**
   String get dashboardProfileDescription;
 
-  /// No description provided for @dashboardSettingsTitle.
+  /// No description provided for @openMenu.
   ///
   /// In en, this message translates to:
-  /// **'App preferences'**
-  String get dashboardSettingsTitle;
-
-  /// No description provided for @dashboardSettingsDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose your theme and language.'**
-  String get dashboardSettingsDescription;
+  /// **'Open menu'**
+  String get openMenu;
 
   /// No description provided for @home.
   ///
@@ -265,6 +259,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try again'**
   String get retry;
+
+  /// No description provided for @accountSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Account security'**
+  String get accountSecurity;
+
+  /// No description provided for @changePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get changePassword;
+
+  /// No description provided for @changeEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Change email'**
+  String get changeEmail;
+
+  /// No description provided for @currentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get currentPassword;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get newPassword;
+
+  /// No description provided for @confirmNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm new password'**
+  String get confirmNewPassword;
+
+  /// No description provided for @newEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'New email'**
+  String get newEmail;
+
+  /// No description provided for @passwordChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Password changed successfully.'**
+  String get passwordChanged;
+
+  /// No description provided for @emailVerificationSent.
+  ///
+  /// In en, this message translates to:
+  /// **'A verification link was sent to your new email. Your email changes after you verify it.'**
+  String get emailVerificationSent;
+
+  /// No description provided for @emailUnchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an email address different from your current one.'**
+  String get emailUnchanged;
 
   /// No description provided for @appearance.
   ///
@@ -385,6 +439,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Incorrect email or password.'**
   String get errorWrongCredentials;
+
+  /// No description provided for @errorRecentLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Please check your current password and try again.'**
+  String get errorRecentLogin;
 
   /// No description provided for @errorEmailInUse.
   ///

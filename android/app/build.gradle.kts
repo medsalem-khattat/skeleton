@@ -9,6 +9,17 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val releaseKeystorePath = System.getenv("CM_KEYSTORE_PATH")
+val releaseKeystorePassword = System.getenv("CM_KEYSTORE_PASSWORD")
+val releaseKeyAlias = System.getenv("CM_KEY_ALIAS")
+val releaseKeyPassword = System.getenv("CM_KEY_PASSWORD")
+val hasReleaseSigning = listOf(
+    releaseKeystorePath,
+    releaseKeystorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword,
+).all { !it.isNullOrBlank() }
+
 android {
     namespace = "com.yourname.skeleton"
     compileSdk = flutter.compileSdkVersion
@@ -32,23 +43,40 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            val keystorePath = System.getenv("CM_KEYSTORE_PATH")
-                ?: error("CM_KEYSTORE_PATH is required for release signing")
-            storeFile = file(keystorePath)
-            storePassword = System.getenv("CM_KEYSTORE_PASSWORD")
-                ?: error("CM_KEYSTORE_PASSWORD is required for release signing")
-            keyAlias = System.getenv("CM_KEY_ALIAS")
-                ?: error("CM_KEY_ALIAS is required for release signing")
-            keyPassword = System.getenv("CM_KEY_PASSWORD")
-                ?: error("CM_KEY_PASSWORD is required for release signing")
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(requireNotNull(releaseKeystorePath))
+                storePassword = requireNotNull(releaseKeystorePassword)
+                keyAlias = requireNotNull(releaseKeyAlias)
+                keyPassword = requireNotNull(releaseKeyPassword)
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
+    }
+}
+
+val validateReleaseSigning = tasks.register("validateReleaseSigning") {
+    doLast {
+        check(hasReleaseSigning) {
+            "Release signing is required. Configure CM_KEYSTORE_PATH, " +
+                "CM_KEYSTORE_PASSWORD, CM_KEY_ALIAS, and CM_KEY_PASSWORD."
+        }
+        check(file(requireNotNull(releaseKeystorePath)).isFile) {
+            "Release keystore not found at CM_KEYSTORE_PATH."
+        }
+    }
+}
+
+tasks.configureEach {
+    if (name == "assembleRelease" || name == "bundleRelease") {
+        dependsOn(validateReleaseSigning)
     }
 }
 

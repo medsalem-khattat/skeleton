@@ -47,6 +47,29 @@ void main() {
     expect(fake.signOutCalls, 1);
   });
 
+  test('changePassword forwards current and new passwords', () async {
+    final ok = await container
+        .read(authControllerProvider.notifier)
+        .changePassword(currentPassword: 'old-pass', newPassword: 'new-pass');
+
+    expect(ok, isTrue);
+    expect(fake.lastCurrentPassword, 'old-pass');
+    expect(fake.lastNewPassword, 'new-pass');
+  });
+
+  test('verifyEmailChange forwards the target email', () async {
+    final ok = await container
+        .read(authControllerProvider.notifier)
+        .verifyEmailChange(
+          currentPassword: 'current-pass',
+          newEmail: 'new@example.com',
+        );
+
+    expect(ok, isTrue);
+    expect(fake.lastCurrentPassword, 'current-pass');
+    expect(fake.lastNewEmail, 'new@example.com');
+  });
+
   group('authErrorMessage', () {
     test('maps known Firebase codes to friendly messages', () {
       expect(

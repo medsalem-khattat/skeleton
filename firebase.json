@@ -1,1 +1,25 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"monapp-1aa68","appId":"1:926739474102:android:f8090db40b350cf52e2817","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"monapp-1aa68","configurations":{"android":"1:926739474102:android:f8090db40b350cf52e2817","ios":"1:926739474102:ios:9d999c3085b1533d2e2817"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "monapp-1aa68",
+          "appId": "1:926739474102:android:f8090db40b350cf52e2817",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "monapp-1aa68",
+          "configurations": {
+            "android": "1:926739474102:android:f8090db40b350cf52e2817",
+            "ios": "1:926739474102:ios:9d999c3085b1533d2e2817"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}

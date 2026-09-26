@@ -34,14 +34,35 @@ class AuthController extends AsyncNotifier<void> {
   Future<bool> signIn(String email, String password) =>
       _run(() => _repo.signIn(email: email, password: password));
 
-  Future<bool> register(String name, String email, String password) => _run(
-      () => _repo.register(name: name, email: email, password: password));
+  Future<bool> register(String name, String email, String password) =>
+      _run(() => _repo.register(name: name, email: email, password: password));
 
   Future<bool> sendPasswordReset(String email) =>
       _run(() => _repo.sendPasswordReset(email));
 
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) => _run(
+    () => _repo.changePassword(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    ),
+  );
+
+  Future<bool> verifyEmailChange({
+    required String currentPassword,
+    required String newEmail,
+  }) => _run(
+    () => _repo.verifyEmailChange(
+      currentPassword: currentPassword,
+      newEmail: newEmail,
+    ),
+  );
+
   Future<bool> signOut() => _run(_repo.signOut);
 }
 
-final authControllerProvider =
-    AsyncNotifierProvider<AuthController, void>(AuthController.new);
+final authControllerProvider = AsyncNotifierProvider<AuthController, void>(
+  AuthController.new,
+);

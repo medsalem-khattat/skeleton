@@ -1,136 +1,113 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/config/app_config.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../shared/widgets/app_snackbar.dart';
-import '../../auth/application/auth_providers.dart';
-import '../../auth/data/auth_repository.dart';
 import '../application/locale_controller.dart';
 import '../application/theme_controller.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
-  Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
-    final l10n = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.logOutQuestion),
-        content: Text(l10n.logOutBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(l10n.logOut),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true) {
-      final succeeded = await ref
-          .read(authControllerProvider.notifier)
-          .signOut();
-      if (!succeeded && context.mounted) {
-        final error = ref.read(authControllerProvider).error;
-        showMessage(
-          context,
-          authErrorMessage(l10n, error ?? StateError('Sign out failed')),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final mode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
-    final languageValue = locale?.languageCode ?? 'system';
+    final selectedLanguageCode = locale?.languageCode ?? 'system';
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settings)),
       body: ListView(
+        padding: const EdgeInsets.all(AppSpacing.md),
         children: [
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.md,
-              AppSpacing.md,
-              AppSpacing.sm,
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.appearance,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  RadioGroup<ThemeMode>(
+                    groupValue: mode,
+                    onChanged: (selection) {
+                      if (selection != null) {
+                        ref.read(themeModeProvider.notifier).setMode(selection);
+                      }
+                    },
+                    child: Column(
+                      children: [
+                        RadioListTile<ThemeMode>(
+                          value: ThemeMode.system,
+                          title: Text(l10n.themeSystem),
+                          secondary: const Icon(Icons.brightness_auto),
+                        ),
+                        RadioListTile<ThemeMode>(
+                          value: ThemeMode.light,
+                          title: Text(l10n.themeLight),
+                          secondary: const Icon(Icons.light_mode),
+                        ),
+                        RadioListTile<ThemeMode>(
+                          value: ThemeMode.dark,
+                          title: Text(l10n.themeDark),
+                          secondary: const Icon(Icons.dark_mode),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-            child: Text(l10n.appearance),
           ),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            child: SegmentedButton<ThemeMode>(
-              segments: [
-                ButtonSegment(
-                  value: ThemeMode.system,
-                  label: Text(l10n.themeSystem),
-                  icon: const Icon(Icons.brightness_auto),
+          const SizedBox(height: AppSpacing.md),
+          Card(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    0,
+                  ),
+                  child: Text(
+                    l10n.language,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                 ),
-                ButtonSegment(
-                  value: ThemeMode.light,
-                  label: Text(l10n.themeLight),
-                  icon: const Icon(Icons.light_mode),
-                ),
-                ButtonSegment(
-                  value: ThemeMode.dark,
-                  label: Text(l10n.themeDark),
-                  icon: const Icon(Icons.dark_mode),
+                RadioGroup<String>(
+                  groupValue: selectedLanguageCode,
+                  onChanged: (code) {
+                    if (code != null) {
+                      ref
+                          .read(localeProvider.notifier)
+                          .setLocale(code == 'system' ? null : Locale(code));
+                    }
+                  },
+                  child: Column(
+                    children: [
+                      RadioListTile<String>(
+                        value: 'system',
+                        title: Text(l10n.languageSystem),
+                      ),
+                      const RadioListTile<String>(
+                        value: 'en',
+                        title: Text('English'),
+                      ),
+                      const RadioListTile<String>(
+                        value: 'fr',
+                        title: Text('Français'),
+                      ),
+                    ],
+                  ),
                 ),
               ],
-              selected: {mode},
-              onSelectionChanged: (selection) =>
-                  ref.read(themeModeProvider.notifier).setMode(selection.first),
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.lg,
-              AppSpacing.md,
-              AppSpacing.sm,
-            ),
-            child: Text(l10n.language),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            child: SegmentedButton<String>(
-              segments: [
-                ButtonSegment(
-                  value: 'system',
-                  label: Text(l10n.languageSystem),
-                ),
-                const ButtonSegment(value: 'en', label: Text('English')),
-                const ButtonSegment(value: 'fr', label: Text('Français')),
-              ],
-              selected: {languageValue},
-              onSelectionChanged: (selection) {
-                final code = selection.first;
-                ref
-                    .read(localeProvider.notifier)
-                    .setLocale(code == 'system' ? null : Locale(code));
-              },
-            ),
-          ),
-          SizedBox(height: AppSpacing.md),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: Text(l10n.version),
-            trailing: const Text(AppConfig.appVersion),
-          ),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: Text(l10n.logOut),
-            onTap: () => _confirmLogout(context, ref),
           ),
         ],
       ),

@@ -47,6 +47,7 @@ class _SessionGuardState extends State<SessionGuard>
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     try {
+      await user.reload();
       // Forces a fresh token; throws if the account was disabled/deleted
       // or the session was revoked server-side.
       await user.getIdToken(true);

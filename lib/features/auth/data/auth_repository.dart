@@ -12,9 +12,43 @@ class AuthRepository {
   final FirebaseAuth _auth;
   final FirebaseFirestore _db;
 
-  Stream<User?> authStateChanges() => _auth.authStateChanges();
+  Stream<User?> authStateChanges() => _auth.userChanges();
 
   User? get currentUser => _auth.currentUser;
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final user = _requireEmailPasswordUser();
+    await _reauthenticate(user, currentPassword);
+    await user.updatePassword(newPassword);
+  }
+
+  Future<void> verifyEmailChange({
+    required String currentPassword,
+    required String newEmail,
+  }) async {
+    final user = _requireEmailPasswordUser();
+    await _reauthenticate(user, currentPassword);
+    await user.verifyBeforeUpdateEmail(newEmail.trim());
+  }
+
+  User _requireEmailPasswordUser() {
+    final user = _auth.currentUser;
+    if (user == null || user.email == null) {
+      throw StateError('An authenticated email/password user is required.');
+    }
+    return user;
+  }
+
+  Future<void> _reauthenticate(User user, String password) async {
+    final credential = EmailAuthProvider.credential(
+      email: user.email!,
+      password: password,
+    );
+    await user.reauthenticateWithCredential(credential);
+  }
 
   Future<void> register({
     required String name,
@@ -86,6 +120,8 @@ String authErrorMessage(AppLocalizations l10n, Object error) {
       case 'wrong-password':
       case 'invalid-credential':
         return l10n.errorWrongCredentials;
+      case 'requires-recent-login':
+        return l10n.errorRecentLogin;
       case 'email-already-in-use':
         return l10n.errorEmailInUse;
       case 'weak-password':

@@ -68,11 +68,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Consultez et modifiez vos informations personnelles.';
 
   @override
-  String get dashboardSettingsTitle => 'Préférences de l’application';
-
-  @override
-  String get dashboardSettingsDescription =>
-      'Choisissez votre thème et votre langue.';
+  String get openMenu => 'Ouvrir le menu';
 
   @override
   String get home => 'Accueil';
@@ -97,6 +93,38 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get retry => 'Réessayer';
+
+  @override
+  String get accountSecurity => 'Sécurité du compte';
+
+  @override
+  String get changePassword => 'Modifier le mot de passe';
+
+  @override
+  String get changeEmail => 'Modifier l’adresse e-mail';
+
+  @override
+  String get currentPassword => 'Mot de passe actuel';
+
+  @override
+  String get newPassword => 'Nouveau mot de passe';
+
+  @override
+  String get confirmNewPassword => 'Confirmer le nouveau mot de passe';
+
+  @override
+  String get newEmail => 'Nouvelle adresse e-mail';
+
+  @override
+  String get passwordChanged => 'Le mot de passe a été modifié.';
+
+  @override
+  String get emailVerificationSent =>
+      'Un lien de vérification a été envoyé à votre nouvelle adresse. Le changement sera appliqué après vérification.';
+
+  @override
+  String get emailUnchanged =>
+      'Saisissez une adresse différente de votre adresse actuelle.';
 
   @override
   String get appearance => 'Apparence';
@@ -157,6 +185,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get errorWrongCredentials => 'E-mail ou mot de passe incorrect.';
+
+  @override
+  String get errorRecentLogin =>
+      'Vérifiez votre mot de passe actuel et réessayez.';
 
   @override
   String get errorEmailInUse => 'Un compte existe déjà avec cet e-mail.';

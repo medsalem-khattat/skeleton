@@ -6,7 +6,7 @@ import 'package:skeleton/features/profile/application/profile_providers.dart';
 import 'package:skeleton/l10n/app_localizations.dart';
 
 void main() {
-  testWidgets('shows shortcuts to existing profile and settings features', (
+  testWidgets('shows welcome and menu access without footer navigation', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -20,8 +20,11 @@ void main() {
       ),
     );
 
+    expect(find.text('Welcome'), findsOneWidget);
     expect(find.text('Your profile'), findsOneWidget);
-    expect(find.text('App preferences'), findsOneWidget);
+    expect(find.text('View and update your personal details.'), findsOneWidget);
+    expect(find.byTooltip('Open menu'), findsOneWidget);
     expect(find.text('Your app content goes here.'), findsNothing);
+    expect(find.byType(NavigationBar), findsNothing);
   });
 }
