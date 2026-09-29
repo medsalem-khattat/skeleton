@@ -46,5 +46,27 @@ void main() {
         AppRoutes.login,
       );
     });
+
+    test('allows signed-out users to access forgot password', () {
+      expect(
+        AppRoutes.authRedirect(
+          isLoggedIn: false,
+          emailVerified: false,
+          location: AppRoutes.forgotPassword,
+        ),
+        isNull,
+      );
+    });
+
+    test('sends verified users away from auth screens', () {
+      expect(
+        AppRoutes.authRedirect(
+          isLoggedIn: true,
+          emailVerified: true,
+          location: AppRoutes.login,
+        ),
+        AppRoutes.home,
+      );
+    });
   });
 }

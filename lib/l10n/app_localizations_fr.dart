@@ -131,6 +131,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get saveFailed => 'Échec de l’enregistrement. Veuillez réessayer.';
 
   @override
+  String get profileSyncFailed =>
+      'La mise à jour du profil n’a pas abouti et les données du compte peuvent être désynchronisées. Veuillez réessayer.';
+
+  @override
   String get profileLoadFailed => 'Impossible de charger votre profil.';
 
   @override

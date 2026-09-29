@@ -19,15 +19,18 @@ class LocaleController extends Notifier<Locale?> {
   }
 
   Future<void> setLocale(Locale? locale) async {
-    state = locale;
     final prefs = ref.read(sharedPreferencesProvider);
+    late final bool saved;
     if (locale == null) {
-      await prefs.remove(_key);
+      saved = await prefs.remove(_key);
     } else {
-      await prefs.setString(_key, locale.languageCode);
+      saved = await prefs.setString(_key, locale.languageCode);
     }
+    if (!saved) throw StateError('Language preference could not be saved.');
+    state = locale;
   }
 }
 
-final localeProvider =
-    NotifierProvider<LocaleController, Locale?>(LocaleController.new);
+final localeProvider = NotifierProvider<LocaleController, Locale?>(
+  LocaleController.new,
+);

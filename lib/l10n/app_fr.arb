@@ -37,6 +37,7 @@
   "saveChanges": "Enregistrer",
   "profileUpdated": "Profil mis à jour",
   "saveFailed": "Échec de l’enregistrement. Veuillez réessayer.",
+  "profileSyncFailed": "La mise à jour du profil n’a pas abouti et les données du compte peuvent être désynchronisées. Veuillez réessayer.",
   "profileLoadFailed": "Impossible de charger votre profil.",
   "retry": "Réessayer",
   "accountSecurity": "Sécurité du compte",

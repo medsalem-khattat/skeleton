@@ -27,11 +27,43 @@ class ProfileRepository {
   }
 
   Future<void> updateName(User user, String name) async {
-    await user.updateDisplayName(name);
-    await firestoreRetry(
-      () => _doc(
-        user.uid,
-      ).set({'name': name, 'email': user.email}, SetOptions(merge: true)),
+    final previousDisplayName = user.displayName;
+    await updateProfileNameWithRollback(
+      updateAuthName: () => user.updateDisplayName(name),
+      persistProfile: () => firestoreRetry(
+        () => _doc(
+          user.uid,
+        ).set({'name': name, 'email': user.email}, SetOptions(merge: true)),
+      ),
+      rollbackAuthName: () => user.updateDisplayName(previousDisplayName),
     );
   }
+}
+
+Future<void> updateProfileNameWithRollback({
+  required Future<void> Function() updateAuthName,
+  required Future<void> Function() persistProfile,
+  required Future<void> Function() rollbackAuthName,
+}) async {
+  await updateAuthName();
+  try {
+    await persistProfile();
+  } catch (error, stackTrace) {
+    try {
+      await rollbackAuthName();
+    } catch (rollbackError, rollbackStackTrace) {
+      Error.throwWithStackTrace(
+        ProfileNameSyncException(error, rollbackError),
+        rollbackStackTrace,
+      );
+    }
+    Error.throwWithStackTrace(error, stackTrace);
+  }
+}
+
+class ProfileNameSyncException implements Exception {
+  const ProfileNameSyncException(this.profileError, this.rollbackError);
+
+  final Object profileError;
+  final Object rollbackError;
 }

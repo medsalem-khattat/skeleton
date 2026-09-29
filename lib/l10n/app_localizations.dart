@@ -320,6 +320,12 @@ abstract class AppLocalizations {
   /// **'Could not save. Please try again.'**
   String get saveFailed;
 
+  /// No description provided for @profileSyncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The profile update could not be completed and account data may be out of sync. Please try again.'**
+  String get profileSyncFailed;
+
   /// No description provided for @profileLoadFailed.
   ///
   /// In en, this message translates to:

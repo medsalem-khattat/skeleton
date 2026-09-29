@@ -44,6 +44,7 @@
   "saveChanges": "Save changes",
   "profileUpdated": "Profile updated",
   "saveFailed": "Could not save. Please try again.",
+  "profileSyncFailed": "The profile update could not be completed and account data may be out of sync. Please try again.",
   "profileLoadFailed": "Could not load your profile.",
   "retry": "Try again",
   "accountSecurity": "Account security",

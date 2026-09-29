@@ -19,6 +19,26 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _deviceAuthBusy = false;
 
+  Future<void> _setTheme(ThemeMode mode) async {
+    try {
+      await ref.read(themeModeProvider.notifier).setMode(mode);
+    } catch (_) {
+      if (mounted) {
+        showMessage(context, AppLocalizations.of(context).saveFailed);
+      }
+    }
+  }
+
+  Future<void> _setLocale(Locale? locale) async {
+    try {
+      await ref.read(localeProvider.notifier).setLocale(locale);
+    } catch (_) {
+      if (mounted) {
+        showMessage(context, AppLocalizations.of(context).saveFailed);
+      }
+    }
+  }
+
   Future<void> _setDeviceAuth(bool enabled) async {
     final l10n = AppLocalizations.of(context);
     setState(() => _deviceAuthBusy = true);
@@ -86,7 +106,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     groupValue: mode,
                     onChanged: (selection) {
                       if (selection != null) {
-                        ref.read(themeModeProvider.notifier).setMode(selection);
+                        _setTheme(selection);
                       }
                     },
                     child: Column(
@@ -134,9 +154,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   groupValue: selectedLanguageCode,
                   onChanged: (code) {
                     if (code != null) {
-                      ref
-                          .read(localeProvider.notifier)
-                          .setLocale(code == 'system' ? null : Locale(code));
+                      _setLocale(code == 'system' ? null : Locale(code));
                     }
                   },
                   child: Column(

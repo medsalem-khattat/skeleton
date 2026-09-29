@@ -34,7 +34,12 @@ class DeviceAuthController extends Notifier<bool> {
   bool build() => ref.watch(sharedPreferencesProvider).getBool(_key) ?? false;
 
   Future<void> setEnabled(bool enabled) async {
-    await ref.read(sharedPreferencesProvider).setBool(_key, enabled);
+    final saved = await ref
+        .read(sharedPreferencesProvider)
+        .setBool(_key, enabled);
+    if (!saved) {
+      throw StateError('Device authentication preference could not be saved.');
+    }
     state = enabled;
   }
 }

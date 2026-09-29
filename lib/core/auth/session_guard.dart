@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 ///
 /// Firebase's authStateChanges() only reacts to sign-in/out on THIS
 /// device; it does not notice remote revocation until a token refresh
-/// happens to fail on its own. This checks proactively every time the
-/// app returns to the foreground.
+/// happens to fail on its own. This checks on launch and when the app
+/// returns to the foreground, with a short throttle to avoid excess requests.
 ///
 /// Wrap the app's root widget with this, e.g. in app.dart:
 ///   SessionGuard(child: MaterialApp.router(...))
@@ -23,6 +23,11 @@ class SessionGuard extends StatefulWidget {
 
 class _SessionGuardState extends State<SessionGuard>
     with WidgetsBindingObserver {
+  static const _minimumCheckInterval = Duration(minutes: 1);
+
+  bool _checkInProgress = false;
+  DateTime? _lastCheckAt;
+
   @override
   void initState() {
     super.initState();
@@ -44,8 +49,17 @@ class _SessionGuardState extends State<SessionGuard>
   }
 
   Future<void> _checkSession() async {
+    if (_checkInProgress) return;
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
+    final now = DateTime.now();
+    final lastCheckAt = _lastCheckAt;
+    if (lastCheckAt != null &&
+        now.difference(lastCheckAt) < _minimumCheckInterval) {
+      return;
+    }
+    _checkInProgress = true;
+    _lastCheckAt = now;
     try {
       await user.reload();
       // Forces a fresh token; throws if the account was disabled/deleted
@@ -58,13 +72,23 @@ class _SessionGuardState extends State<SessionGuard>
         'user-token-expired',
         'invalid-user-token',
       };
-      if (invalidated.contains(e.code)) {
+      if (invalidated.contains(e.code) &&
+          FirebaseAuth.instance.currentUser?.uid == user.uid) {
         await FirebaseAuth.instance.signOut();
         // The router's own redirect (auth.currentUser == null) sends
         // the user back to the login screen automatically.
+      } else {
+        debugPrint(
+          'Could not validate the current Firebase session: ${e.code}',
+        );
       }
-    } catch (_) {
-      // Network or other transient errors: ignore, re-check next resume.
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Unexpected error while validating the session: '
+        '$error\n$stackTrace',
+      );
+    } finally {
+      _checkInProgress = false;
     }
   }
 

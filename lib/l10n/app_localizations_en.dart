@@ -130,6 +130,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveFailed => 'Could not save. Please try again.';
 
   @override
+  String get profileSyncFailed =>
+      'The profile update could not be completed and account data may be out of sync. Please try again.';
+
+  @override
   String get profileLoadFailed => 'Could not load your profile.';
 
   @override

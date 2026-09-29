@@ -20,10 +20,14 @@ class ThemeController extends Notifier<ThemeMode> {
   }
 
   Future<void> setMode(ThemeMode mode) async {
+    final saved = await ref
+        .read(sharedPreferencesProvider)
+        .setString(_key, mode.name);
+    if (!saved) throw StateError('Theme preference could not be saved.');
     state = mode;
-    await ref.read(sharedPreferencesProvider).setString(_key, mode.name);
   }
 }
 
-final themeModeProvider =
-    NotifierProvider<ThemeController, ThemeMode>(ThemeController.new);
+final themeModeProvider = NotifierProvider<ThemeController, ThemeMode>(
+  ThemeController.new,
+);

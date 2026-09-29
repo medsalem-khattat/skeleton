@@ -1,19 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 import '../config/app_config.dart';
 import 'retry.dart';
 
-/// Scaffold HTTP client for a future custom REST API.
-/// Not wired to any real endpoint yet - AppConfig.apiBaseUrl/apiKey
-/// are placeholders until that backend exists. Once it does:
-///   - requests get the current Firebase ID token as a Bearer header
-///     automatically (Firebase Auth manages that token's own refresh)
-///   - a 401 response triggers one forced token refresh + retry
-///   - transient network failures (timeouts, connection errors) are
-///     retried with backoff via withRetry
-///
-/// Requires the `dio` package: flutter pub add dio
+/// HTTP client scaffold for a future custom REST API.
+/// AppConfig.apiBaseUrl/apiKey are placeholders until a backend exists.
 class ApiClient {
   ApiClient() : dio = Dio(BaseOptions(baseUrl: AppConfig.apiBaseUrl)) {
     dio.interceptors.add(
@@ -29,13 +22,25 @@ class ApiClient {
           handler.next(options);
         },
         onError: (error, handler) async {
-          if (error.response?.statusCode == 401) {
+          final method = error.requestOptions.method.toUpperCase();
+          final retryableMethod = const {
+            'GET',
+            'HEAD',
+            'OPTIONS',
+          }.contains(method);
+          if (retryableMethod &&
+              error.response?.statusCode == 401 &&
+              error.requestOptions.extra['authRetry'] != true) {
             try {
               await FirebaseAuth.instance.currentUser?.getIdToken(true);
+              error.requestOptions.extra['authRetry'] = true;
               final retried = await dio.fetch(error.requestOptions);
               return handler.resolve(retried);
-            } catch (_) {
-              // fall through to the original error
+            } catch (refreshError, stackTrace) {
+              debugPrint(
+                'API request retry after authentication failed: '
+                '$refreshError\n$stackTrace',
+              );
             }
           }
           handler.next(error);
@@ -54,12 +59,9 @@ class ApiClient {
     );
   }
 
-  /// POST with retry on transient network errors.
+  /// POST without automatic retries because the request may not be idempotent.
   Future<Response<T>> post<T>(String path, {Object? data}) {
-    return withRetry(
-      () => dio.post<T>(path, data: data),
-      shouldRetry: _isTransientDioError,
-    );
+    return dio.post<T>(path, data: data);
   }
 
   bool _isTransientDioError(Object error) {

@@ -10,6 +10,7 @@ import '../../../shared/widgets/app_text_field.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../auth/data/auth_repository.dart';
 import '../application/profile_providers.dart';
+import '../data/profile_repository.dart';
 import '../../home/presentation/home_shell.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -43,9 +44,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (mounted) {
         showMessage(context, AppLocalizations.of(context).profileUpdated);
       }
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
-        showMessage(context, AppLocalizations.of(context).saveFailed);
+        final l10n = AppLocalizations.of(context);
+        showMessage(
+          context,
+          error is ProfileNameSyncException
+              ? l10n.profileSyncFailed
+              : l10n.saveFailed,
+        );
       }
     } finally {
       if (mounted) setState(() => _saving = false);
