@@ -8,7 +8,7 @@ Only the features every app needs:
 
 | Feature | What it does |
 |---|---|
-| **Auth** | Register, login, logout, forgot password (Firebase Auth, email/password) |
+| **Auth** | Register, verify email before app access, login, logout, forgot password (Firebase Auth, email/password) |
 | **Home** | Dashboard for existing features, with navigation through the drawer |
 | **Profile** | Edit your name, change your password, and request an email change with verification |
 | **Settings** | Theme, language, app version, and logout in the navigation drawer |
@@ -18,6 +18,12 @@ Also included: theme, router with an auth redirect, global error handling with C
 Password and email changes require the current password to reauthenticate.
 Firebase sends a verification link for email changes; the account continues
 using its current address until that link is confirmed.
+New accounts must verify their email address before accessing app screens.
+The verification screen lets users resend the link or refresh the verification
+status after opening it.
+Device authentication can optionally be enabled in Settings. When enabled,
+the app requires the device's biometric or screen-lock credential on launch
+and when it returns from the background.
 
 ## Stack
 

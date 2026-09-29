@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/auth/device_auth_gate.dart';
 import 'core/auth/session_guard.dart';
 import 'core/config/app_config.dart';
 import 'core/router/app_router.dart';
@@ -28,6 +29,8 @@ class App extends ConsumerWidget {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: router,
+        builder: (context, child) =>
+            DeviceAuthGate(child: child ?? const SizedBox.shrink()),
       ),
     );
   }

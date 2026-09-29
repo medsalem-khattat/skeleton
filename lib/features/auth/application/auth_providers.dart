@@ -40,6 +40,20 @@ class AuthController extends AsyncNotifier<void> {
   Future<bool> sendPasswordReset(String email) =>
       _run(() => _repo.sendPasswordReset(email));
 
+  Future<bool> resendEmailVerification() => _run(_repo.sendEmailVerification);
+
+  Future<bool?> reloadEmailVerification() async {
+    state = const AsyncLoading();
+    try {
+      final isVerified = await _repo.reloadEmailVerification();
+      state = const AsyncData(null);
+      return isVerified;
+    } catch (error, stackTrace) {
+      state = AsyncError(error, stackTrace);
+      return null;
+    }
+  }
+
   Future<bool> changePassword({
     required String currentPassword,
     required String newPassword,

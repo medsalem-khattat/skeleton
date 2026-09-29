@@ -1,17 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:local_auth/local_auth.dart';
 
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../shared/widgets/app_snackbar.dart';
+import '../application/device_auth_controller.dart';
 import '../application/locale_controller.dart';
 import '../application/theme_controller.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  bool _deviceAuthBusy = false;
+
+  Future<void> _setDeviceAuth(bool enabled) async {
     final l10n = AppLocalizations.of(context);
+    setState(() => _deviceAuthBusy = true);
+    try {
+      final authenticator = ref.read(deviceAuthenticatorProvider);
+      if (!await authenticator.isDeviceSupported()) {
+        if (mounted) showMessage(context, l10n.deviceAuthUnavailable);
+        return;
+      }
+
+      final authenticated = await authenticator.authenticate(
+        l10n.deviceAuthReason,
+      );
+      if (!mounted) return;
+      if (!authenticated) {
+        showMessage(context, l10n.deviceAuthFailed);
+        return;
+      }
+
+      await ref.read(deviceAuthEnabledProvider.notifier).setEnabled(enabled);
+    } on LocalAuthException {
+      if (mounted) showMessage(context, l10n.deviceAuthFailed);
+    } catch (_) {
+      if (mounted) showMessage(context, l10n.deviceAuthSaveFailed);
+    } finally {
+      if (mounted) setState(() => _deviceAuthBusy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final deviceAuthEnabled = ref.watch(deviceAuthEnabledProvider);
     final mode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
     final selectedLanguageCode = locale?.languageCode ?? 'system';
@@ -21,6 +61,16 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
+          Card(
+            child: SwitchListTile(
+              secondary: const Icon(Icons.phonelink_lock_outlined),
+              title: Text(l10n.deviceAuthTitle),
+              subtitle: Text(l10n.deviceAuthDescription),
+              value: deviceAuthEnabled,
+              onChanged: _deviceAuthBusy ? null : _setDeviceAuth,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.md),

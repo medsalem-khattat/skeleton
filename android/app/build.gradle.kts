@@ -9,6 +9,10 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+dependencies {
+    implementation("androidx.appcompat:appcompat:1.7.1")
+}
+
 val releaseKeystorePath = System.getenv("CM_KEYSTORE_PATH")
 val releaseKeystorePassword = System.getenv("CM_KEYSTORE_PASSWORD")
 val releaseKeyAlias = System.getenv("CM_KEY_ALIAS")

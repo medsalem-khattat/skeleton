@@ -47,6 +47,25 @@ void main() {
     expect(fake.signOutCalls, 1);
   });
 
+  test('resendEmailVerification requests another verification email', () async {
+    final sent = await container
+        .read(authControllerProvider.notifier)
+        .resendEmailVerification();
+
+    expect(sent, isTrue);
+    expect(fake.verificationEmailSendCount, 1);
+  });
+
+  test('reloadEmailVerification returns the refreshed status', () async {
+    fake.emailVerified = true;
+
+    final verified = await container
+        .read(authControllerProvider.notifier)
+        .reloadEmailVerification();
+
+    expect(verified, isTrue);
+  });
+
   test('changePassword forwards current and new passwords', () async {
     final ok = await container
         .read(authControllerProvider.notifier)

@@ -16,6 +16,25 @@ class AuthRepository {
 
   User? get currentUser => _auth.currentUser;
 
+  Future<void> sendEmailVerification() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw StateError('An authenticated user is required.');
+    }
+    if (!user.emailVerified) {
+      await user.sendEmailVerification();
+    }
+  }
+
+  Future<bool> reloadEmailVerification() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw StateError('An authenticated user is required.');
+    }
+    await user.reload();
+    return _auth.currentUser?.emailVerified ?? false;
+  }
+
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -69,7 +88,9 @@ class AuthRepository {
           'createdAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true)),
       );
+      await user.sendEmailVerification();
     } catch (error) {
+      if (error is FirebaseAuthException) rethrow;
       Object? signOutError;
       try {
         await signOut();

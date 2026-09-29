@@ -24,6 +24,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get forgotPassword => 'Mot de passe oublié ?';
 
   @override
+  String get verifyEmailTitle => 'Vérifiez votre adresse e-mail';
+
+  @override
+  String get verifyEmailInstructions =>
+      'Avant d’utiliser l’application, vérifiez votre adresse e-mail avec le lien que nous vous avons envoyé.';
+
+  @override
+  String get verificationEmailSent =>
+      'E-mail de vérification envoyé. Vérifiez votre boîte de réception et vos courriers indésirables.';
+
+  @override
+  String get resendVerificationEmail => 'Renvoyer l’e-mail de vérification';
+
+  @override
   String get createAnAccount => 'Créer un compte';
 
   @override
@@ -78,6 +92,34 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings => 'Paramètres';
+
+  @override
+  String get deviceAuthTitle => 'Authentification de l’appareil';
+
+  @override
+  String get deviceAuthDescription =>
+      'Demander le déverrouillage de l’appareil à l’ouverture et au retour dans l’application.';
+
+  @override
+  String get deviceAuthReason => 'Déverrouiller Skeleton';
+
+  @override
+  String get deviceAuthUnavailable =>
+      'Configurez un code PIN, un schéma, un mot de passe ou une biométrie sur votre appareil pour utiliser cette fonctionnalité.';
+
+  @override
+  String get deviceAuthFailed =>
+      'L’authentification n’a pas abouti. Réessayez pour déverrouiller l’application.';
+
+  @override
+  String get deviceAuthSaveFailed =>
+      'Impossible de modifier l’authentification de l’appareil. Veuillez réessayer.';
+
+  @override
+  String get deviceAuthLocked => 'Déverrouillez pour continuer';
+
+  @override
+  String get deviceAuthUnlock => 'Déverrouiller';
 
   @override
   String get saveChanges => 'Enregistrer';

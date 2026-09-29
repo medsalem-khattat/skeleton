@@ -128,6 +128,30 @@ abstract class AppLocalizations {
   /// **'Forgot password?'**
   String get forgotPassword;
 
+  /// No description provided for @verifyEmailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email'**
+  String get verifyEmailTitle;
+
+  /// No description provided for @verifyEmailInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Before you can use the app, verify your email address using the link we sent you.'**
+  String get verifyEmailInstructions;
+
+  /// No description provided for @verificationEmailSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification email sent. Check your inbox and spam folder.'**
+  String get verificationEmailSent;
+
+  /// No description provided for @resendVerificationEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend verification email'**
+  String get resendVerificationEmail;
+
   /// No description provided for @createAnAccount.
   ///
   /// In en, this message translates to:
@@ -229,6 +253,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get settings;
+
+  /// No description provided for @deviceAuthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Device authentication'**
+  String get deviceAuthTitle;
+
+  /// No description provided for @deviceAuthDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Require your device unlock when opening or returning to the app.'**
+  String get deviceAuthDescription;
+
+  /// No description provided for @deviceAuthReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Skeleton'**
+  String get deviceAuthReason;
+
+  /// No description provided for @deviceAuthUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up a device PIN, pattern, password, or biometrics to use this feature.'**
+  String get deviceAuthUnavailable;
+
+  /// No description provided for @deviceAuthFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Authentication was not completed. Try again to unlock the app.'**
+  String get deviceAuthFailed;
+
+  /// No description provided for @deviceAuthSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update device authentication. Please try again.'**
+  String get deviceAuthSaveFailed;
+
+  /// No description provided for @deviceAuthLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to continue'**
+  String get deviceAuthLocked;
+
+  /// No description provided for @deviceAuthUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get deviceAuthUnlock;
 
   /// No description provided for @saveChanges.
   ///

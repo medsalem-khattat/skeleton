@@ -24,6 +24,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forgotPassword => 'Forgot password?';
 
   @override
+  String get verifyEmailTitle => 'Verify your email';
+
+  @override
+  String get verifyEmailInstructions =>
+      'Before you can use the app, verify your email address using the link we sent you.';
+
+  @override
+  String get verificationEmailSent =>
+      'Verification email sent. Check your inbox and spam folder.';
+
+  @override
+  String get resendVerificationEmail => 'Resend verification email';
+
+  @override
   String get createAnAccount => 'Create an account';
 
   @override
@@ -77,6 +91,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings => 'Settings';
+
+  @override
+  String get deviceAuthTitle => 'Device authentication';
+
+  @override
+  String get deviceAuthDescription =>
+      'Require your device unlock when opening or returning to the app.';
+
+  @override
+  String get deviceAuthReason => 'Unlock Skeleton';
+
+  @override
+  String get deviceAuthUnavailable =>
+      'Set up a device PIN, pattern, password, or biometrics to use this feature.';
+
+  @override
+  String get deviceAuthFailed =>
+      'Authentication was not completed. Try again to unlock the app.';
+
+  @override
+  String get deviceAuthSaveFailed =>
+      'Could not update device authentication. Please try again.';
+
+  @override
+  String get deviceAuthLocked => 'Unlock to continue';
+
+  @override
+  String get deviceAuthUnlock => 'Unlock';
 
   @override
   String get saveChanges => 'Save changes';

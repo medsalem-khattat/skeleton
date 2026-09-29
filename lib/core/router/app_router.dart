@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/forgot_password_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
+import '../../features/auth/presentation/verify_email_screen.dart';
 import '../../features/auth/application/auth_providers.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/home/presentation/home_shell.dart';
@@ -43,15 +44,12 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.home,
     refreshListenable: refresh,
     redirect: (context, state) {
-      final loggedIn = auth.currentUser != null;
-      final onAuthScreen = AppRoutes.authRoutes.contains(state.matchedLocation);
-      if (!loggedIn && !onAuthScreen) return AppRoutes.login;
-      if (loggedIn &&
-          onAuthScreen &&
-          !ref.read(authControllerProvider).isLoading) {
-        return AppRoutes.home;
-      }
-      return null;
+      final user = auth.currentUser;
+      return AppRoutes.authRedirect(
+        isLoggedIn: user != null,
+        emailVerified: user?.emailVerified ?? false,
+        location: state.matchedLocation,
+      );
     },
     routes: [
       GoRoute(
@@ -65,6 +63,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.forgotPassword,
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.verifyEmail,
+        builder: (context, state) => const VerifyEmailScreen(),
       ),
       GoRoute(
         path: AppRoutes.settings,

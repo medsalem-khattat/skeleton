@@ -2,7 +2,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Thin wrapper around flutter_secure_storage for any sensitive local
 /// data you add later (e.g. a cached token from a future custom API,
-/// a biometric-unlock flag). Not used by anything yet - Firebase Auth
+/// a secret used by a future feature). Not used by anything yet - Firebase Auth
 /// already stores its own session securely on its own; use this only
 /// for NEW sensitive values your app introduces.
 ///
