@@ -118,17 +118,6 @@ void main() {
       );
     });
 
-    test('explains when account setup is incomplete', () {
-      expect(
-        authErrorMessage(
-          l10n,
-          AccountProfileSetupException(Exception('Firestore failed')),
-        ),
-        'Your account was created, but profile setup did not finish. '
-        'Sign in and complete your profile.',
-      );
-    });
-
     test('is translated', () {
       final fr = lookupAppLocalizations(const Locale('fr'));
       expect(

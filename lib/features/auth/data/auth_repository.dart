@@ -1,16 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../../../core/config/app_config.dart';
-import '../../../core/network/firestore_retry.dart';
 import '../../../core/storage/secure_storage.dart';
 import '../../../l10n/app_localizations.dart';
 
 class AuthRepository {
-  AuthRepository(this._auth, this._db);
+  AuthRepository(this._auth);
 
   final FirebaseAuth _auth;
-  final FirebaseFirestore _db;
 
   Stream<User?> authStateChanges() => _auth.userChanges();
 
@@ -78,27 +74,10 @@ class AuthRepository {
       email: email.trim(),
       password: password,
     );
-    final user = cred.user!;
-    try {
-      await user.updateDisplayName(name.trim());
-      await firestoreRetry(
-        () => _db.collection(AppConfig.usersCollection).doc(user.uid).set({
-          'name': name.trim(),
-          'email': user.email,
-          'createdAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true)),
-      );
-      await user.sendEmailVerification();
-    } catch (error) {
-      if (error is FirebaseAuthException) rethrow;
-      Object? signOutError;
-      try {
-        await signOut();
-      } catch (cleanupError) {
-        signOutError = cleanupError;
-      }
-      throw AccountProfileSetupException(error, signOutError: signOutError);
-    }
+    final user = cred.user;
+    if (user == null) throw StateError('Firebase did not return a new user.');
+    await user.updateDisplayName(name.trim());
+    await user.sendEmailVerification();
   }
 
   Future<void> signIn({required String email, required String password}) async {
@@ -119,18 +98,8 @@ class AuthRepository {
       _auth.sendPasswordResetEmail(email: email.trim());
 }
 
-class AccountProfileSetupException implements Exception {
-  const AccountProfileSetupException(this.cause, {this.signOutError});
-
-  final Object cause;
-  final Object? signOutError;
-}
-
 /// Turns any error into a localized message that is safe to show to the user.
 String authErrorMessage(AppLocalizations l10n, Object error) {
-  if (error is AccountProfileSetupException) {
-    return l10n.accountSetupFailed;
-  }
   if (error is FirebaseAuthException) {
     switch (error.code) {
       case 'invalid-email':

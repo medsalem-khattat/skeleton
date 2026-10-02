@@ -38,6 +38,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resendVerificationEmail => 'Resend verification email';
 
   @override
+  String get checkVerificationStatus => 'I\'ve verified my email';
+
+  @override
   String get createAnAccount => 'Create an account';
 
   @override
@@ -97,7 +100,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deviceAuthDescription =>
-      'Require your device unlock when opening or returning to the app.';
+      'Require your device unlock when opening the app or returning after 1 minute away.';
 
   @override
   String get deviceAuthReason => 'Unlock Skeleton';
@@ -190,6 +193,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageSystem => 'System';
 
   @override
+  String get notificationsTitle => 'Push notifications';
+
+  @override
+  String get notificationsEnabled => 'Notifications are enabled.';
+
+  @override
+  String get notificationsDenied =>
+      'Permission denied. Enable notifications in your device settings.';
+
+  @override
+  String get notificationsNotEnabled =>
+      'Allow notifications to receive updates.';
+
+  @override
+  String get notificationsEnable => 'Enable';
+
+  @override
+  String get notificationsStatusFailed =>
+      'Could not check notification permissions.';
+
+  @override
+  String get notificationsRequestFailed =>
+      'Could not request notification permissions. Please try again.';
+
+  @override
+  String get notificationsEmpty => 'You don\'t have any notifications yet.';
+
+  @override
+  String get notificationsLoadFailed => 'Could not load your notifications.';
+
+  @override
+  String get passwordChangedNotificationTitle => 'Password changed';
+
+  @override
+  String get passwordChangedNotificationBody =>
+      'Your account password was changed successfully.';
+
+  @override
+  String get passwordChangedNotificationFailed =>
+      'Your password changed, but we couldn\'t save the notification.';
+
+  @override
+  String get notificationJustNow => 'Just now';
+
+  @override
+  String get markNotificationRead => 'Mark as read';
+
+  @override
+  String get notificationMarkReadFailed =>
+      'Could not mark this notification as read.';
+
+  @override
+  String get notificationRead => 'Read';
+
+  @override
+  String get notificationNotFound =>
+      'This notification is no longer available.';
+
+  @override
   String get version => 'Version';
 
   @override
@@ -256,10 +318,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorGeneric => 'Something went wrong. Please try again.';
-
-  @override
-  String get accountSetupFailed =>
-      'Your account was created, but profile setup did not finish. Sign in and complete your profile.';
 
   @override
   String get showPassword => 'Show password';

@@ -1,0 +1,101 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/config/app_config.dart';
+import '../../../core/firebase/firebase_providers.dart';
+import 'app_notification.dart';
+
+final notificationInboxRepositoryProvider =
+    Provider<NotificationInboxRepository>((ref) {
+      return FirestoreNotificationInboxRepository(
+        ref.watch(firestoreProvider),
+        ref.watch(firebaseAuthProvider),
+      );
+    });
+
+final notificationInboxProvider = StreamProvider<List<AppNotification>>((ref) {
+  return ref.watch(notificationInboxRepositoryProvider).watch();
+});
+
+final notificationProvider = StreamProvider.family<AppNotification?, String>((
+  ref,
+  id,
+) {
+  return ref.watch(notificationInboxRepositoryProvider).watchNotification(id);
+});
+
+abstract interface class NotificationInboxRepository {
+  Stream<List<AppNotification>> watch();
+
+  Stream<AppNotification?> watchNotification(String notificationId);
+
+  Future<void> recordPasswordChanged();
+
+  Future<void> markRead(String notificationId);
+}
+
+class FirestoreNotificationInboxRepository
+    implements NotificationInboxRepository {
+  FirestoreNotificationInboxRepository(this._firestore, this._auth);
+
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
+
+  CollectionReference<Map<String, dynamic>> _notifications(String uid) =>
+      _firestore
+          .collection(AppConfig.usersCollection)
+          .doc(uid)
+          .collection('notifications');
+
+  String _requireUserId() {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) {
+      throw StateError('A signed-in user is required for notifications.');
+    }
+    return uid;
+  }
+
+  @override
+  Stream<List<AppNotification>> watch() {
+    final uid = _requireUserId();
+    return _notifications(uid)
+        .orderBy('createdAt', descending: true)
+        .limit(100)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(AppNotification.fromDocument)
+              .toList(growable: false),
+        );
+  }
+
+  @override
+  Stream<AppNotification?> watchNotification(String notificationId) {
+    final uid = _requireUserId();
+    return _notifications(uid).doc(notificationId).snapshots().map((snapshot) {
+      final data = snapshot.data();
+      if (!snapshot.exists || data == null) return null;
+      return AppNotification.fromData(snapshot.id, data);
+    });
+  }
+
+  @override
+  Future<void> recordPasswordChanged() async {
+    final uid = _requireUserId();
+    await _notifications(uid).add({
+      'type': 'password_changed',
+      'createdAt': FieldValue.serverTimestamp(),
+      'isRead': false,
+    });
+  }
+
+  @override
+  Future<void> markRead(String notificationId) async {
+    final uid = _requireUserId();
+    await _notifications(uid).doc(notificationId).update({
+      'isRead': true,
+      'readAt': FieldValue.serverTimestamp(),
+    });
+  }
+}

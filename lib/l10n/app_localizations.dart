@@ -152,6 +152,12 @@ abstract class AppLocalizations {
   /// **'Resend verification email'**
   String get resendVerificationEmail;
 
+  /// No description provided for @checkVerificationStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve verified my email'**
+  String get checkVerificationStatus;
+
   /// No description provided for @createAnAccount.
   ///
   /// In en, this message translates to:
@@ -263,7 +269,7 @@ abstract class AppLocalizations {
   /// No description provided for @deviceAuthDescription.
   ///
   /// In en, this message translates to:
-  /// **'Require your device unlock when opening or returning to the app.'**
+  /// **'Require your device unlock when opening the app or returning after 1 minute away.'**
   String get deviceAuthDescription;
 
   /// No description provided for @deviceAuthReason.
@@ -434,6 +440,108 @@ abstract class AppLocalizations {
   /// **'System'**
   String get languageSystem;
 
+  /// No description provided for @notificationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Push notifications'**
+  String get notificationsTitle;
+
+  /// No description provided for @notificationsEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are enabled.'**
+  String get notificationsEnabled;
+
+  /// No description provided for @notificationsDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Permission denied. Enable notifications in your device settings.'**
+  String get notificationsDenied;
+
+  /// No description provided for @notificationsNotEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow notifications to receive updates.'**
+  String get notificationsNotEnabled;
+
+  /// No description provided for @notificationsEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable'**
+  String get notificationsEnable;
+
+  /// No description provided for @notificationsStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check notification permissions.'**
+  String get notificationsStatusFailed;
+
+  /// No description provided for @notificationsRequestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not request notification permissions. Please try again.'**
+  String get notificationsRequestFailed;
+
+  /// No description provided for @notificationsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have any notifications yet.'**
+  String get notificationsEmpty;
+
+  /// No description provided for @notificationsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your notifications.'**
+  String get notificationsLoadFailed;
+
+  /// No description provided for @passwordChangedNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Password changed'**
+  String get passwordChangedNotificationTitle;
+
+  /// No description provided for @passwordChangedNotificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account password was changed successfully.'**
+  String get passwordChangedNotificationBody;
+
+  /// No description provided for @passwordChangedNotificationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your password changed, but we couldn\'t save the notification.'**
+  String get passwordChangedNotificationFailed;
+
+  /// No description provided for @notificationJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get notificationJustNow;
+
+  /// No description provided for @markNotificationRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as read'**
+  String get markNotificationRead;
+
+  /// No description provided for @notificationMarkReadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not mark this notification as read.'**
+  String get notificationMarkReadFailed;
+
+  /// No description provided for @notificationRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get notificationRead;
+
+  /// No description provided for @notificationNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This notification is no longer available.'**
+  String get notificationNotFound;
+
   /// No description provided for @version.
   ///
   /// In en, this message translates to:
@@ -559,12 +667,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong. Please try again.'**
   String get errorGeneric;
-
-  /// No description provided for @accountSetupFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Your account was created, but profile setup did not finish. Sign in and complete your profile.'**
-  String get accountSetupFailed;
 
   /// No description provided for @showPassword.
   ///

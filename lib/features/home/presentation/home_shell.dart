@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../core/config/feature_providers.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_snackbar.dart';
@@ -72,9 +73,14 @@ class AppNavigationDrawer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final features = ref.watch(appFeaturesProvider);
     final l10n = AppLocalizations.of(context);
-    final profile = ref.watch(profileProvider).value;
-    final currentUser = ref.watch(authRepositoryProvider).currentUser;
+    final profile = features.profileEnabled
+        ? ref.watch(profileProvider).value
+        : null;
+    final currentUser = features.profileEnabled
+        ? ref.watch(authRepositoryProvider).currentUser
+        : null;
     final profileName = profile?.name ?? '';
     final email = currentUser?.email ?? '';
     final avatarInitial = profileName.isNotEmpty
@@ -91,86 +97,101 @@ class AppNavigationDrawer extends ConsumerWidget {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
-                  Material(
-                    color: Theme.of(context).colorScheme.primary,
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.pop(context);
-                        context.go(AppRoutes.profile);
-                      },
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(minHeight: 190),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                CircleAvatar(
-                                  backgroundColor: Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimary,
-                                  foregroundColor: Theme.of(
-                                    context,
-                                  ).colorScheme.primary,
-                                  child: Text(avatarInitial.toUpperCase()),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  profileName,
-                                  textAlign: TextAlign.center,
-                                  softWrap: true,
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onPrimary,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                ),
-                                Text(
-                                  email.isNotEmpty
-                                      ? email
-                                      : profile?.email ?? '',
-                                  textAlign: TextAlign.center,
-                                  softWrap: true,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onPrimary,
-                                      ),
-                                ),
-                              ],
+                  if (features.profileEnabled)
+                    Material(
+                      color: Theme.of(context).colorScheme.primary,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.pop(context);
+                          context.go(AppRoutes.profile);
+                        },
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(minHeight: 190),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimary,
+                                    foregroundColor: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                    child: Text(avatarInitial.toUpperCase()),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    profileName,
+                                    textAlign: TextAlign.center,
+                                    softWrap: true,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                  Text(
+                                    email.isNotEmpty
+                                        ? email
+                                        : profile?.email ?? '',
+                                    textAlign: TextAlign.center,
+                                    softWrap: true,
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimary,
+                                        ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.home_outlined),
-                    title: Text(l10n.home),
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.go(AppRoutes.home);
-                    },
-                  ),
-                  const Divider(),
-                  ListTile(
-                    leading: const Icon(Icons.settings_outlined),
-                    title: Text(l10n.settings),
-                    onTap: () =>
-                        _openSettingsScreen(context, AppRoutes.settings),
-                  ),
-                  const Divider(),
-                  ListTile(
-                    leading: const Icon(Icons.logout),
-                    title: Text(l10n.logOut),
-                    onTap: () => _confirmLogout(context, ref),
-                  ),
+                  if (features.home)
+                    ListTile(
+                      leading: const Icon(Icons.home_outlined),
+                      title: Text(l10n.home),
+                      onTap: () {
+                        Navigator.pop(context);
+                        context.go(AppRoutes.home);
+                      },
+                    ),
+                  if (features.settingsEnabled) ...[
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.settings_outlined),
+                      title: Text(l10n.settings),
+                      onTap: () =>
+                          _openSettingsScreen(context, AppRoutes.settings),
+                    ),
+                  ],
+                  if (features.notificationInboxEnabled)
+                    ListTile(
+                      leading: const Icon(Icons.notifications_outlined),
+                      title: Text(l10n.notificationsTitle),
+                      onTap: () =>
+                          _openSettingsScreen(context, AppRoutes.notifications),
+                    ),
+                  if (features.authentication) ...[
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.logout),
+                      title: Text(l10n.logOut),
+                      onTap: () => _confirmLogout(context, ref),
+                    ),
+                  ],
                 ],
               ),
             ),

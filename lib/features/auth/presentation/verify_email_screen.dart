@@ -20,7 +20,7 @@ class VerifyEmailScreen extends ConsumerStatefulWidget {
 
 class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen>
     with WidgetsBindingObserver {
-  static const _verificationCheckInterval = Duration(seconds: 5);
+  static const _verificationCheckInterval = Duration(seconds: 30);
 
   Timer? _verificationTimer;
   bool _busy = false;
@@ -35,15 +35,12 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkVerification();
     });
-    _verificationTimer = Timer.periodic(
-      _verificationCheckInterval,
-      (_) => _checkVerification(),
-    );
+    _startVerificationTimer();
   }
 
   @override
   void dispose() {
-    _verificationTimer?.cancel();
+    _stopVerificationTimer();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -52,7 +49,25 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _checkVerification();
+      _startVerificationTimer();
+    } else if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.paused) {
+      _stopVerificationTimer();
     }
+  }
+
+  void _startVerificationTimer() {
+    _verificationTimer?.cancel();
+    _verificationTimer = Timer.periodic(
+      _verificationCheckInterval,
+      (_) => _checkVerification(),
+    );
+  }
+
+  void _stopVerificationTimer() {
+    _verificationTimer?.cancel();
+    _verificationTimer = null;
   }
 
   Future<void> _resendEmail() async {
@@ -82,6 +97,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen>
   Future<void> _checkVerification() async {
     if (_checkingVerification || _busy) return;
     _checkingVerification = true;
+    setState(() {});
 
     try {
       final isVerified = await ref
@@ -91,7 +107,10 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen>
 
       if (isVerified == true) {
         _verificationTimer?.cancel();
-        context.go(AppRoutes.home);
+        final destination = GoRouterState.of(
+          context,
+        ).uri.queryParameters['redirect'];
+        context.go(destination ?? AppRoutes.home);
         return;
       }
 
@@ -112,6 +131,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen>
       }
     } finally {
       _checkingVerification = false;
+      if (mounted) setState(() {});
     }
   }
 
@@ -193,6 +213,19 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen>
                     label: l10n.resendVerificationEmail,
                     onPressed: _resendEmail,
                     loading: _busy,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextButton(
+                    onPressed: _checkingVerification || _busy
+                        ? null
+                        : _checkVerification,
+                    child: _checkingVerification
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(l10n.checkVerificationStatus),
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   TextButton(

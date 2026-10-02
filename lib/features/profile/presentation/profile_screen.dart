@@ -12,6 +12,7 @@ import '../../auth/data/auth_repository.dart';
 import '../application/profile_providers.dart';
 import '../data/profile_repository.dart';
 import '../../home/presentation/home_shell.dart';
+import '../../notifications/data/notification_inbox_repository.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -66,8 +67,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       builder: (_) => const _ChangePasswordDialog(),
     );
 
-    if (changed == true && mounted) {
-      showMessage(context, l10n.passwordChanged);
+    if (changed != true || !mounted) return;
+
+    try {
+      await ref
+          .read(notificationInboxRepositoryProvider)
+          .recordPasswordChanged();
+      if (mounted) showMessage(context, l10n.passwordChanged);
+    } catch (_) {
+      if (mounted) {
+        showMessage(context, l10n.passwordChangedNotificationFailed);
+      }
     }
   }
 

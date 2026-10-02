@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
-/// Central config: the ONLY file to edit after cloning the skeleton.
-/// Secrets are NOT stored here. They are injected at build time with
-/// --dart-define (Codemagic / GitHub Actions secrets).
+import 'feature_config.dart';
+
+/// Central config for project identity and build-time settings.
+/// Feature modules are configured in feature_config.dart. Secrets are NOT
+/// stored here; they are injected at build time with --dart-define.
 class AppConfig {
   AppConfig._();
 
@@ -33,7 +35,6 @@ class AppConfig {
   static const String apiKey =
       String.fromEnvironment('API_KEY', defaultValue: '');
 
-  // --- Feature flags (turn template features on/off per clone) ---
-  static const bool enableBiometricLogin = false;
-  static const bool enablePushNotifications = false;
+  // --- Feature modules (edit only feature_config.dart to toggle modules) ---
+  static const AppFeatures features = AppFeatures.current;
 }

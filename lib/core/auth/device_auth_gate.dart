@@ -1,10 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_auth/local_auth.dart';
 
 import '../../features/auth/application/auth_providers.dart';
 import '../../features/settings/application/device_auth_controller.dart';
+import '../config/feature_providers.dart';
 import '../../l10n/app_localizations.dart';
+
+const deviceAuthBackgroundGracePeriod = Duration(minutes: 1);
 
 final verifiedDeviceAuthSessionProvider = Provider<String?>((ref) {
   final authState = ref.watch(authStateProvider);
@@ -29,16 +34,21 @@ class _DeviceAuthGateState extends ConsumerState<DeviceAuthGate>
   bool _initialCheckScheduled = false;
   String? _error;
   String? _observedUserId;
+  final Stopwatch _backgroundDuration = Stopwatch();
+  Timer? _backgroundGraceTimer;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _observedUserId = ref.read(verifiedDeviceAuthSessionProvider);
+    _observedUserId = ref.read(appFeaturesProvider).deviceAuthenticationEnabled
+        ? ref.read(verifiedDeviceAuthSessionProvider)
+        : null;
   }
 
   @override
   void dispose() {
+    _backgroundGraceTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -49,22 +59,57 @@ class _DeviceAuthGateState extends ConsumerState<DeviceAuthGate>
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
-      if (ref.read(deviceAuthEnabledProvider) &&
+      if (ref.read(appFeaturesProvider).deviceAuthenticationEnabled &&
+          ref.read(deviceAuthEnabledProvider) &&
           ref.read(verifiedDeviceAuthSessionProvider) != null) {
+        _startBackgroundGracePeriod();
+      }
+    } else if (state == AppLifecycleState.resumed) {
+      final exceededGracePeriod =
+          _backgroundDuration.elapsed >= deviceAuthBackgroundGracePeriod;
+      _stopBackgroundGracePeriod();
+      if (exceededGracePeriod && !_locked) {
         setState(() {
           _locked = true;
           _error = null;
         });
       }
-    } else if (state == AppLifecycleState.resumed && _locked) {
-      _authenticate();
+      if (_locked) _authenticate();
     }
+  }
+
+  void _startBackgroundGracePeriod() {
+    if (_backgroundDuration.isRunning) return;
+    _backgroundDuration
+      ..reset()
+      ..start();
+    _backgroundGraceTimer = Timer(deviceAuthBackgroundGracePeriod, () {
+      if (!mounted ||
+          !ref.read(appFeaturesProvider).deviceAuthenticationEnabled ||
+          !ref.read(deviceAuthEnabledProvider) ||
+          ref.read(verifiedDeviceAuthSessionProvider) == null) {
+        return;
+      }
+      setState(() {
+        _locked = true;
+        _error = null;
+      });
+    });
+  }
+
+  void _stopBackgroundGracePeriod() {
+    _backgroundGraceTimer?.cancel();
+    _backgroundGraceTimer = null;
+    _backgroundDuration
+      ..stop()
+      ..reset();
   }
 
   Future<void> _authenticate() async {
     if (_authenticating) return;
     final l10n = AppLocalizations.of(context);
-    if (!ref.read(deviceAuthEnabledProvider) ||
+    if (!ref.read(appFeaturesProvider).deviceAuthenticationEnabled ||
+        !ref.read(deviceAuthEnabledProvider) ||
         ref.read(verifiedDeviceAuthSessionProvider) == null) {
       if (mounted) setState(() => _locked = false);
       return;
@@ -112,6 +157,9 @@ class _DeviceAuthGateState extends ConsumerState<DeviceAuthGate>
 
   @override
   Widget build(BuildContext context) {
+    if (!ref.watch(appFeaturesProvider).deviceAuthenticationEnabled) {
+      return widget.child;
+    }
     final enabled = ref.watch(deviceAuthEnabledProvider);
     final verifiedUserId = ref.watch(verifiedDeviceAuthSessionProvider);
     final verifiedUser = verifiedUserId != null;
@@ -121,6 +169,7 @@ class _DeviceAuthGateState extends ConsumerState<DeviceAuthGate>
       if (userId == _observedUserId) return;
       _observedUserId = userId;
       if (userId == null) {
+        _stopBackgroundGracePeriod();
         setState(() {
           _locked = false;
           _error = null;

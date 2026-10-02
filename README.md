@@ -15,12 +15,64 @@ Only the features every app needs:
 
 Also included: theme, router with an auth redirect, global error handling with Crashlytics (release builds), form validators, reusable widgets, and a test baseline.
 
+### Optional feature modules
+
+Enable or disable modules in
+[`lib/core/config/feature_config.dart`](lib/core/config/feature_config.dart)
+by changing `AppFeatures.current`. Rebuild the app after changing a flag.
+
+| Module | Independent behavior | Dependency |
+|---|---|---|
+| Authentication | Email/password sign-in, registration, verification, password reset | Firebase Auth |
+| Home | Anonymous or authenticated landing screen | None |
+| Profile | Account details and account-security actions | Authentication and Firestore |
+| Settings: appearance | Theme selection | Local preferences |
+| Settings: language | Language selection | Local preferences |
+| Settings: device authentication | App lock after launch/background | Authentication, Settings, and device authentication support |
+| Push notifications | Firebase Cloud Messaging; foreground notifications are displayed by the platform | Firebase Messaging |
+| Notification inbox | Per-user in-app security notifications with read status | Authentication and Firestore |
+| Crash reporting | Release crash reports | Firebase |
+
+Profile and device authentication are automatically unavailable when
+Authentication is disabled. Authentication can run without Profile or
+Firestore. When Authentication is disabled, Home or at least one Settings
+module must remain enabled. When Authentication is enabled, Home, Profile, or
+at least one Settings module must remain enabled as the post-login destination.
+The app validates these combinations at startup.
+
+For an anonymous build that does not initialize Firebase, disable
+`authentication`, `crashReporting`, and `pushNotifications`, and keep Home or
+a Settings module enabled. Home and local Settings then run independently of
+Firebase.
+
+Push notifications are enabled by default and ask for permission from Settings,
+not at app startup. Android displays foreground notifications through a local
+notification; iOS uses its foreground notification presentation. To receive
+remote notifications, configure Firebase Cloud Messaging for the app and
+provide an APNs authentication key in the Firebase console. The iOS App ID and
+provisioning profile must include the Push Notifications capability.
+Include the Firestore notification document ID in the FCM data payload as
+`notificationId`; tapping that push opens the matching in-app notification.
+If no ID is supplied, the app opens the notification inbox. A signed-out user
+is sent through sign-in and email verification first, then returned to the
+requested notification.
+This scaffold handles receiving notifications but does not include a sending
+backend or device-token storage. Register the FCM token with a trusted backend
+before targeting individual devices; never put Firebase server credentials in
+the app.
+
 Password and email changes require the current password to reauthenticate.
 Firebase sends a verification link for email changes; the account continues
 using its current address until that link is confirmed.
 New accounts must verify their email address before accessing app screens.
 The verification screen lets users resend the link or refresh the verification
 status after opening it.
+After a password change, the app records an in-app security notification in
+the user's Firestore notification inbox. Users can open Notifications from the
+navigation drawer and mark entries as read. Deploy the repository's Firestore
+rules before using the inbox. This client-created inbox entry is a user-facing
+confirmation, not a server-authoritative security audit log; password changes
+made outside this app are not recorded here.
 Device authentication can optionally be enabled in Settings. When enabled,
 the app requires the device's biometric or screen-lock credential on launch
 and when it returns from the background.
@@ -142,7 +194,8 @@ locally and commit the regenerated files before triggering a release build.
 
 ## Rules for keeping the skeleton reusable
 
-- Keep every project-specific value in `lib/core/config/app_config.dart`.
+- Keep project-specific values in `lib/core/config/app_config.dart` and
+  optional module switches in `lib/core/config/feature_config.dart`.
 - Use relative imports inside `lib/` so renaming needs no code changes.
 - Only Firebase-facing code goes in `data/`. UI never calls Firebase directly.
 - Keep the app runnable at all times, and add tests when you add logic.

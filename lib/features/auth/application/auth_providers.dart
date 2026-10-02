@@ -7,10 +7,7 @@ import '../../../core/firebase/firebase_providers.dart';
 import '../data/auth_repository.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return AuthRepository(
-    ref.watch(firebaseAuthProvider),
-    ref.watch(firestoreProvider),
-  );
+  return AuthRepository(ref.watch(firebaseAuthProvider));
 });
 
 /// Emits the signed-in user, or null when signed out.

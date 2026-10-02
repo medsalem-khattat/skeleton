@@ -38,6 +38,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get resendVerificationEmail => 'Renvoyer l’e-mail de vérification';
 
   @override
+  String get checkVerificationStatus => 'J’ai vérifié mon adresse e-mail';
+
+  @override
   String get createAnAccount => 'Créer un compte';
 
   @override
@@ -98,7 +101,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get deviceAuthDescription =>
-      'Demander le déverrouillage de l’appareil à l’ouverture et au retour dans l’application.';
+      'Demander le déverrouillage de l’appareil à l’ouverture ou après une minute d’absence.';
 
   @override
   String get deviceAuthReason => 'Déverrouiller Skeleton';
@@ -191,6 +194,66 @@ class AppLocalizationsFr extends AppLocalizations {
   String get languageSystem => 'Système';
 
   @override
+  String get notificationsTitle => 'Notifications push';
+
+  @override
+  String get notificationsEnabled => 'Les notifications sont activées.';
+
+  @override
+  String get notificationsDenied =>
+      'Autorisation refusée. Activez les notifications dans les paramètres de votre appareil.';
+
+  @override
+  String get notificationsNotEnabled =>
+      'Autorisez les notifications pour recevoir des mises à jour.';
+
+  @override
+  String get notificationsEnable => 'Activer';
+
+  @override
+  String get notificationsStatusFailed =>
+      'Impossible de vérifier les autorisations de notification.';
+
+  @override
+  String get notificationsRequestFailed =>
+      'Impossible de demander l’autorisation de notification. Veuillez réessayer.';
+
+  @override
+  String get notificationsEmpty => 'Vous n’avez pas encore de notification.';
+
+  @override
+  String get notificationsLoadFailed =>
+      'Impossible de charger vos notifications.';
+
+  @override
+  String get passwordChangedNotificationTitle => 'Mot de passe modifié';
+
+  @override
+  String get passwordChangedNotificationBody =>
+      'Le mot de passe de votre compte a été modifié.';
+
+  @override
+  String get passwordChangedNotificationFailed =>
+      'Votre mot de passe a été modifié, mais la notification n’a pas pu être enregistrée.';
+
+  @override
+  String get notificationJustNow => 'À l’instant';
+
+  @override
+  String get markNotificationRead => 'Marquer comme lue';
+
+  @override
+  String get notificationMarkReadFailed =>
+      'Impossible de marquer cette notification comme lue.';
+
+  @override
+  String get notificationRead => 'Lue';
+
+  @override
+  String get notificationNotFound =>
+      'Cette notification n’est plus disponible.';
+
+  @override
   String get version => 'Version';
 
   @override
@@ -256,10 +319,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get errorGeneric => 'Un problème est survenu. Veuillez réessayer.';
-
-  @override
-  String get accountSetupFailed =>
-      'Votre compte a été créé, mais la configuration du profil a échoué. Connectez-vous et complétez votre profil.';
 
   @override
   String get showPassword => 'Afficher le mot de passe';

@@ -47,6 +47,85 @@ void main() {
 
     expect(find.text('Protected content'), findsOneWidget);
   });
+
+  testWidgets('does not reauthenticate after a short background pause', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({'device_auth_enabled': true});
+    final preferences = await SharedPreferences.getInstance();
+    final authenticator = _FakeDeviceAuthenticator()
+      ..authenticationResult = true;
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(preferences),
+        deviceAuthenticatorProvider.overrideWithValue(authenticator),
+        verifiedDeviceAuthSessionProvider.overrideWithValue('user-id'),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const DeviceAuthGate(child: Text('Protected content')),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    authenticator.authenticationCount = 0;
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump(const Duration(seconds: 30));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+
+    expect(authenticator.authenticationCount, 0);
+    expect(find.text('Protected content'), findsOneWidget);
+  });
+
+  testWidgets('requires reauthentication after one minute in background', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({'device_auth_enabled': true});
+    final preferences = await SharedPreferences.getInstance();
+    final authenticator = _FakeDeviceAuthenticator()
+      ..authenticationResult = true;
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(preferences),
+        deviceAuthenticatorProvider.overrideWithValue(authenticator),
+        verifiedDeviceAuthSessionProvider.overrideWithValue('user-id'),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const DeviceAuthGate(child: Text('Protected content')),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    authenticator.authenticationCount = 0;
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump(const Duration(minutes: 1, seconds: 1));
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+
+    expect(authenticator.authenticationCount, 1);
+    expect(find.text('Protected content'), findsOneWidget);
+  });
 }
 
 class _FakeDeviceAuthenticator implements DeviceAuthenticator {

@@ -32,10 +32,13 @@ class ApiClient {
               error.response?.statusCode == 401 &&
               error.requestOptions.extra['authRetry'] != true) {
             try {
-              await FirebaseAuth.instance.currentUser?.getIdToken(true);
-              error.requestOptions.extra['authRetry'] = true;
-              final retried = await dio.fetch(error.requestOptions);
-              return handler.resolve(retried);
+              final user = FirebaseAuth.instance.currentUser;
+              if (user != null) {
+                await user.getIdToken(true);
+                error.requestOptions.extra['authRetry'] = true;
+                final retried = await dio.fetch(error.requestOptions);
+                return handler.resolve(retried);
+              }
             } catch (refreshError, stackTrace) {
               debugPrint(
                 'API request retry after authentication failed: '

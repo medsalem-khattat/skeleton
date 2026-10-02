@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../core/config/feature_providers.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/app_localizations.dart';
@@ -15,8 +16,11 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final features = ref.watch(appFeaturesProvider);
     final l10n = AppLocalizations.of(context);
-    final name = ref.watch(profileProvider).value?.name ?? '';
+    final name = features.profileEnabled
+        ? ref.watch(profileProvider).value?.name ?? ''
+        : '';
 
     return Scaffold(
       appBar: AppBar(
@@ -34,16 +38,18 @@ class HomeScreen extends ConsumerWidget {
             name.isEmpty ? l10n.welcome : l10n.welcomeName(name),
             style: Theme.of(context).textTheme.headlineSmall,
           ),
-          SizedBox(height: AppSpacing.md),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.person_outline),
-              title: Text(l10n.dashboardProfileTitle),
-              subtitle: Text(l10n.dashboardProfileDescription),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.go(AppRoutes.profile),
+          if (features.profileEnabled) ...[
+            SizedBox(height: AppSpacing.md),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.person_outline),
+                title: Text(l10n.dashboardProfileTitle),
+                subtitle: Text(l10n.dashboardProfileDescription),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.go(AppRoutes.profile),
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

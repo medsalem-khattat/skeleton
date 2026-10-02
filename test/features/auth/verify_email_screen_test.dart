@@ -70,10 +70,59 @@ void main() {
     expect(find.text('Verify your email'), findsOneWidget);
 
     repository.emailVerified = true;
-    await tester.pump(const Duration(seconds: 5));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
     await tester.pumpAndSettle();
 
     expect(find.text('Home'), findsOneWidget);
     router.dispose();
+  });
+
+  testWidgets('polls verification status every 30 seconds', (tester) async {
+    final repository = FakeAuthRepository();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [authRepositoryProvider.overrideWithValue(repository)],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const VerifyEmailScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(repository.verificationStatusCheckCount, 1);
+
+    await tester.pump(const Duration(seconds: 29));
+    expect(repository.verificationStatusCheckCount, 1);
+
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+    expect(repository.verificationStatusCheckCount, 2);
+  });
+
+  testWidgets('allows users to check verification status manually', (
+    tester,
+  ) async {
+    final repository = FakeAuthRepository();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [authRepositoryProvider.overrideWithValue(repository)],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const VerifyEmailScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(repository.verificationStatusCheckCount, 1);
+
+    await tester.tap(find.text("I've verified my email"));
+    await tester.pumpAndSettle();
+
+    expect(repository.verificationStatusCheckCount, 2);
   });
 }
