@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,7 +11,6 @@ final notificationInboxRepositoryProvider =
       return FirestoreNotificationInboxRepository(
         ref.watch(firestoreProvider),
         ref.watch(firebaseAuthProvider),
-        ref.watch(firebaseFunctionsProvider),
       );
     });
 
@@ -39,15 +37,10 @@ abstract interface class NotificationInboxRepository {
 
 class FirestoreNotificationInboxRepository
     implements NotificationInboxRepository {
-  FirestoreNotificationInboxRepository(
-    this._firestore,
-    this._auth,
-    this._functions,
-  );
+  FirestoreNotificationInboxRepository(this._firestore, this._auth);
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
-  final FirebaseFunctions _functions;
 
   CollectionReference<Map<String, dynamic>> _notifications(String uid) =>
       _firestore
@@ -89,15 +82,20 @@ class FirestoreNotificationInboxRepository
 
   @override
   Future<void> recordPasswordChanged() async {
-    _requireUserId();
-    await _functions.httpsCallable('recordPasswordChanged').call();
+    final uid = _requireUserId();
+    await _notifications(uid).add({
+      'type': 'password_changed',
+      'createdAt': FieldValue.serverTimestamp(),
+      'isRead': false,
+    });
   }
 
   @override
   Future<void> markRead(String notificationId) async {
-    _requireUserId();
-    await _functions.httpsCallable('markInboxNotificationRead').call({
-      'notificationId': notificationId,
+    final uid = _requireUserId();
+    await _notifications(uid).doc(notificationId).update({
+      'isRead': true,
+      'readAt': FieldValue.serverTimestamp(),
     });
   }
 }

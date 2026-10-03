@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/firebase/firebase_providers.dart';
 import '../../../core/config/feature_providers.dart';
-import '../data/auth_repository.dart';
+import '../../../core/firebase/firebase_providers.dart';
 import '../../notifications/data/push_token_registrar.dart';
+import '../data/auth_repository.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final pushEnabled = ref.watch(appFeaturesProvider).pushNotificationsEnabled;

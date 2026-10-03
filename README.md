@@ -47,9 +47,9 @@ Firebase.
 
 Push notifications are enabled by default and ask for permission from Settings,
 not at app startup. Signed-in devices register their FCM token through an
-authenticated callable function; tokens are stored privately in Firestore.
-Password-change notifications are created through an authenticated callable,
-then a Firestore trigger sends the native push. Stale tokens are removed.
+owner-scoped Firestore document; tokens are stored privately. Password-change
+notifications are created in the same owner's inbox, then a Firestore trigger
+sends the native push. Stale tokens are removed.
 Android and iOS pushes use the default sound, and
 Android uses the `push_notifications` channel. Tapping a push opens the matching
 in-app notification. A signed-out user is sent through sign-in and email
@@ -60,22 +60,22 @@ removes the current device token before ending the session.
 
 The sender is defined in `functions/` and runs with the Firebase Admin SDK, so
 no service-account credential is stored in the app or repository. Device
-tokens are registered through authenticated callable functions, not by direct
-client writes. Deploy only the new push functions to the app's Firebase project
+tokens and inbox entries are stored in per-user Firestore paths with
+owner-scoped security rules. Deploy only the new push function to the app's Firebase project
 (`whatsapp-bot-f57a8`):
 
 ```
 firebase login
-firebase deploy --only functions:sendInboxPush,functions:registerPushToken,functions:unregisterPushToken,functions:recordPasswordChanged,functions:markInboxNotificationRead --project whatsapp-bot-f57a8
+firebase deploy --only functions:sendInboxPush --project whatsapp-bot-f57a8
 ```
 
 Cloud Functions deployment requires a Firebase project on the Blaze billing
 plan, a supported Node.js runtime (Node 22), and a Firebase account with
 permission to deploy Functions. The command targets only these new functions;
 it does not deploy Firestore rules or replace the existing `messageOnCreate`
-and `whatsappWebhook` functions in this project. These callables handle
-notification/token writes without changing Firestore rules. The app's profile
-and notification inbox still need user-scoped Firestore read permissions.
+and `whatsappWebhook` functions in this project. Notification and token writes
+are restricted by the user-scoped rules. The app's profile and notification
+inbox still need user-scoped Firestore permissions.
 Because this project already has existing rules, review and merge the relevant
 paths rather than deploying this repository's standalone rules file wholesale.
 
@@ -107,7 +107,7 @@ New accounts must verify their email address before accessing app screens.
 The verification screen lets users resend the link or refresh the verification
 status after opening it.
 After a password change, the app records an in-app security notification in
-the user's Firestore notification inbox through a callable function. Open the inbox from the Home app-bar
+the user's Firestore notification inbox. Open the inbox from the Home app-bar
 bell. Selecting an item opens its detail and marks it as read; close on either
 the inbox or detail returns Home. Existing Firestore rules must allow signed-in
 users to read only their own profile and notification documents. This

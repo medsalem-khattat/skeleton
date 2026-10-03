@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:cloud_functions/cloud_functions.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,7 +11,7 @@ import 'push_notification_service.dart';
 final pushTokenRegistrarProvider = Provider<PushTokenRegistrar>((ref) {
   final registrar = PushTokenRegistrar(
     ref.watch(firebaseAuthProvider),
-    ref.watch(firebaseFunctionsProvider),
+    ref.watch(firestoreProvider),
     ref.watch(pushNotificationClientProvider),
   );
   registrar.start();
@@ -20,10 +20,10 @@ final pushTokenRegistrarProvider = Provider<PushTokenRegistrar>((ref) {
 });
 
 class PushTokenRegistrar {
-  PushTokenRegistrar(this._auth, this._functions, this._pushClient);
+  PushTokenRegistrar(this._auth, this._firestore, this._pushClient);
 
   final FirebaseAuth _auth;
-  final FirebaseFunctions _functions;
+  final FirebaseFirestore _firestore;
   final PushNotificationClient _pushClient;
   StreamSubscription<User?>? _authSubscription;
   StreamSubscription<String>? _tokenSubscription;
@@ -62,9 +62,7 @@ class PushTokenRegistrar {
         ? _registeredToken
         : await _pushClient.getToken();
     if (token == null || token.isEmpty || token.contains("/")) return;
-    await _functions.httpsCallable('unregisterPushToken').call({
-      'token': token,
-    });
+    await _tokenCollection(user.uid).doc(token).delete();
     _registeredUserId = null;
     _registeredToken = null;
   }
@@ -78,8 +76,7 @@ class PushTokenRegistrar {
     final token = await _pushClient.getToken();
     if (token == null || token.isEmpty || token.contains("/")) return;
 
-    await _functions.httpsCallable('registerPushToken').call({
-      'token': token,
+    await _tokenCollection(userId).doc(token).set({
       'platform': switch (defaultTargetPlatform) {
         TargetPlatform.android => 'android',
         TargetPlatform.iOS => 'ios',
@@ -87,10 +84,14 @@ class PushTokenRegistrar {
           'Push token registration is supported only on Android and iOS.',
         ),
       },
+      'updatedAt': FieldValue.serverTimestamp(),
     });
     _registeredUserId = userId;
     _registeredToken = token;
   }
+
+  CollectionReference<Map<String, dynamic>> _tokenCollection(String userId) =>
+      _firestore.collection('users').doc(userId).collection('fcmTokens');
 
   Future<void> dispose() async {
     await _authSubscription?.cancel();
