@@ -197,6 +197,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get notificationsTitle => 'Notifications push';
 
   @override
+  String get closeNotifications => 'Fermer les notifications';
+
+  @override
   String get notificationsEnabled => 'Les notifications sont activées.';
 
   @override

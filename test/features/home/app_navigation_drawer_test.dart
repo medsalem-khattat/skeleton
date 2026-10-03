@@ -86,6 +86,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('samira.long-address@example.com'), findsOneWidget);
+    expect(find.text('Push notifications'), findsNothing);
     expect(
       tester.getSize(find.byType(ConstrainedBox).first).height,
       greaterThan(190),

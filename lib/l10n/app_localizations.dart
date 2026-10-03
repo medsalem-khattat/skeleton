@@ -446,6 +446,12 @@ abstract class AppLocalizations {
   /// **'Push notifications'**
   String get notificationsTitle;
 
+  /// No description provided for @closeNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Close notifications'**
+  String get closeNotifications;
+
   /// No description provided for @notificationsEnabled.
   ///
   /// In en, this message translates to:

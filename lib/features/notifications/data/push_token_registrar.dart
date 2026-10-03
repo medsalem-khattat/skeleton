@@ -1,0 +1,99 @@
+import 'dart:async';
+
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/firebase/firebase_providers.dart';
+import 'push_notification_service.dart';
+
+final pushTokenRegistrarProvider = Provider<PushTokenRegistrar>((ref) {
+  final registrar = PushTokenRegistrar(
+    ref.watch(firebaseAuthProvider),
+    ref.watch(firebaseFunctionsProvider),
+    ref.watch(pushNotificationClientProvider),
+  );
+  registrar.start();
+  ref.onDispose(registrar.dispose);
+  return registrar;
+});
+
+class PushTokenRegistrar {
+  PushTokenRegistrar(this._auth, this._functions, this._pushClient);
+
+  final FirebaseAuth _auth;
+  final FirebaseFunctions _functions;
+  final PushNotificationClient _pushClient;
+  StreamSubscription<User?>? _authSubscription;
+  StreamSubscription<String>? _tokenSubscription;
+  String? _registeredUserId;
+  String? _registeredToken;
+
+  void start() {
+    _authSubscription ??= _auth.authStateChanges().listen((user) {
+      if (user != null) _syncAutomatically(user.uid);
+    });
+    _tokenSubscription ??= _pushClient.onTokenRefresh.listen((_) {
+      final user = _auth.currentUser;
+      if (user != null) _syncAutomatically(user.uid);
+    });
+    final user = _auth.currentUser;
+    if (user != null) _syncAutomatically(user.uid);
+  }
+
+  void _syncAutomatically(String userId) {
+    unawaited(
+      _syncForUser(userId).catchError((Object error, StackTrace stackTrace) {
+        debugPrint('Could not register push token: $error\n$stackTrace');
+      }),
+    );
+  }
+
+  Future<void> syncForCurrentUser() async {
+    final user = _auth.currentUser;
+    if (user != null) await _syncForUser(user.uid);
+  }
+
+  Future<void> unregisterCurrentToken() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    final token = _registeredUserId == user.uid
+        ? _registeredToken
+        : await _pushClient.getToken();
+    if (token == null || token.isEmpty || token.contains("/")) return;
+    await _functions.httpsCallable('unregisterPushToken').call({
+      'token': token,
+    });
+    _registeredUserId = null;
+    _registeredToken = null;
+  }
+
+  Future<void> _syncForUser(String userId) async {
+    final authorization = await _pushClient.authorizationStatus();
+    if (authorization != PushAuthorizationStatus.authorized &&
+        authorization != PushAuthorizationStatus.provisional) {
+      return;
+    }
+    final token = await _pushClient.getToken();
+    if (token == null || token.isEmpty || token.contains("/")) return;
+
+    await _functions.httpsCallable('registerPushToken').call({
+      'token': token,
+      'platform': switch (defaultTargetPlatform) {
+        TargetPlatform.android => 'android',
+        TargetPlatform.iOS => 'ios',
+        _ => throw UnsupportedError(
+          'Push token registration is supported only on Android and iOS.',
+        ),
+      },
+    });
+    _registeredUserId = userId;
+    _registeredToken = token;
+  }
+
+  Future<void> dispose() async {
+    await _authSubscription?.cancel();
+    await _tokenSubscription?.cancel();
+  }
+}

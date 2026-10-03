@@ -4,9 +4,11 @@ import '../../../core/storage/secure_storage.dart';
 import '../../../l10n/app_localizations.dart';
 
 class AuthRepository {
-  AuthRepository(this._auth);
+  AuthRepository(this._auth, {Future<void> Function()? beforeSignOut})
+    : _beforeSignOut = beforeSignOut;
 
   final FirebaseAuth _auth;
+  final Future<void> Function()? _beforeSignOut;
 
   Stream<User?> authStateChanges() => _auth.userChanges();
 
@@ -88,6 +90,7 @@ class AuthRepository {
   }
 
   Future<void> signOut() async {
+    await _beforeSignOut?.call();
     // Clears any sensitive values the app may have cached locally,
     // so a storage failure does not happen after authentication has ended.
     await SecureStorage.clearAll();

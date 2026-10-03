@@ -13,6 +13,7 @@ import '../../features/auth/presentation/verify_email_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/home/presentation/home_shell.dart';
 import '../../features/notifications/data/push_notification_service.dart';
+import '../../features/notifications/data/push_token_registrar.dart';
 import '../../features/notifications/presentation/notification_inbox_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
@@ -148,6 +149,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   ref.onDispose(router.dispose);
   if (features.pushNotificationsEnabled) {
     final pushClient = ref.watch(pushNotificationClientProvider);
+    ref.watch(pushTokenRegistrarProvider);
     var disposed = false;
     final tapSubscription = pushClient.notificationTaps.listen((tap) {
       router.go(

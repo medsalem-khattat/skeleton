@@ -25,7 +25,14 @@ class NotificationInboxScreen extends ConsumerWidget {
     final notifications = ref.watch(notificationInboxProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.notificationsTitle)),
+      appBar: AppBar(
+        title: Text(l10n.notificationsTitle),
+        leading: IconButton(
+          tooltip: l10n.closeNotifications,
+          icon: const Icon(Icons.close),
+          onPressed: () => context.go(AppRoutes.home),
+        ),
+      ),
       body: notifications.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, _) => Center(
@@ -135,28 +142,50 @@ class _NotificationCard extends ConsumerWidget {
   }
 }
 
-class _NotificationDetailScreen extends ConsumerWidget {
+class _NotificationDetailScreen extends ConsumerStatefulWidget {
   const _NotificationDetailScreen({required this.notificationId});
 
   final String notificationId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_NotificationDetailScreen> createState() =>
+      _NotificationDetailScreenState();
+}
+
+class _NotificationDetailScreenState
+    extends ConsumerState<_NotificationDetailScreen> {
+  bool _markReadAttempted = false;
+  bool _markReadInProgress = false;
+
+  Future<void> _markNotificationRead(String id) async {
+    if (_markReadInProgress) return;
+    setState(() => _markReadInProgress = true);
+    try {
+      await ref.read(notificationInboxRepositoryProvider).markRead(id);
+    } catch (_) {
+      _markReadAttempted = false;
+      if (mounted) {
+        showMessage(
+          context,
+          AppLocalizations.of(context).notificationMarkReadFailed,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _markReadInProgress = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final notification = ref.watch(notificationProvider(notificationId));
+    final notification = ref.watch(notificationProvider(widget.notificationId));
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.notificationsTitle),
         leading: IconButton(
           tooltip: l10n.closeNotification,
           icon: const Icon(Icons.close),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go(AppRoutes.notifications);
-            }
-          },
+          onPressed: () => context.go(AppRoutes.home),
         ),
       ),
       body: notification.when(
@@ -168,7 +197,7 @@ class _NotificationDetailScreen extends ConsumerWidget {
               Text(l10n.notificationsLoadFailed),
               TextButton(
                 onPressed: () =>
-                    ref.invalidate(notificationProvider(notificationId)),
+                    ref.invalidate(notificationProvider(widget.notificationId)),
                 child: Text(l10n.retry),
               ),
             ],
@@ -178,39 +207,30 @@ class _NotificationDetailScreen extends ConsumerWidget {
           if (item == null) {
             return Center(child: Text(l10n.notificationNotFound));
           }
+          if (!item.isRead && !_markReadAttempted) {
+            _markReadAttempted = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _markNotificationRead(item.id);
+            });
+          }
           return ListView(
             padding: const EdgeInsets.all(AppSpacing.md),
             children: [
               _NotificationCard(notification: item),
-              if (!item.isRead) ...[
+              if (!item.isRead && !_markReadInProgress) ...[
                 const SizedBox(height: AppSpacing.md),
                 FilledButton.icon(
-                  onPressed: () => _markNotificationRead(context, ref, item.id),
+                  onPressed: () => _markNotificationRead(item.id),
                   icon: const Icon(Icons.mark_email_read_outlined),
                   label: Text(l10n.markNotificationRead),
                 ),
               ],
+              if (_markReadInProgress)
+                const Center(child: CircularProgressIndicator()),
             ],
           );
         },
       ),
     );
-  }
-
-  Future<void> _markNotificationRead(
-    BuildContext context,
-    WidgetRef ref,
-    String id,
-  ) async {
-    try {
-      await ref.read(notificationInboxRepositoryProvider).markRead(id);
-    } catch (_) {
-      if (context.mounted) {
-        showMessage(
-          context,
-          AppLocalizations.of(context).notificationMarkReadFailed,
-        );
-      }
-    }
   }
 }

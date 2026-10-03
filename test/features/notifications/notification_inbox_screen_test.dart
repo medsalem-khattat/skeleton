@@ -9,7 +9,7 @@ import 'package:skeleton/features/notifications/presentation/notification_inbox_
 import 'package:skeleton/l10n/app_localizations.dart';
 
 void main() {
-  testWidgets('shows password-change notification and marks it as read', (
+  testWidgets('shows password-change notification in the inbox', (
     tester,
   ) async {
     final repository = _FakeNotificationInboxRepository();
@@ -32,9 +32,11 @@ void main() {
       find.text('Your account password was changed successfully.'),
       findsOneWidget,
     );
-    await tester.tap(find.byTooltip('Mark as read'));
     await tester.pumpAndSettle();
 
+    expect(repository.markedReadIds, isEmpty);
+    await tester.tap(find.byTooltip('Mark as read'));
+    await tester.pumpAndSettle();
     expect(repository.markedReadIds, ['password-change-1']);
   });
 
@@ -57,19 +59,60 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Password changed'), findsOneWidget);
-    expect(find.text('Mark as read'), findsOneWidget);
-    await tester.tap(find.text('Mark as read'));
-    await tester.pumpAndSettle();
-
     expect(repository.markedReadIds, ['password-change-1']);
   });
 
-  testWidgets('close button returns to inbox after direct notification open', (
+  testWidgets('selecting an inbox item opens its detail and marks it read', (
+    tester,
+  ) async {
+    final repository = _FakeNotificationInboxRepository();
+    final router = GoRouter(
+      initialLocation: '/notifications',
+      routes: [
+        GoRoute(
+          path: '/notifications',
+          builder: (_, _) => const NotificationInboxScreen(),
+        ),
+        GoRoute(
+          path: '/notifications/:notificationId',
+          builder: (_, state) => NotificationInboxScreen(
+            notificationId: state.pathParameters['notificationId'],
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          notificationInboxRepositoryProvider.overrideWithValue(repository),
+        ],
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Password changed').first);
+    await tester.pumpAndSettle();
+
+    expect(find.byTooltip('Close notification'), findsOneWidget);
+    expect(repository.markedReadIds, ['password-change-1']);
+  });
+
+  testWidgets('close button returns Home after direct notification open', (
     tester,
   ) async {
     final router = GoRouter(
       initialLocation: '/notifications/password-change-1',
       routes: [
+        GoRoute(
+          path: '/home',
+          builder: (_, _) => const Scaffold(body: Text('Home screen')),
+        ),
         GoRoute(
           path: '/notifications',
           builder: (_, _) => const Scaffold(body: Text('Notification inbox')),
@@ -103,7 +146,44 @@ void main() {
     await tester.tap(find.byTooltip('Close notification'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Notification inbox'), findsOneWidget);
+    expect(find.text('Home screen'), findsOneWidget);
+  });
+
+  testWidgets('inbox close button returns Home', (tester) async {
+    final router = GoRouter(
+      initialLocation: '/notifications',
+      routes: [
+        GoRoute(
+          path: '/home',
+          builder: (_, _) => const Scaffold(body: Text('Home screen')),
+        ),
+        GoRoute(
+          path: '/notifications',
+          builder: (_, _) => const NotificationInboxScreen(),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          notificationInboxRepositoryProvider.overrideWithValue(
+            _FakeNotificationInboxRepository(),
+          ),
+        ],
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Close notifications'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Home screen'), findsOneWidget);
   });
 
   test('notification tap builds an inbox or notification detail route', () {

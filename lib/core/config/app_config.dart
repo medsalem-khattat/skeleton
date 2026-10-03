@@ -12,9 +12,7 @@ class AppConfig {
   // NOTE: bundleId here is documentation only - the values that actually
   // matter are in android/app/build.gradle (applicationId) and the iOS
   // Xcode project. Keep this in sync with those, and with whatever
-  // `flutterfire configure` reports, or it will silently drift like it
-  // just did (this pointed at 'skeleton-d295d' while firebase_options.dart
-  // was actually generated for the 'monapp-1aa68' project).
+  // `flutterfire configure` reports.
   static const String appName = 'Skeleton';
   static const String bundleId = 'com.yourname.skeleton';
   static const String supportEmail = 'support@example.com';
@@ -22,7 +20,7 @@ class AppConfig {
 
   // --- Firebase (details live in firebase_options.dart,
   //     regenerated with `flutterfire configure` per clone) ---
-  static const String firebaseProjectId = 'monapp-1aa68';
+  static const String firebaseProjectId = 'whatsapp-bot-f57a8';
   static const String usersCollection = 'users';
 
   // --- Design (edit per clone: this single seed drives the whole
@@ -30,10 +28,14 @@ class AppConfig {
   static const Color seedColor = Color(0xFF3F51B5);
 
   // --- Secrets: injected at build time, never committed ---
-  static const String apiBaseUrl =
-      String.fromEnvironment('API_BASE_URL', defaultValue: '');
-  static const String apiKey =
-      String.fromEnvironment('API_KEY', defaultValue: '');
+  static const String apiBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: '',
+  );
+  static const String apiKey = String.fromEnvironment(
+    'API_KEY',
+    defaultValue: '',
+  );
 
   // --- Feature modules (edit only feature_config.dart to toggle modules) ---
   static const AppFeatures features = AppFeatures.current;

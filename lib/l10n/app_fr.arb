@@ -58,6 +58,7 @@
   "language": "Langue",
   "languageSystem": "Système",
   "notificationsTitle": "Notifications push",
+  "closeNotifications": "Fermer les notifications",
   "notificationsEnabled": "Les notifications sont activées.",
   "notificationsDenied": "Autorisation refusée. Activez les notifications dans les paramètres de votre appareil.",
   "notificationsNotEnabled": "Autorisez les notifications pour recevoir des mises à jour.",

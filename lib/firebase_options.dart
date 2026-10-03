@@ -50,21 +50,18 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyATnjGFW7E-V9_gSxC_8eYcKLjWScjcjGU',
-    appId: '1:926739474102:android:f8090db40b350cf52e2817',
-    messagingSenderId: '926739474102',
-    projectId: 'monapp-1aa68',
-    databaseURL: 'https://monapp-1aa68-default-rtdb.firebaseio.com',
-    storageBucket: 'monapp-1aa68.firebasestorage.app',
+    apiKey: 'AIzaSyBKtqUTju1k3zxEQRImYPruOmpjBPWxsk8',
+    appId: '1:288613814192:android:4dd21f8e321d6a4eea9075',
+    messagingSenderId: '288613814192',
+    projectId: 'whatsapp-bot-f57a8',
+    storageBucket: 'whatsapp-bot-f57a8.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCInGASZhoYaOMEMy7jwQKxnA5Ham1-GJo',
-    appId: '1:926739474102:ios:9d999c3085b1533d2e2817',
-    messagingSenderId: '926739474102',
-    projectId: 'monapp-1aa68',
-    databaseURL: 'https://monapp-1aa68-default-rtdb.firebaseio.com',
-    storageBucket: 'monapp-1aa68.firebasestorage.app',
+    apiKey: 'AIzaSyCYDebqRsYpwixC0WulH-VzGCzcgtdvUi8',
+    appId: '1:288613814192:ios:1094f5191072070cea9075',
+    messagingSenderId: '288613814192',
+    projectId: 'whatsapp-bot-f57a8',
+    storageBucket: 'whatsapp-bot-f57a8.firebasestorage.app',
     iosBundleId: 'com.yourname.skeleton',
   );
 }

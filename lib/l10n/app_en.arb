@@ -65,6 +65,7 @@
   "language": "Language",
   "languageSystem": "System",
   "notificationsTitle": "Push notifications",
+  "closeNotifications": "Close notifications",
   "notificationsEnabled": "Notifications are enabled.",
   "notificationsDenied": "Permission denied. Enable notifications in your device settings.",
   "notificationsNotEnabled": "Allow notifications to receive updates.",

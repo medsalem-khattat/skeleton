@@ -57,6 +57,34 @@ workflows:
         script: flutter test
       - name: Apply iOS signing profiles
         script: xcode-project use-profiles
+      - name: Verify Push Notifications entitlement in signing profile
+        script: |
+          set -euo pipefail
+          profiles_dir="$HOME/Library/MobileDevice/Provisioning Profiles"
+          profile_found=false
+          for profile in "$profiles_dir"/*.mobileprovision; do
+            [ -f "$profile" ] || continue
+            decoded_profile="$(mktemp)"
+            if ! security cms -D -i "$profile" > "$decoded_profile" 2>/dev/null; then
+              rm -f "$decoded_profile"
+              continue
+            fi
+            app_identifier=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" "$decoded_profile" 2>/dev/null || true)
+            aps_environment=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:aps-environment" "$decoded_profile" 2>/dev/null || true)
+            rm -f "$decoded_profile"
+            case "$app_identifier" in
+              *".com.yourname.skeleton") ;;
+              *) continue ;;
+            esac
+            case "$aps_environment" in
+              development|production) profile_found=true; break ;;
+            esac
+          done
+          if [ "$profile_found" != "true" ]; then
+            echo "No provisioning profile for com.yourname.skeleton with the aps-environment entitlement was found."
+            echo "Enable Push Notifications for the App ID and regenerate/select its provisioning profile in Codemagic."
+            exit 1
+          fi
       - name: Build iOS IPA
         script: |
           flutter build ipa \

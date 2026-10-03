@@ -196,6 +196,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationsTitle => 'Push notifications';
 
   @override
+  String get closeNotifications => 'Close notifications';
+
+  @override
   String get notificationsEnabled => 'Notifications are enabled.';
 
   @override

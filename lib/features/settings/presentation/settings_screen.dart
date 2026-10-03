@@ -7,6 +7,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_snackbar.dart';
 import '../../notifications/data/push_notification_service.dart';
+import '../../notifications/data/push_token_registrar.dart';
 import '../application/device_auth_controller.dart';
 import '../application/locale_controller.dart';
 import '../application/theme_controller.dart';
@@ -236,6 +237,7 @@ class PushNotificationsSettingsCard extends ConsumerWidget {
     try {
       await ref.read(pushNotificationClientProvider).requestPermission();
       ref.invalidate(pushNotificationAuthorizationProvider);
+      await ref.read(pushTokenRegistrarProvider).syncForCurrentUser();
     } catch (_) {
       if (context.mounted) {
         showMessage(

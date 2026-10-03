@@ -97,6 +97,8 @@ class PushNotificationService implements PushNotificationClient {
           _notificationChannelName,
           description: _notificationChannelDescription,
           importance: Importance.high,
+          playSound: true,
+          enableVibration: true,
         ),
       );
     }
@@ -175,6 +177,8 @@ class PushNotificationService implements PushNotificationClient {
           channelDescription: _notificationChannelDescription,
           importance: Importance.high,
           priority: Priority.high,
+          playSound: true,
+          enableVibration: true,
         ),
       ),
     );

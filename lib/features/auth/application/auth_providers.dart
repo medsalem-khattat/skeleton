@@ -4,10 +4,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/firebase/firebase_providers.dart';
+import '../../../core/config/feature_providers.dart';
 import '../data/auth_repository.dart';
+import '../../notifications/data/push_token_registrar.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return AuthRepository(ref.watch(firebaseAuthProvider));
+  final pushEnabled = ref.watch(appFeaturesProvider).pushNotificationsEnabled;
+  return AuthRepository(
+    ref.watch(firebaseAuthProvider),
+    beforeSignOut: pushEnabled
+        ? () => ref.read(pushTokenRegistrarProvider).unregisterCurrentToken()
+        : null,
+  );
 });
 
 /// Emits the signed-in user, or null when signed out.

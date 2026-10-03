@@ -45,7 +45,7 @@ class HomeScreen extends ConsumerWidget {
               tooltip: unreadCount == 0
                   ? l10n.notificationsTitle
                   : l10n.notificationUnreadCount(unreadCount),
-              onPressed: () => context.go(AppRoutes.notifications),
+              onPressed: () => context.push(AppRoutes.notifications),
               icon: Badge(
                 isLabelVisible: unreadCount > 0,
                 label: Text(unreadCount > 99 ? '99+' : '$unreadCount'),

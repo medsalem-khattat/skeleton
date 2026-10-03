@@ -177,13 +177,6 @@ class AppNavigationDrawer extends ConsumerWidget {
                           _openSettingsScreen(context, AppRoutes.settings),
                     ),
                   ],
-                  if (features.notificationInboxEnabled)
-                    ListTile(
-                      leading: const Icon(Icons.notifications_outlined),
-                      title: Text(l10n.notificationsTitle),
-                      onTap: () =>
-                          _openSettingsScreen(context, AppRoutes.notifications),
-                    ),
                   if (features.authentication) ...[
                     const Divider(),
                     ListTile(
