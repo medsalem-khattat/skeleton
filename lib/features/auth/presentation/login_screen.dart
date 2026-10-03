@@ -92,9 +92,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     SizedBox(height: AppSpacing.lg),
                     AppButton(
-                        label: l10n.signIn,
-                        onPressed: _submit,
-                        loading: loading),
+                      label: l10n.signIn,
+                      onPressed: _submit,
+                      loading: loading,
+                    ),
                     SizedBox(height: AppSpacing.sm),
                     TextButton(
                       onPressed: () => context.push(AppRoutes.forgotPassword),

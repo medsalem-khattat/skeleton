@@ -42,6 +42,49 @@ void main() {
     expect(container.read(authControllerProvider).hasError, isTrue);
   });
 
+  test('requests a phone verification code', () async {
+    final challenge = await container
+        .read(authControllerProvider.notifier)
+        .sendPhoneVerificationCode(phoneNumber: '+14155552671');
+
+    expect(challenge?.verificationId, 'test-verification-id');
+    expect(fake.lastPhoneNumber, '+14155552671');
+    expect(fake.lastResendToken, isNull);
+  });
+
+  test(
+    'resends a phone verification code with Firebase resend token',
+    () async {
+      final challenge = await container
+          .read(authControllerProvider.notifier)
+          .sendPhoneVerificationCode(
+            phoneNumber: '+14155552671',
+            forceResendingToken: 42,
+          );
+
+      expect(challenge?.verificationId, 'test-verification-id');
+      expect(fake.lastResendToken, 42);
+    },
+  );
+
+  test('registration carries SMS proof to the repository', () async {
+    final ok = await container
+        .read(authControllerProvider.notifier)
+        .register(
+          name: 'Test User',
+          email: 'a@b.com',
+          password: 'password',
+          phoneCredential: null,
+          verificationId: 'test-verification-id',
+          smsCode: '123456',
+        );
+
+    expect(ok, isTrue);
+    expect(fake.lastRegisteredName, 'Test User');
+    expect(fake.lastVerificationId, 'test-verification-id');
+    expect(fake.lastSmsCode, '123456');
+  });
+
   test('signOut calls the repository', () async {
     await container.read(authControllerProvider.notifier).signOut();
     expect(fake.signOutCalls, 1);
@@ -87,6 +130,22 @@ void main() {
     expect(ok, isTrue);
     expect(fake.lastCurrentPassword, 'current-pass');
     expect(fake.lastNewEmail, 'new@example.com');
+  });
+
+  test('updatePhoneNumber forwards SMS verification proof', () async {
+    final ok = await container
+        .read(authControllerProvider.notifier)
+        .updatePhoneNumber(
+          currentPassword: 'current-pass',
+          phoneCredential: null,
+          verificationId: 'phone-verification-id',
+          smsCode: '654321',
+        );
+
+    expect(ok, isTrue);
+    expect(fake.lastCurrentPassword, 'current-pass');
+    expect(fake.lastPhoneVerificationId, 'phone-verification-id');
+    expect(fake.lastPhoneSmsCode, '654321');
   });
 
   group('authErrorMessage', () {

@@ -21,8 +21,8 @@ void main() {
     );
 
     expect(find.text('Welcome'), findsOneWidget);
-    expect(find.text('Your profile'), findsOneWidget);
-    expect(find.text('View and update your personal details.'), findsOneWidget);
+    expect(find.text('Your profile'), findsNothing);
+    expect(find.text('View and update your personal details.'), findsNothing);
     expect(find.byTooltip('Open menu'), findsOneWidget);
     expect(find.text('Your app content goes here.'), findsNothing);
     expect(find.byType(NavigationBar), findsNothing);

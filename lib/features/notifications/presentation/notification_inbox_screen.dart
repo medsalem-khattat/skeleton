@@ -58,12 +58,107 @@ class NotificationInboxScreen extends ConsumerWidget {
             separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
             itemBuilder: (context, index) => _NotificationCard(
               notification: items[index],
-              onTap: () =>
-                  context.push(AppRoutes.notification(items[index].id)),
+              onTap: () => showDialog<void>(
+                context: context,
+                builder: (_) =>
+                    _NotificationDetailDialog(notification: items[index]),
+              ),
             ),
           );
         },
       ),
+    );
+  }
+}
+
+class _NotificationDetailDialog extends ConsumerStatefulWidget {
+  const _NotificationDetailDialog({required this.notification});
+
+  final AppNotification notification;
+
+  @override
+  ConsumerState<_NotificationDetailDialog> createState() =>
+      _NotificationDetailDialogState();
+}
+
+class _NotificationDetailDialogState
+    extends ConsumerState<_NotificationDetailDialog> {
+  late bool _isRead = widget.notification.isRead;
+  bool _markingRead = false;
+
+  Future<void> _markRead() async {
+    if (_isRead || _markingRead) return;
+    setState(() => _markingRead = true);
+    try {
+      await ref
+          .read(notificationInboxRepositoryProvider)
+          .markRead(widget.notification.id);
+      if (mounted) setState(() => _isRead = true);
+    } catch (_) {
+      if (mounted) {
+        showMessage(
+          context,
+          AppLocalizations.of(context).notificationMarkReadFailed,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _markingRead = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final createdAt = widget.notification.createdAt;
+    final dateText = createdAt == null
+        ? l10n.notificationJustNow
+        : DateFormat.yMMMd(
+            l10n.localeName,
+          ).add_jm().format(createdAt.toLocal());
+    return AlertDialog(
+      title: Text(switch (widget.notification.type) {
+        AppNotificationType.passwordChanged =>
+          l10n.passwordChangedNotificationTitle,
+      }),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.passwordChangedNotificationBody),
+          const SizedBox(height: AppSpacing.md),
+          Text(dateText),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              Icon(
+                _isRead
+                    ? Icons.mark_email_read_outlined
+                    : Icons.mark_email_unread_outlined,
+                size: 18,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Text(_isRead ? l10n.notificationRead : l10n.notificationUnread),
+            ],
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.closeNotification),
+        ),
+        if (!_isRead)
+          FilledButton(
+            onPressed: _markingRead ? null : _markRead,
+            child: _markingRead
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(l10n.markNotificationRead),
+          ),
+      ],
     );
   }
 }

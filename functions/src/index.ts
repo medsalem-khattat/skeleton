@@ -21,6 +21,9 @@ export const sendInboxPush = onDocumentCreated(
     if (notification?.type !== "password_changed") return;
 
     const { userId, notificationId } = event.params;
+    const user = await getFirestore().collection("users").doc(userId).get();
+    if (user.data()?.notificationsEnabled === false) return;
+
     const tokenSnapshot = await getFirestore()
       .collection("users")
       .doc(userId)

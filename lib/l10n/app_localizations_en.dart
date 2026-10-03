@@ -12,6 +12,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInToContinue => 'Sign in to continue';
 
   @override
+  String get phoneRegistrationInstructions =>
+      'Verify your phone number with an SMS code to create your account.';
+
+  @override
+  String get phoneNumber => 'Phone number';
+
+  @override
+  String get phoneNumberRequired => 'Phone number is required';
+
+  @override
+  String get phoneNumberInvalid =>
+      'Enter a valid phone number with country code, such as +14155552671.';
+
+  @override
+  String get sendVerificationCode => 'Send verification code';
+
+  @override
+  String get resendVerificationCode => 'Resend verification code';
+
+  @override
+  String get smsVerificationCode => 'SMS verification code';
+
+  @override
+  String get phoneVerificationCodeRequired => 'Enter the verification code';
+
+  @override
+  String get phoneRegistrationRequired =>
+      'Verify your phone number before creating your account.';
+
+  @override
+  String get phoneAutomaticallyVerified =>
+      'Phone number verified automatically.';
+
+  @override
+  String get phoneVerificationCodeInvalid =>
+      'That verification code is invalid. Check it and try again.';
+
+  @override
+  String get phoneVerificationExpired =>
+      'That verification code expired. Request a new code.';
+
+  @override
+  String get phoneVerificationQuotaExceeded =>
+      'SMS verification limit reached. Try again later.';
+
+  @override
   String get email => 'Email';
 
   @override
@@ -77,13 +123,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get dashboardProfileTitle => 'Your profile';
-
-  @override
-  String get dashboardProfileDescription =>
-      'View and update your personal details.';
-
-  @override
   String get openMenu => 'Open menu';
 
   @override
@@ -146,10 +185,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountSecurity => 'Account security';
 
   @override
+  String get accountSecurityDescription =>
+      'Manage sign-in details and app lock.';
+
+  @override
   String get changePassword => 'Change password';
 
   @override
   String get changeEmail => 'Change email';
+
+  @override
+  String get changePhoneNumber => 'Change mobile number';
+
+  @override
+  String get phoneChangeInstructions =>
+      'Enter your new mobile number. We will verify it with an SMS code.';
+
+  @override
+  String get phoneNumberNotSet => 'No mobile number added';
+
+  @override
+  String get phoneNumberUnchanged =>
+      'Enter a mobile number different from your current one.';
+
+  @override
+  String get phoneNumberChanged => 'Mobile number updated successfully.';
 
   @override
   String get currentPassword => 'Current password';
@@ -193,7 +253,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageSystem => 'System';
 
   @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageFrench => 'French';
+
+  @override
   String get notificationsTitle => 'Push notifications';
+
+  @override
+  String get notificationPermissionTitle => 'Device notification permission';
+
+  @override
+  String get notificationsAccountEnabled =>
+      'This account can send push notifications to your devices.';
+
+  @override
+  String get notificationsAccountDisabled =>
+      'Push notifications are turned off for this account.';
+
+  @override
+  String get notificationsPreferenceLoadFailed =>
+      'Could not load your notification preference.';
+
+  @override
+  String get notificationsPreferenceSaveFailed =>
+      'Could not save your notification preference.';
 
   @override
   String get closeNotifications => 'Close notifications';
@@ -249,6 +334,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationRead => 'Read';
+
+  @override
+  String get notificationUnread => 'Unread';
 
   @override
   String get notificationNotFound =>

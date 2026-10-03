@@ -23,6 +23,10 @@ final authStateProvider = StreamProvider<User?>((ref) {
   return ref.watch(authRepositoryProvider).authStateChanges();
 });
 
+final signedInUserIdProvider = Provider<String?>((ref) {
+  return ref.watch(authRepositoryProvider).currentUser?.uid;
+});
+
 /// Runs auth actions and exposes loading / error state to the UI.
 class AuthController extends AsyncNotifier<void> {
   @override
@@ -39,8 +43,43 @@ class AuthController extends AsyncNotifier<void> {
   Future<bool> signIn(String email, String password) =>
       _run(() => _repo.signIn(email: email, password: password));
 
-  Future<bool> register(String name, String email, String password) =>
-      _run(() => _repo.register(name: name, email: email, password: password));
+  Future<PhoneVerificationResult?> sendPhoneVerificationCode({
+    required String phoneNumber,
+    int? forceResendingToken,
+    void Function(PhoneAuthCredential credential)? onVerificationCompleted,
+  }) async {
+    state = const AsyncLoading();
+    try {
+      final result = await _repo.sendPhoneVerificationCode(
+        phoneNumber: phoneNumber,
+        forceResendingToken: forceResendingToken,
+        onVerificationCompleted: onVerificationCompleted,
+      );
+      state = const AsyncData(null);
+      return result;
+    } catch (error, stackTrace) {
+      state = AsyncError(error, stackTrace);
+      return null;
+    }
+  }
+
+  Future<bool> register({
+    required String name,
+    required String email,
+    required String password,
+    required PhoneAuthCredential? phoneCredential,
+    required String? verificationId,
+    required String? smsCode,
+  }) => _run(
+    () => _repo.register(
+      name: name,
+      email: email,
+      password: password,
+      phoneCredential: phoneCredential,
+      verificationId: verificationId,
+      smsCode: smsCode,
+    ),
+  );
 
   Future<bool> sendPasswordReset(String email) =>
       _run(() => _repo.sendPasswordReset(email));
@@ -76,6 +115,20 @@ class AuthController extends AsyncNotifier<void> {
     () => _repo.verifyEmailChange(
       currentPassword: currentPassword,
       newEmail: newEmail,
+    ),
+  );
+
+  Future<bool> updatePhoneNumber({
+    required String currentPassword,
+    required PhoneAuthCredential? phoneCredential,
+    required String? verificationId,
+    required String? smsCode,
+  }) => _run(
+    () => _repo.updatePhoneNumber(
+      currentPassword: currentPassword,
+      phoneCredential: phoneCredential,
+      verificationId: verificationId,
+      smsCode: smsCode,
     ),
   );
 

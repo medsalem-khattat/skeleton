@@ -11,7 +11,7 @@ import '../../notifications/data/notification_inbox_repository.dart';
 import '../../profile/application/profile_providers.dart';
 import 'home_shell.dart';
 
-/// Dashboard for the profile and settings features currently in the skeleton.
+/// Clean home dashboard with the app welcome and notification entry point.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -61,18 +61,6 @@ class HomeScreen extends ConsumerWidget {
             name.isEmpty ? l10n.welcome : l10n.welcomeName(name),
             style: Theme.of(context).textTheme.headlineSmall,
           ),
-          if (features.profileEnabled) ...[
-            SizedBox(height: AppSpacing.md),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.person_outline),
-                title: Text(l10n.dashboardProfileTitle),
-                subtitle: Text(l10n.dashboardProfileDescription),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.go(AppRoutes.profile),
-              ),
-            ),
-          ],
         ],
       ),
     );

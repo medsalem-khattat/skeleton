@@ -46,10 +46,13 @@ class AppFeatures {
   bool get languageSettingsEnabled => settings && languageSettings;
 
   bool get settingsEnabled =>
+      accountSecurityEnabled ||
       appearanceSettingsEnabled ||
       languageSettingsEnabled ||
       deviceAuthenticationEnabled ||
       pushNotificationsEnabled;
+
+  bool get accountSecurityEnabled => authentication && settings;
 
   bool get firebaseEnabled =>
       authentication || crashReporting || pushNotificationsEnabled;

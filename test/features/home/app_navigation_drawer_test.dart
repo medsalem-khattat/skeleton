@@ -125,9 +125,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Appearance'), findsOneWidget);
     expect(find.text('Language'), findsOneWidget);
-    expect(find.byType(RadioGroup<ThemeMode>), findsOneWidget);
-    expect(find.byType(RadioGroup<String>), findsOneWidget);
+    expect(find.byType(RadioGroup<ThemeMode>), findsNothing);
+    expect(find.byType(RadioGroup<String>), findsNothing);
+    expect(find.text('System'), findsNWidgets(2));
+    expect(find.text('English'), findsNothing);
+    await tester.tap(find.text('Language'));
+    await tester.pumpAndSettle();
     expect(find.text('English'), findsOneWidget);
+    expect(find.text('French'), findsOneWidget);
+    await tester.tap(find.text('English'));
+    await tester.pumpAndSettle();
 
     await tester.pageBack();
     await tester.pumpAndSettle();

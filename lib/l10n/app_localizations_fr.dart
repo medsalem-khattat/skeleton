@@ -12,6 +12,53 @@ class AppLocalizationsFr extends AppLocalizations {
   String get signInToContinue => 'Connectez-vous pour continuer';
 
   @override
+  String get phoneRegistrationInstructions =>
+      'Vérifiez votre numéro de téléphone avec un code SMS pour créer votre compte.';
+
+  @override
+  String get phoneNumber => 'Numéro de téléphone';
+
+  @override
+  String get phoneNumberRequired => 'Le numéro de téléphone est obligatoire';
+
+  @override
+  String get phoneNumberInvalid =>
+      'Saisissez un numéro valide avec l\'indicatif du pays, par exemple +14155552671.';
+
+  @override
+  String get sendVerificationCode => 'Envoyer le code de vérification';
+
+  @override
+  String get resendVerificationCode => 'Renvoyer le code de vérification';
+
+  @override
+  String get smsVerificationCode => 'Code de vérification SMS';
+
+  @override
+  String get phoneVerificationCodeRequired =>
+      'Saisissez le code de vérification';
+
+  @override
+  String get phoneRegistrationRequired =>
+      'Vérifiez votre numéro de téléphone avant de créer votre compte.';
+
+  @override
+  String get phoneAutomaticallyVerified =>
+      'Numéro de téléphone vérifié automatiquement.';
+
+  @override
+  String get phoneVerificationCodeInvalid =>
+      'Ce code de vérification est invalide. Vérifiez-le puis réessayez.';
+
+  @override
+  String get phoneVerificationExpired =>
+      'Ce code de vérification a expiré. Demandez un nouveau code.';
+
+  @override
+  String get phoneVerificationQuotaExceeded =>
+      'La limite de vérification par SMS est atteinte. Réessayez plus tard.';
+
+  @override
   String get email => 'E-mail';
 
   @override
@@ -78,13 +125,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get dashboardProfileTitle => 'Votre profil';
-
-  @override
-  String get dashboardProfileDescription =>
-      'Consultez et modifiez vos informations personnelles.';
-
-  @override
   String get openMenu => 'Ouvrir le menu';
 
   @override
@@ -147,10 +187,31 @@ class AppLocalizationsFr extends AppLocalizations {
   String get accountSecurity => 'Sécurité du compte';
 
   @override
+  String get accountSecurityDescription =>
+      'Gérez vos identifiants et le verrouillage de l’application.';
+
+  @override
   String get changePassword => 'Modifier le mot de passe';
 
   @override
   String get changeEmail => 'Modifier l’adresse e-mail';
+
+  @override
+  String get changePhoneNumber => 'Modifier le numéro de mobile';
+
+  @override
+  String get phoneChangeInstructions =>
+      'Saisissez votre nouveau numéro de mobile. Nous le vérifierons avec un code SMS.';
+
+  @override
+  String get phoneNumberNotSet => 'Aucun numéro de mobile ajouté';
+
+  @override
+  String get phoneNumberUnchanged =>
+      'Saisissez un numéro de mobile différent de votre numéro actuel.';
+
+  @override
+  String get phoneNumberChanged => 'Le numéro de mobile a été mis à jour.';
 
   @override
   String get currentPassword => 'Mot de passe actuel';
@@ -194,7 +255,33 @@ class AppLocalizationsFr extends AppLocalizations {
   String get languageSystem => 'Système';
 
   @override
+  String get languageEnglish => 'Anglais';
+
+  @override
+  String get languageFrench => 'Français';
+
+  @override
   String get notificationsTitle => 'Notifications push';
+
+  @override
+  String get notificationPermissionTitle =>
+      'Autorisation de notification de l’appareil';
+
+  @override
+  String get notificationsAccountEnabled =>
+      'Ce compte peut envoyer des notifications push à vos appareils.';
+
+  @override
+  String get notificationsAccountDisabled =>
+      'Les notifications push sont désactivées pour ce compte.';
+
+  @override
+  String get notificationsPreferenceLoadFailed =>
+      'Impossible de charger votre préférence de notification.';
+
+  @override
+  String get notificationsPreferenceSaveFailed =>
+      'Impossible d’enregistrer votre préférence de notification.';
 
   @override
   String get closeNotifications => 'Fermer les notifications';
@@ -251,6 +338,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get notificationRead => 'Lue';
+
+  @override
+  String get notificationUnread => 'Non lue';
 
   @override
   String get notificationNotFound =>

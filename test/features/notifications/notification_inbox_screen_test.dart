@@ -62,9 +62,7 @@ void main() {
     expect(repository.markedReadIds, ['password-change-1']);
   });
 
-  testWidgets('selecting an inbox item opens its detail and marks it read', (
-    tester,
-  ) async {
+  testWidgets('selecting an inbox item opens a status popup', (tester) async {
     final repository = _FakeNotificationInboxRepository();
     final router = GoRouter(
       initialLocation: '/notifications',
@@ -99,8 +97,50 @@ void main() {
     await tester.tap(find.text('Password changed').first);
     await tester.pumpAndSettle();
 
-    expect(find.byTooltip('Close notification'), findsOneWidget);
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(
+      find.text('Your account password was changed successfully.'),
+      findsNWidgets(2),
+    );
+    expect(find.text('Unread'), findsOneWidget);
+    expect(find.text('Read'), findsNothing);
+    expect(find.text('Mark as read'), findsOneWidget);
+    expect(repository.markedReadIds, isEmpty);
+
+    await tester.tap(find.text('Mark as read'));
+    await tester.pumpAndSettle();
+
     expect(repository.markedReadIds, ['password-change-1']);
+    expect(find.text('Read'), findsOneWidget);
+    expect(find.text('Unread'), findsNothing);
+    expect(find.text('Mark as read'), findsNothing);
+  });
+
+  testWidgets('popup shows read status without a mark-as-read action', (
+    tester,
+  ) async {
+    final repository = _FakeNotificationInboxRepository(isRead: true);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          notificationInboxRepositoryProvider.overrideWithValue(repository),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: NotificationInboxScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Password changed').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Read'), findsOneWidget);
+    expect(find.text('Unread'), findsNothing);
+    expect(find.text('Mark as read'), findsNothing);
+    expect(repository.markedReadIds, isEmpty);
   });
 
   testWidgets('close button returns Home after direct notification open', (
@@ -196,6 +236,9 @@ void main() {
 }
 
 class _FakeNotificationInboxRepository implements NotificationInboxRepository {
+  _FakeNotificationInboxRepository({this.isRead = false});
+
+  final bool isRead;
   final markedReadIds = <String>[];
 
   @override
@@ -204,7 +247,7 @@ class _FakeNotificationInboxRepository implements NotificationInboxRepository {
       id: 'password-change-1',
       type: AppNotificationType.passwordChanged,
       createdAt: DateTime.utc(2026, 10, 2, 20),
-      isRead: false,
+      isRead: isRead,
     ),
   ]);
 
@@ -215,7 +258,7 @@ class _FakeNotificationInboxRepository implements NotificationInboxRepository {
           id: notificationId,
           type: AppNotificationType.passwordChanged,
           createdAt: DateTime.utc(2026, 10, 2, 20),
-          isRead: false,
+          isRead: isRead,
         ),
       );
 

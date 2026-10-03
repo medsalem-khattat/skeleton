@@ -135,6 +135,12 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       if (auth == null) return null;
       final user = auth.currentUser;
+      if (user != null &&
+          !user.emailVerified &&
+          state.matchedLocation == AppRoutes.register &&
+          ref.read(authControllerProvider).isLoading) {
+        return null;
+      }
       return AppRoutes.authRedirect(
         isLoggedIn: user != null,
         emailVerified: user?.emailVerified ?? false,

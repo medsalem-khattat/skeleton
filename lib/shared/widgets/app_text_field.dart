@@ -9,20 +9,24 @@ class AppTextField extends StatefulWidget {
     required this.label,
     this.validator,
     this.obscure = false,
+    this.enabled = true,
     this.keyboardType,
     this.textInputAction,
     this.autofillHints,
     this.onSubmitted,
+    this.onChanged,
   });
 
   final TextEditingController controller;
   final String label;
   final String? Function(String?)? validator;
   final bool obscure;
+  final bool enabled;
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final Iterable<String>? autofillHints;
   final void Function(String)? onSubmitted;
+  final void Function(String)? onChanged;
 
   @override
   State<AppTextField> createState() => _AppTextFieldState();
@@ -51,11 +55,13 @@ class _AppTextFieldState extends State<AppTextField> {
     return TextFormField(
       controller: widget.controller,
       obscureText: _obscure,
+      enabled: widget.enabled,
       keyboardType: widget.keyboardType,
       textInputAction: widget.textInputAction,
       autofillHints: widget.autofillHints,
       validator: widget.validator,
       onFieldSubmitted: widget.onSubmitted,
+      onChanged: widget.onChanged,
       decoration: InputDecoration(
         labelText: widget.label,
         suffixIcon: widget.obscure

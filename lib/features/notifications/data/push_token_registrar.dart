@@ -8,7 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/firebase/firebase_providers.dart';
 import 'push_notification_service.dart';
 
-final pushTokenRegistrarProvider = Provider<PushTokenRegistrar>((ref) {
+final pushTokenRegistrarProvider = Provider<PushTokenRegistrarClient>((ref) {
   final registrar = PushTokenRegistrar(
     ref.watch(firebaseAuthProvider),
     ref.watch(firestoreProvider),
@@ -19,7 +19,13 @@ final pushTokenRegistrarProvider = Provider<PushTokenRegistrar>((ref) {
   return registrar;
 });
 
-class PushTokenRegistrar {
+abstract interface class PushTokenRegistrarClient {
+  Future<void> syncForCurrentUser();
+
+  Future<void> unregisterCurrentToken();
+}
+
+class PushTokenRegistrar implements PushTokenRegistrarClient {
   PushTokenRegistrar(this._auth, this._firestore, this._pushClient);
 
   final FirebaseAuth _auth;
@@ -50,11 +56,13 @@ class PushTokenRegistrar {
     );
   }
 
+  @override
   Future<void> syncForCurrentUser() async {
     final user = _auth.currentUser;
     if (user != null) await _syncForUser(user.uid);
   }
 
+  @override
   Future<void> unregisterCurrentToken() async {
     final user = _auth.currentUser;
     if (user == null) return;
@@ -68,6 +76,14 @@ class PushTokenRegistrar {
   }
 
   Future<void> _syncForUser(String userId) async {
+    final userSnapshot = await _firestore.collection('users').doc(userId).get();
+    final preference = userSnapshot.data()?['notificationsEnabled'];
+    if (preference != null && preference is! bool) {
+      throw const FormatException('Notification preference must be a boolean.');
+    }
+    final notificationsEnabled = preference as bool? ?? true;
+    if (!notificationsEnabled) return;
+
     final authorization = await _pushClient.authorizationStatus();
     if (authorization != PushAuthorizationStatus.authorized &&
         authorization != PushAuthorizationStatus.provisional) {

@@ -36,6 +36,17 @@ void main() {
       );
     });
 
+    test('phone verification does not bypass email verification', () {
+      expect(
+        AppRoutes.authRedirect(
+          isLoggedIn: true,
+          emailVerified: false,
+          location: AppRoutes.home,
+        ),
+        AppRoutes.verifyEmail,
+      );
+    });
+
     test('sends signed-out users away from the verification screen', () {
       expect(
         AppRoutes.authRedirect(

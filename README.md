@@ -49,7 +49,10 @@ Push notifications are enabled by default and ask for permission from Settings,
 not at app startup. Signed-in devices register their FCM token through an
 owner-scoped Firestore document; tokens are stored privately. Password-change
 notifications are created in the same owner's inbox, then a Firestore trigger
-sends the native push. Stale tokens are removed.
+sends the native push. Each signed-in account can turn push delivery on or off
+in Settings; the preference is stored with the user's Firestore profile and
+checked by both token registration and the push sender. Stale tokens are
+removed.
 Android and iOS pushes use the default sound, and
 Android uses the `push_notifications` channel. Tapping a push opens the matching
 in-app notification. A signed-out user is sent through sign-in and email
@@ -103,9 +106,24 @@ those must be migrated separately if existing accounts/data need to be kept.
 Password and email changes require the current password to reauthenticate.
 Firebase sends a verification link for email changes; the account continues
 using its current address until that link is confirmed.
+The **Settings → Account security** section manages app lock and password,
+email, and mobile-number changes; the Profile screen is reserved for personal
+details.
+Appearance and language are presented as compact settings rows; selecting one
+opens a picker with the available choices.
+Changing a mobile number verifies the new number with SMS and reauthenticates
+with the current password before updating the Firebase phone credential.
 New accounts must verify their email address before accessing app screens.
 The verification screen lets users resend the link or refresh the verification
 status after opening it.
+Registration requires a phone number in E.164 format (for example
+`+14155552671`) and SMS verification. After the code is verified, the phone
+credential is linked to the new email/password account. Users continue to sign
+in with their email and password, and must still verify their email before
+accessing app screens. Configure Firebase's Phone provider, allowed SMS
+regions, Android SHA fingerprints, and the iOS APNs/reCAPTCHA setup before
+testing with real phone numbers. Use Firebase test phone numbers during
+development to avoid sending real SMS.
 After a password change, the app records an in-app security notification in
 the user's Firestore notification inbox. Open the inbox from the Home app-bar
 bell. Selecting an item opens its detail and marks it as read; close on either
@@ -114,9 +132,9 @@ users to read only their own profile and notification documents. This
 server-created inbox entry is a user-facing
 confirmation, not a server-authoritative security audit log; password changes
 made outside this app are not recorded here.
-Device authentication can optionally be enabled in Settings. When enabled,
-the app requires the device's biometric or screen-lock credential on launch
-and when it returns from the background.
+Device authentication can optionally be enabled in Settings → Account
+security. When enabled, the app requires the device's biometric or screen-lock
+credential on launch and when it returns from the background.
 
 ## Stack
 
@@ -168,13 +186,14 @@ Each feature follows the same three layers:
    ```
    flutter pub get
    ```
-2. Create a Firebase project. Enable **Authentication → Email/Password** and create a **Firestore** database.
-3. Connect the app to your Firebase project (this regenerates `lib/firebase_options.dart`):
+2. Create a Firebase project. Enable **Authentication → Email/Password** and **Authentication → Phone**, and create a **Firestore** database. Phone Auth is used to verify phone numbers during registration; login remains email/password. Configure allowed SMS regions in Firebase Authentication.
+3. For Android phone auth, add the app's SHA-1 and SHA-256 signing fingerprints in Firebase Project Settings → Android app. For iOS, configure APNs for Firebase Messaging; phone auth may use APNs or a reCAPTCHA fallback.
+4. Connect the app to your Firebase project (this regenerates `lib/firebase_options.dart`):
    ```
    firebase login
    flutterfire configure --project=<your-project-id>
    ```
-4. For a dedicated, empty project, deploy the Firestore rules from this repository:
+5. For a dedicated, empty project, deploy the Firestore rules from this repository:
    ```
    firebase deploy --only firestore:rules --project <your-project-id>
    ```
@@ -182,7 +201,7 @@ Each feature follows the same three layers:
    `users/{uid}` profile and notification documents. Do not replace rules on a
    project that already hosts other services; merge the required user-scoped
    paths with its existing rules.
-5. Run the app:
+6. Run the app:
    ```
    flutter run
    ```

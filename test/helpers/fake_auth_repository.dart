@@ -12,6 +12,14 @@ class FakeAuthRepository implements AuthRepository {
   int verificationEmailSendCount = 0;
   int verificationStatusCheckCount = 0;
   bool emailVerified = false;
+  String? lastPhoneNumber;
+  String? lastSmsCode;
+  String? lastVerificationId;
+  String? lastRegisteredName;
+  String? lastPhoneVerificationId;
+  String? lastPhoneSmsCode;
+  PhoneAuthCredential? lastPhoneCredential;
+  int? lastResendToken;
 
   @override
   Future<void> signIn({required String email, required String password}) async {
@@ -20,13 +28,34 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<PhoneVerificationResult> sendPhoneVerificationCode({
+    required String phoneNumber,
+    int? forceResendingToken,
+    void Function(PhoneAuthCredential credential)? onVerificationCompleted,
+  }) async {
+    if (shouldFail) throw FirebaseAuthException(code: 'invalid-phone-number');
+    lastPhoneNumber = phoneNumber;
+    lastResendToken = forceResendingToken;
+    return const PhoneVerificationResult.codeSent(
+      verificationId: 'test-verification-id',
+      resendToken: 42,
+    );
+  }
+
+  @override
   Future<void> register({
     required String name,
     required String email,
     required String password,
+    required PhoneAuthCredential? phoneCredential,
+    required String? verificationId,
+    required String? smsCode,
   }) async {
     if (shouldFail) throw FirebaseAuthException(code: 'email-already-in-use');
+    lastRegisteredName = name;
     lastEmail = email;
+    lastVerificationId = verificationId;
+    lastSmsCode = smsCode;
   }
 
   @override
@@ -70,6 +99,22 @@ class FakeAuthRepository implements AuthRepository {
     if (shouldFail) throw FirebaseAuthException(code: 'wrong-password');
     lastCurrentPassword = currentPassword;
     lastNewEmail = newEmail;
+  }
+
+  @override
+  Future<void> updatePhoneNumber({
+    required String currentPassword,
+    required PhoneAuthCredential? phoneCredential,
+    required String? verificationId,
+    required String? smsCode,
+  }) async {
+    if (shouldFail) {
+      throw FirebaseAuthException(code: 'invalid-verification-code');
+    }
+    lastCurrentPassword = currentPassword;
+    lastPhoneCredential = phoneCredential;
+    lastPhoneVerificationId = verificationId;
+    lastPhoneSmsCode = smsCode;
   }
 
   @override

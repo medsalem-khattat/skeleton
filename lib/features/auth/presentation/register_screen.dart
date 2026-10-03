@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,6 +26,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _confirm = TextEditingController();
+  final _phoneNumber = TextEditingController();
+  final _smsCode = TextEditingController();
+  String? _verificationId;
+  String? _sentPhoneNumber;
+  int? _resendToken;
+  PhoneAuthCredential? _autoVerifiedCredential;
 
   @override
   void dispose() {
@@ -32,15 +39,80 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _email.dispose();
     _password.dispose();
     _confirm.dispose();
+    _phoneNumber.dispose();
+    _smsCode.dispose();
     super.dispose();
   }
 
+  String _normalizePhone(String value) => value.replaceAll(RegExp(r'\s'), '');
+
+  String? _phoneNumberError(String? value, AppLocalizations l10n) {
+    final phone = _normalizePhone(value ?? '');
+    if (phone.isEmpty) return l10n.phoneNumberRequired;
+    return RegExp(r'^\+[1-9]\d{7,14}$').hasMatch(phone)
+        ? null
+        : l10n.phoneNumberInvalid;
+  }
+
+  Future<void> _sendPhoneCode({bool resend = false}) async {
+    final l10n = AppLocalizations.of(context);
+    final phoneNumber = _normalizePhone(_phoneNumber.text);
+    final phoneError = _phoneNumberError(phoneNumber, l10n);
+    if (phoneError != null) {
+      showMessage(context, phoneError);
+      return;
+    }
+    if (resend) {
+      setState(() {
+        _autoVerifiedCredential = null;
+        _smsCode.clear();
+      });
+    }
+
+    final result = await ref
+        .read(authControllerProvider.notifier)
+        .sendPhoneVerificationCode(
+          phoneNumber: phoneNumber,
+          forceResendingToken: resend ? _resendToken : null,
+          onVerificationCompleted: (credential) {
+            if (!mounted || _normalizePhone(_phoneNumber.text) != phoneNumber) {
+              return;
+            }
+            setState(() => _autoVerifiedCredential = credential);
+          },
+        );
+    if (!mounted ||
+        result == null ||
+        _normalizePhone(_phoneNumber.text) != phoneNumber) {
+      return;
+    }
+    setState(() {
+      _verificationId = result.verificationId;
+      _sentPhoneNumber = phoneNumber;
+      _resendToken = result.resendToken;
+      _autoVerifiedCredential = result.credential ?? _autoVerifiedCredential;
+    });
+  }
+
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context);
+    if (_autoVerifiedCredential == null &&
+        (_verificationId == null || _sentPhoneNumber == null)) {
+      showMessage(context, l10n.phoneRegistrationRequired);
+      return;
+    }
     if (!_formKey.currentState!.validate()) return;
-    // On success the router redirects to home automatically.
+
     await ref
         .read(authControllerProvider.notifier)
-        .register(_name.text, _email.text, _password.text);
+        .register(
+          name: _name.text,
+          email: _email.text,
+          password: _password.text,
+          phoneCredential: _autoVerifiedCredential,
+          verificationId: _verificationId,
+          smsCode: _smsCode.text.trim().isEmpty ? null : _smsCode.text.trim(),
+        );
   }
 
   @override
@@ -71,6 +143,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    Text(
+                      l10n.phoneRegistrationInstructions,
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: AppSpacing.md),
                     AppTextField(
                       controller: _name,
                       label: l10n.fullName,
@@ -99,17 +176,73 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     AppTextField(
                       controller: _confirm,
                       label: l10n.confirmPassword,
-                      validator: (v) =>
-                          v != _password.text ? l10n.passwordsDoNotMatch : null,
+                      validator: (value) => value != _password.text
+                          ? l10n.passwordsDoNotMatch
+                          : null,
                       obscure: true,
                       textInputAction: TextInputAction.done,
-                      onSubmitted: (_) => _submit(),
                     ),
+                    SizedBox(height: AppSpacing.md),
+                    AppTextField(
+                      controller: _phoneNumber,
+                      label: l10n.phoneNumber,
+                      enabled: !loading,
+                      keyboardType: TextInputType.phone,
+                      textInputAction: TextInputAction.done,
+                      autofillHints: const [AutofillHints.telephoneNumber],
+                      validator: (value) => _phoneNumberError(value, l10n),
+                      onChanged: (value) {
+                        if (_sentPhoneNumber != null &&
+                            _normalizePhone(value) != _sentPhoneNumber) {
+                          setState(() {
+                            _verificationId = null;
+                            _sentPhoneNumber = null;
+                            _resendToken = null;
+                            _autoVerifiedCredential = null;
+                            _smsCode.clear();
+                          });
+                        }
+                      },
+                    ),
+                    SizedBox(height: AppSpacing.sm),
+                    if (_autoVerifiedCredential == null)
+                      AppButton(
+                        label: _verificationId == null
+                            ? l10n.sendVerificationCode
+                            : l10n.resendVerificationCode,
+                        onPressed: () =>
+                            _sendPhoneCode(resend: _verificationId != null),
+                        loading: loading,
+                      )
+                    else
+                      Text(
+                        l10n.phoneAutomaticallyVerified,
+                        textAlign: TextAlign.center,
+                      ),
+                    if (_verificationId != null &&
+                        _autoVerifiedCredential == null) ...[
+                      SizedBox(height: AppSpacing.sm),
+                      AppTextField(
+                        controller: _smsCode,
+                        label: l10n.smsVerificationCode,
+                        keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.done,
+                        autofillHints: const [AutofillHints.oneTimeCode],
+                        validator: (value) {
+                          if (value?.trim().isNotEmpty == true &&
+                              RegExp(r'^\d{6}$').hasMatch(value!.trim())) {
+                            return null;
+                          }
+                          return l10n.phoneVerificationCodeRequired;
+                        },
+                      ),
+                    ],
                     SizedBox(height: AppSpacing.lg),
                     AppButton(
-                        label: l10n.createAccount,
-                        onPressed: _submit,
-                        loading: loading),
+                      label: l10n.createAccount,
+                      onPressed: _submit,
+                      loading: loading,
+                    ),
                     SizedBox(height: AppSpacing.sm),
                     TextButton(
                       onPressed: () => context.go(AppRoutes.login),

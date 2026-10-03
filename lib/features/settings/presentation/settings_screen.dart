@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:local_auth/local_auth.dart';
 
 import '../../../core/config/feature_providers.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_snackbar.dart';
+import '../../auth/application/auth_providers.dart';
+import '../../notifications/data/notification_preferences.dart';
 import '../../notifications/data/push_notification_service.dart';
 import '../../notifications/data/push_token_registrar.dart';
-import '../application/device_auth_controller.dart';
+import 'account_security_screen.dart';
 import '../application/locale_controller.dart';
 import '../application/theme_controller.dart';
 
@@ -21,8 +22,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen>
     with WidgetsBindingObserver {
-  bool _deviceAuthBusy = false;
-
   @override
   void initState() {
     super.initState();
@@ -63,32 +62,66 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     }
   }
 
-  Future<void> _setDeviceAuth(bool enabled) async {
-    final l10n = AppLocalizations.of(context);
-    setState(() => _deviceAuthBusy = true);
-    try {
-      final authenticator = ref.read(deviceAuthenticatorProvider);
-      if (!await authenticator.isDeviceSupported()) {
-        if (mounted) showMessage(context, l10n.deviceAuthUnavailable);
-        return;
-      }
+  Future<void> _selectTheme(ThemeMode current, AppLocalizations l10n) async {
+    final selected = await showModalBottomSheet<ThemeMode>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _ThemeOption(
+              mode: ThemeMode.system,
+              selected: current,
+              label: l10n.themeSystem,
+            ),
+            _ThemeOption(
+              mode: ThemeMode.light,
+              selected: current,
+              label: l10n.themeLight,
+            ),
+            _ThemeOption(
+              mode: ThemeMode.dark,
+              selected: current,
+              label: l10n.themeDark,
+            ),
+          ],
+        ),
+      ),
+    );
+    if (selected != null) await _setTheme(selected);
+  }
 
-      final authenticated = await authenticator.authenticate(
-        l10n.deviceAuthReason,
-      );
-      if (!mounted) return;
-      if (!authenticated) {
-        showMessage(context, l10n.deviceAuthFailed);
-        return;
-      }
-
-      await ref.read(deviceAuthEnabledProvider.notifier).setEnabled(enabled);
-    } on LocalAuthException {
-      if (mounted) showMessage(context, l10n.deviceAuthFailed);
-    } catch (_) {
-      if (mounted) showMessage(context, l10n.deviceAuthSaveFailed);
-    } finally {
-      if (mounted) setState(() => _deviceAuthBusy = false);
+  Future<void> _selectLanguage(
+    String selectedCode,
+    AppLocalizations l10n,
+  ) async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _LanguageOption(
+              code: 'system',
+              selectedCode: selectedCode,
+              label: l10n.languageSystem,
+            ),
+            _LanguageOption(
+              code: 'en',
+              selectedCode: selectedCode,
+              label: l10n.languageEnglish,
+            ),
+            _LanguageOption(
+              code: 'fr',
+              selectedCode: selectedCode,
+              label: l10n.languageFrench,
+            ),
+          ],
+        ),
+      ),
+    );
+    if (selected != null) {
+      await _setLocale(selected == 'system' ? null : Locale(selected));
     }
   }
 
@@ -96,9 +129,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   Widget build(BuildContext context) {
     final features = ref.watch(appFeaturesProvider);
     final l10n = AppLocalizations.of(context);
-    final deviceAuthEnabled = features.deviceAuthenticationEnabled
-        ? ref.watch(deviceAuthEnabledProvider)
-        : false;
     final mode = features.appearanceSettingsEnabled
         ? ref.watch(themeModeProvider)
         : ThemeMode.system;
@@ -107,7 +137,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         : null;
     final selectedLanguageCode = locale?.languageCode ?? 'system';
     final hasNonNotificationSettings =
-        features.deviceAuthenticationEnabled ||
+        features.accountSecurityEnabled ||
         features.appearanceSettingsEnabled ||
         features.languageSettingsEnabled;
 
@@ -116,60 +146,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
-          if (features.deviceAuthenticationEnabled)
+          if (features.accountSecurityEnabled)
             Card(
-              child: SwitchListTile(
-                secondary: const Icon(Icons.phonelink_lock_outlined),
-                title: Text(l10n.deviceAuthTitle),
-                subtitle: Text(l10n.deviceAuthDescription),
-                value: deviceAuthEnabled,
-                onChanged: _deviceAuthBusy ? null : _setDeviceAuth,
+              child: ListTile(
+                leading: const Icon(Icons.security_outlined),
+                title: Text(l10n.accountSecurity),
+                subtitle: Text(l10n.accountSecurityDescription),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const AccountSecurityScreen(),
+                    ),
+                  );
+                },
               ),
             ),
-          if (features.deviceAuthenticationEnabled &&
-              features.appearanceSettingsEnabled)
+          if (features.accountSecurityEnabled &&
+              (features.appearanceSettingsEnabled ||
+                  features.languageSettingsEnabled))
             const SizedBox(height: AppSpacing.md),
           if (features.appearanceSettingsEnabled)
             Card(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.appearance,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    RadioGroup<ThemeMode>(
-                      groupValue: mode,
-                      onChanged: (selection) {
-                        if (selection != null) {
-                          _setTheme(selection);
-                        }
-                      },
-                      child: Column(
-                        children: [
-                          RadioListTile<ThemeMode>(
-                            value: ThemeMode.system,
-                            title: Text(l10n.themeSystem),
-                            secondary: const Icon(Icons.brightness_auto),
-                          ),
-                          RadioListTile<ThemeMode>(
-                            value: ThemeMode.light,
-                            title: Text(l10n.themeLight),
-                            secondary: const Icon(Icons.light_mode),
-                          ),
-                          RadioListTile<ThemeMode>(
-                            value: ThemeMode.dark,
-                            title: Text(l10n.themeDark),
-                            secondary: const Icon(Icons.dark_mode),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+              child: ListTile(
+                leading: const Icon(Icons.brightness_6_outlined),
+                title: Text(l10n.appearance),
+                subtitle: Text(switch (mode) {
+                  ThemeMode.system => l10n.themeSystem,
+                  ThemeMode.light => l10n.themeLight,
+                  ThemeMode.dark => l10n.themeDark,
+                }),
+                trailing: const Icon(Icons.expand_more),
+                onTap: () => _selectTheme(mode, l10n),
               ),
             ),
           if (features.appearanceSettingsEnabled &&
@@ -177,52 +185,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             const SizedBox(height: AppSpacing.md),
           if (features.languageSettingsEnabled)
             Card(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.md,
-                      AppSpacing.md,
-                      AppSpacing.md,
-                      0,
-                    ),
-                    child: Text(
-                      l10n.language,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                  RadioGroup<String>(
-                    groupValue: selectedLanguageCode,
-                    onChanged: (code) {
-                      if (code != null) {
-                        _setLocale(code == 'system' ? null : Locale(code));
-                      }
-                    },
-                    child: Column(
-                      children: [
-                        RadioListTile<String>(
-                          value: 'system',
-                          title: Text(l10n.languageSystem),
-                        ),
-                        const RadioListTile<String>(
-                          value: 'en',
-                          title: Text('English'),
-                        ),
-                        const RadioListTile<String>(
-                          value: 'fr',
-                          title: Text('Français'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              child: ListTile(
+                leading: const Icon(Icons.language),
+                title: Text(l10n.language),
+                subtitle: Text(switch (selectedLanguageCode) {
+                  'en' => l10n.languageEnglish,
+                  'fr' => l10n.languageFrench,
+                  _ => l10n.languageSystem,
+                }),
+                trailing: const Icon(Icons.expand_more),
+                onTap: () => _selectLanguage(selectedLanguageCode, l10n),
               ),
             ),
           if (features.pushNotificationsEnabled) ...[
             if (hasNonNotificationSettings)
               const SizedBox(height: AppSpacing.md),
-            const PushNotificationsSettingsCard(),
+            PushNotificationsSettingsCard(
+              showUserPreference: features.authentication,
+            ),
           ],
         ],
       ),
@@ -230,8 +210,94 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   }
 }
 
+class _ThemeOption extends StatelessWidget {
+  const _ThemeOption({
+    required this.mode,
+    required this.selected,
+    required this.label,
+  });
+
+  final ThemeMode mode;
+  final ThemeMode selected;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(label),
+      trailing: mode == selected ? const Icon(Icons.check) : null,
+      onTap: () => Navigator.pop(context, mode),
+    );
+  }
+}
+
+class _LanguageOption extends StatelessWidget {
+  const _LanguageOption({
+    required this.code,
+    required this.selectedCode,
+    required this.label,
+  });
+
+  final String code;
+  final String selectedCode;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(label),
+      trailing: code == selectedCode ? const Icon(Icons.check) : null,
+      onTap: () => Navigator.pop(context, code),
+    );
+  }
+}
+
 class PushNotificationsSettingsCard extends ConsumerWidget {
-  const PushNotificationsSettingsCard({super.key});
+  const PushNotificationsSettingsCard({
+    super.key,
+    this.showUserPreference = true,
+  });
+
+  final bool showUserPreference;
+
+  Future<void> _setUserPreference(
+    BuildContext context,
+    WidgetRef ref,
+    String userId,
+    bool enabled,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    try {
+      if (enabled) {
+        var status = await ref
+            .read(pushNotificationClientProvider)
+            .authorizationStatus();
+        if (status == PushAuthorizationStatus.notDetermined) {
+          status = await ref
+              .read(pushNotificationClientProvider)
+              .requestPermission();
+          ref.invalidate(pushNotificationAuthorizationProvider);
+        }
+        if (status != PushAuthorizationStatus.authorized &&
+            status != PushAuthorizationStatus.provisional) {
+          if (context.mounted) showMessage(context, l10n.notificationsDenied);
+          return;
+        }
+      }
+
+      await ref
+          .read(notificationPreferencesRepositoryProvider)
+          .setEnabled(userId, enabled);
+      ref.invalidate(userNotificationsEnabledProvider(userId));
+      if (enabled) {
+        await ref.read(pushTokenRegistrarProvider).syncForCurrentUser();
+      }
+    } catch (_) {
+      if (context.mounted) {
+        showMessage(context, l10n.notificationsPreferenceSaveFailed);
+      }
+    }
+  }
 
   Future<void> _requestPermission(BuildContext context, WidgetRef ref) async {
     try {
@@ -252,6 +318,12 @@ class PushNotificationsSettingsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final authorization = ref.watch(pushNotificationAuthorizationProvider);
+    final userId = showUserPreference
+        ? ref.watch(signedInUserIdProvider)
+        : null;
+    final preference = userId == null
+        ? null
+        : ref.watch(userNotificationsEnabledProvider(userId));
 
     return Card(
       child: Padding(
@@ -262,7 +334,7 @@ class PushNotificationsSettingsCard extends ConsumerWidget {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.notifications_outlined),
-              title: Text(l10n.notificationsTitle),
+              title: Text(l10n.notificationPermissionTitle),
               subtitle: authorization.when(
                 data: (status) => Text(switch (status) {
                   PushAuthorizationStatus.authorized ||
@@ -276,6 +348,33 @@ class PushNotificationsSettingsCard extends ConsumerWidget {
                 loading: () => const LinearProgressIndicator(),
               ),
             ),
+            if (userId != null)
+              preference!.when(
+                data: (enabled) => SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l10n.notificationsTitle),
+                  subtitle: Text(
+                    enabled
+                        ? l10n.notificationsAccountEnabled
+                        : l10n.notificationsAccountDisabled,
+                  ),
+                  value: enabled,
+                  onChanged: (value) =>
+                      _setUserPreference(context, ref, userId, value),
+                ),
+                error: (_, _) => ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l10n.notificationsPreferenceLoadFailed),
+                  trailing: IconButton(
+                    tooltip: l10n.retry,
+                    onPressed: () => ref.invalidate(
+                      userNotificationsEnabledProvider(userId),
+                    ),
+                    icon: const Icon(Icons.refresh),
+                  ),
+                ),
+                loading: () => const LinearProgressIndicator(),
+              ),
             authorization.when(
               data: (status) {
                 if (status == PushAuthorizationStatus.notDetermined) {

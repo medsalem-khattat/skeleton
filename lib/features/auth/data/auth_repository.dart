@@ -1,7 +1,27 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../core/storage/secure_storage.dart';
 import '../../../l10n/app_localizations.dart';
+
+class PhoneVerificationResult {
+  const PhoneVerificationResult.codeSent({
+    required this.verificationId,
+    this.resendToken,
+    this.credential,
+  }) : autoVerified = false;
+
+  const PhoneVerificationResult.autoVerified(this.credential)
+    : verificationId = null,
+      resendToken = null,
+      autoVerified = true;
+
+  final String? verificationId;
+  final int? resendToken;
+  final bool autoVerified;
+  final PhoneAuthCredential? credential;
+}
 
 class AuthRepository {
   AuthRepository(this._auth, {Future<void> Function()? beforeSignOut})
@@ -51,6 +71,32 @@ class AuthRepository {
     await user.verifyBeforeUpdateEmail(newEmail.trim());
   }
 
+  Future<void> updatePhoneNumber({
+    required String currentPassword,
+    required PhoneAuthCredential? phoneCredential,
+    required String? verificationId,
+    required String? smsCode,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw StateError('An authenticated user is required.');
+    }
+    final credential =
+        phoneCredential ??
+        (verificationId != null && smsCode != null
+            ? PhoneAuthProvider.credential(
+                verificationId: verificationId,
+                smsCode: smsCode.trim(),
+              )
+            : null);
+    if (credential == null) {
+      throw StateError('A verified phone credential is required.');
+    }
+    await _reauthenticate(user, currentPassword);
+    await user.updatePhoneNumber(credential);
+    await user.reload();
+  }
+
   User _requireEmailPasswordUser() {
     final user = _auth.currentUser;
     if (user == null || user.email == null) {
@@ -71,15 +117,49 @@ class AuthRepository {
     required String name,
     required String email,
     required String password,
+    required PhoneAuthCredential? phoneCredential,
+    required String? verificationId,
+    required String? smsCode,
   }) async {
+    final verifiedPhoneCredential =
+        phoneCredential ??
+        (verificationId != null && smsCode != null
+            ? PhoneAuthProvider.credential(
+                verificationId: verificationId,
+                smsCode: smsCode.trim(),
+              )
+            : null);
+    if (verifiedPhoneCredential == null) {
+      throw StateError('A verified phone credential is required.');
+    }
+
     final cred = await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
       password: password,
     );
     final user = cred.user;
     if (user == null) throw StateError('Firebase did not return a new user.');
-    await user.updateDisplayName(name.trim());
-    await user.sendEmailVerification();
+
+    User linkedUser;
+    try {
+      await user.updateDisplayName(name.trim());
+      linkedUser =
+          (await user.linkWithCredential(verifiedPhoneCredential)).user ?? user;
+    } catch (error, stackTrace) {
+      try {
+        await user.delete();
+      } catch (cleanupError) {
+        Error.throwWithStackTrace(
+          StateError(
+            'Phone verification failed and the incomplete account could not '
+            'be removed: $cleanupError',
+          ),
+          stackTrace,
+        );
+      }
+      Error.throwWithStackTrace(error, stackTrace);
+    }
+    await linkedUser.sendEmailVerification();
   }
 
   Future<void> signIn({required String email, required String password}) async {
@@ -87,6 +167,45 @@ class AuthRepository {
       email: email.trim(),
       password: password,
     );
+  }
+
+  Future<PhoneVerificationResult> sendPhoneVerificationCode({
+    required String phoneNumber,
+    int? forceResendingToken,
+    void Function(PhoneAuthCredential credential)? onVerificationCompleted,
+  }) async {
+    final completer = Completer<PhoneVerificationResult>();
+    await _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber.trim(),
+      forceResendingToken: forceResendingToken,
+      verificationCompleted: (credential) async {
+        onVerificationCompleted?.call(credential);
+        if (!completer.isCompleted) {
+          completer.complete(PhoneVerificationResult.autoVerified(credential));
+        }
+      },
+      verificationFailed: (error) {
+        if (!completer.isCompleted) completer.completeError(error);
+      },
+      codeSent: (verificationId, resendToken) {
+        if (!completer.isCompleted) {
+          completer.complete(
+            PhoneVerificationResult.codeSent(
+              verificationId: verificationId,
+              resendToken: resendToken,
+            ),
+          );
+        }
+      },
+      codeAutoRetrievalTimeout: (verificationId) {
+        if (!completer.isCompleted) {
+          completer.complete(
+            PhoneVerificationResult.codeSent(verificationId: verificationId),
+          );
+        }
+      },
+    );
+    return completer.future;
   }
 
   Future<void> signOut() async {
@@ -123,6 +242,15 @@ String authErrorMessage(AppLocalizations l10n, Object error) {
         return l10n.errorNetwork;
       case 'too-many-requests':
         return l10n.errorTooManyAttempts;
+      case 'invalid-phone-number':
+      case 'missing-phone-number':
+        return l10n.phoneNumberInvalid;
+      case 'invalid-verification-code':
+        return l10n.phoneVerificationCodeInvalid;
+      case 'session-expired':
+        return l10n.phoneVerificationExpired;
+      case 'quota-exceeded':
+        return l10n.phoneVerificationQuotaExceeded;
       default:
         return l10n.errorUnknownCode(error.code);
     }

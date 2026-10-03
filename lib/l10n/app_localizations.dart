@@ -104,6 +104,84 @@ abstract class AppLocalizations {
   /// **'Sign in to continue'**
   String get signInToContinue;
 
+  /// No description provided for @phoneRegistrationInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your phone number with an SMS code to create your account.'**
+  String get phoneRegistrationInstructions;
+
+  /// No description provided for @phoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number'**
+  String get phoneNumber;
+
+  /// No description provided for @phoneNumberRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number is required'**
+  String get phoneNumberRequired;
+
+  /// No description provided for @phoneNumberInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid phone number with country code, such as +14155552671.'**
+  String get phoneNumberInvalid;
+
+  /// No description provided for @sendVerificationCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Send verification code'**
+  String get sendVerificationCode;
+
+  /// No description provided for @resendVerificationCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend verification code'**
+  String get resendVerificationCode;
+
+  /// No description provided for @smsVerificationCode.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS verification code'**
+  String get smsVerificationCode;
+
+  /// No description provided for @phoneVerificationCodeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the verification code'**
+  String get phoneVerificationCodeRequired;
+
+  /// No description provided for @phoneRegistrationRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your phone number before creating your account.'**
+  String get phoneRegistrationRequired;
+
+  /// No description provided for @phoneAutomaticallyVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number verified automatically.'**
+  String get phoneAutomaticallyVerified;
+
+  /// No description provided for @phoneVerificationCodeInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That verification code is invalid. Check it and try again.'**
+  String get phoneVerificationCodeInvalid;
+
+  /// No description provided for @phoneVerificationExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'That verification code expired. Request a new code.'**
+  String get phoneVerificationExpired;
+
+  /// No description provided for @phoneVerificationQuotaExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS verification limit reached. Try again later.'**
+  String get phoneVerificationQuotaExceeded;
+
   /// No description provided for @email.
   ///
   /// In en, this message translates to:
@@ -224,18 +302,6 @@ abstract class AppLocalizations {
   /// **'Welcome, {name}'**
   String welcomeName(String name);
 
-  /// No description provided for @dashboardProfileTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Your profile'**
-  String get dashboardProfileTitle;
-
-  /// No description provided for @dashboardProfileDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'View and update your personal details.'**
-  String get dashboardProfileDescription;
-
   /// No description provided for @openMenu.
   ///
   /// In en, this message translates to:
@@ -350,6 +416,12 @@ abstract class AppLocalizations {
   /// **'Account security'**
   String get accountSecurity;
 
+  /// No description provided for @accountSecurityDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage sign-in details and app lock.'**
+  String get accountSecurityDescription;
+
   /// No description provided for @changePassword.
   ///
   /// In en, this message translates to:
@@ -361,6 +433,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Change email'**
   String get changeEmail;
+
+  /// No description provided for @changePhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Change mobile number'**
+  String get changePhoneNumber;
+
+  /// No description provided for @phoneChangeInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your new mobile number. We will verify it with an SMS code.'**
+  String get phoneChangeInstructions;
+
+  /// No description provided for @phoneNumberNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'No mobile number added'**
+  String get phoneNumberNotSet;
+
+  /// No description provided for @phoneNumberUnchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a mobile number different from your current one.'**
+  String get phoneNumberUnchanged;
+
+  /// No description provided for @phoneNumberChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile number updated successfully.'**
+  String get phoneNumberChanged;
 
   /// No description provided for @currentPassword.
   ///
@@ -440,11 +542,53 @@ abstract class AppLocalizations {
   /// **'System'**
   String get languageSystem;
 
+  /// No description provided for @languageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// No description provided for @languageFrench.
+  ///
+  /// In en, this message translates to:
+  /// **'French'**
+  String get languageFrench;
+
   /// No description provided for @notificationsTitle.
   ///
   /// In en, this message translates to:
   /// **'Push notifications'**
   String get notificationsTitle;
+
+  /// No description provided for @notificationPermissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Device notification permission'**
+  String get notificationPermissionTitle;
+
+  /// No description provided for @notificationsAccountEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'This account can send push notifications to your devices.'**
+  String get notificationsAccountEnabled;
+
+  /// No description provided for @notificationsAccountDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Push notifications are turned off for this account.'**
+  String get notificationsAccountDisabled;
+
+  /// No description provided for @notificationsPreferenceLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your notification preference.'**
+  String get notificationsPreferenceLoadFailed;
+
+  /// No description provided for @notificationsPreferenceSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save your notification preference.'**
+  String get notificationsPreferenceSaveFailed;
 
   /// No description provided for @closeNotifications.
   ///
@@ -541,6 +685,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Read'**
   String get notificationRead;
+
+  /// No description provided for @notificationUnread.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread'**
+  String get notificationUnread;
 
   /// No description provided for @notificationNotFound.
   ///
