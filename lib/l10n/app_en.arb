@@ -81,6 +81,15 @@
   "notificationMarkReadFailed": "Could not mark this notification as read.",
   "notificationRead": "Read",
   "notificationNotFound": "This notification is no longer available.",
+  "closeNotification": "Close notification",
+  "notificationUnreadCount": "{count} unread notifications",
+  "@notificationUnreadCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "version": "Version",
   "logOut": "Log out",
   "logOutQuestion": "Log out?",

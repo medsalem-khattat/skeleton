@@ -145,7 +145,20 @@ class _NotificationDetailScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final notification = ref.watch(notificationProvider(notificationId));
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.notificationsTitle)),
+      appBar: AppBar(
+        title: Text(l10n.notificationsTitle),
+        leading: IconButton(
+          tooltip: l10n.closeNotification,
+          icon: const Icon(Icons.close),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.notifications);
+            }
+          },
+        ),
+      ),
       body: notification.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, _) => Center(

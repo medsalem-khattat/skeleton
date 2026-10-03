@@ -542,6 +542,18 @@ abstract class AppLocalizations {
   /// **'This notification is no longer available.'**
   String get notificationNotFound;
 
+  /// No description provided for @closeNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Close notification'**
+  String get closeNotification;
+
+  /// No description provided for @notificationUnreadCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} unread notifications'**
+  String notificationUnreadCount(int count);
+
   /// No description provided for @version.
   ///
   /// In en, this message translates to:

@@ -7,6 +7,7 @@ import '../../../core/config/feature_providers.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../notifications/data/notification_inbox_repository.dart';
 import '../../profile/application/profile_providers.dart';
 import 'home_shell.dart';
 
@@ -21,6 +22,14 @@ class HomeScreen extends ConsumerWidget {
     final name = features.profileEnabled
         ? ref.watch(profileProvider).value?.name ?? ''
         : '';
+    final notifications = features.notificationInboxEnabled
+        ? ref.watch(notificationInboxProvider)
+        : null;
+    final unreadCount =
+        notifications?.asData?.value
+            .where((notification) => !notification.isRead)
+            .length ??
+        0;
 
     return Scaffold(
       appBar: AppBar(
@@ -30,6 +39,20 @@ class HomeScreen extends ConsumerWidget {
           icon: const Icon(Icons.menu),
           onPressed: () => appShellScaffoldKey.currentState?.openDrawer(),
         ),
+        actions: [
+          if (features.notificationInboxEnabled)
+            IconButton(
+              tooltip: unreadCount == 0
+                  ? l10n.notificationsTitle
+                  : l10n.notificationUnreadCount(unreadCount),
+              onPressed: () => context.go(AppRoutes.notifications),
+              icon: Badge(
+                isLabelVisible: unreadCount > 0,
+                label: Text(unreadCount > 99 ? '99+' : '$unreadCount'),
+                child: const Icon(Icons.notifications_outlined),
+              ),
+            ),
+        ],
       ),
       body: ListView(
         padding: EdgeInsets.all(AppSpacing.md),

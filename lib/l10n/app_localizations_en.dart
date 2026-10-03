@@ -252,6 +252,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'This notification is no longer available.';
 
   @override
+  String get closeNotification => 'Close notification';
+
+  @override
+  String notificationUnreadCount(int count) {
+    return '$count unread notifications';
+  }
+
+  @override
   String get version => 'Version';
 
   @override

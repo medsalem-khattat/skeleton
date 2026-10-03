@@ -74,6 +74,15 @@
   "notificationMarkReadFailed": "Impossible de marquer cette notification comme lue.",
   "notificationRead": "Lue",
   "notificationNotFound": "Cette notification n’est plus disponible.",
+  "closeNotification": "Fermer la notification",
+  "notificationUnreadCount": "{count} notifications non lues",
+  "@notificationUnreadCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "version": "Version",
   "logOut": "Se déconnecter",
   "logOutQuestion": "Se déconnecter ?",

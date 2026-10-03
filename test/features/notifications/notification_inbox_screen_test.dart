@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:skeleton/features/notifications/data/app_notification.dart';
 import 'package:skeleton/features/notifications/data/notification_inbox_repository.dart';
 import 'package:skeleton/features/notifications/data/push_notification_service.dart';
@@ -61,6 +62,48 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repository.markedReadIds, ['password-change-1']);
+  });
+
+  testWidgets('close button returns to inbox after direct notification open', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: '/notifications/password-change-1',
+      routes: [
+        GoRoute(
+          path: '/notifications',
+          builder: (_, _) => const Scaffold(body: Text('Notification inbox')),
+        ),
+        GoRoute(
+          path: '/notifications/:notificationId',
+          builder: (_, state) => NotificationInboxScreen(
+            notificationId: state.pathParameters['notificationId'],
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          notificationInboxRepositoryProvider.overrideWithValue(
+            _FakeNotificationInboxRepository(),
+          ),
+        ],
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Password changed'), findsOneWidget);
+    await tester.tap(find.byTooltip('Close notification'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Notification inbox'), findsOneWidget);
   });
 
   test('notification tap builds an inbox or notification detail route', () {
