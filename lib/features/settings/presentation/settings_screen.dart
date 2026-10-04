@@ -1,5 +1,9 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/config/app_config.dart';
@@ -11,6 +15,7 @@ import '../../auth/application/auth_providers.dart';
 import '../../notifications/data/notification_preferences.dart';
 import '../../notifications/data/push_notification_service.dart';
 import '../../notifications/data/push_token_registrar.dart';
+import '../application/user_data_export_provider.dart';
 import 'account_security_screen.dart';
 import '../application/locale_controller.dart';
 import '../application/theme_controller.dart';
@@ -24,6 +29,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen>
     with WidgetsBindingObserver {
+  bool _exporting = false;
   @override
   void initState() {
     super.initState();
@@ -73,6 +79,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       if (mounted) {
         showMessage(context, AppLocalizations.of(context).externalLinkFailed);
       }
+    }
+  }
+
+  Future<void> _exportAccountData() async {
+    final user = ref.read(authRepositoryProvider).currentUser;
+    if (user == null || _exporting) return;
+    final l10n = AppLocalizations.of(context);
+    setState(() => _exporting = true);
+    try {
+      final json = await ref
+          .read(userDataExportRepositoryProvider)
+          .createJson(user);
+      await SharePlus.instance.share(
+        ShareParams(
+          title: l10n.accountDataExport,
+          subject: l10n.accountDataExport,
+          files: [
+            XFile.fromData(
+              Uint8List.fromList(utf8.encode(json)),
+              mimeType: 'application/json',
+              name: 'account-data.json',
+            ),
+          ],
+          fileNameOverrides: const ['account-data.json'],
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        showMessage(context, l10n.accountDataExportFailed);
+      }
+    } finally {
+      if (mounted) setState(() => _exporting = false);
     }
   }
 
@@ -157,6 +195,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     final privacyUrl = _configuredWebUrl(AppConfig.privacyPolicyUrl);
     final termsUrl = _configuredWebUrl(AppConfig.termsOfServiceUrl);
     final supportEmail = _configuredSupportEmail(AppConfig.supportEmail);
+    final canExportAccountData =
+        features.authentication && ref.watch(signedInUserIdProvider) != null;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settings)),
@@ -259,6 +299,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                       ),
                     ),
                 ],
+              ),
+            ),
+          ],
+          if (canExportAccountData) ...[
+            const SizedBox(height: AppSpacing.md),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.download_outlined),
+                title: Text(l10n.accountDataExport),
+                subtitle: Text(l10n.accountDataExportDescription),
+                trailing: _exporting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.chevron_right),
+                onTap: _exporting ? null : _exportAccountData,
               ),
             ),
           ],

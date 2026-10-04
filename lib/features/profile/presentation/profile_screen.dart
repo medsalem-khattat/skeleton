@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/validators.dart';
@@ -24,6 +25,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final _name = TextEditingController();
   bool _initialized = false;
   bool _saving = false;
+  final _imagePicker = ImagePicker();
 
   @override
   void dispose() {
@@ -32,7 +34,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_saving || !_formKey.currentState!.validate()) return;
     final user = ref.read(authRepositoryProvider).currentUser;
     if (user == null) return;
     setState(() => _saving = true);
@@ -53,6 +55,59 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               : l10n.saveFailed,
         );
       }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _changePhoto(String? previousStoragePath) async {
+    final user = ref.read(authRepositoryProvider).currentUser;
+    if (user == null || _saving) return;
+    final l10n = AppLocalizations.of(context);
+    setState(() => _saving = true);
+    try {
+      final image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      if (image == null || !mounted) return;
+      await ref
+          .read(profileRepositoryProvider)
+          .uploadProfilePhoto(
+            user,
+            await image.readAsBytes(),
+            previousStoragePath: previousStoragePath,
+          );
+      ref.invalidate(profileProvider);
+      if (mounted) showMessage(context, l10n.profilePhotoUpdated);
+    } on ProfilePhotoCleanupException {
+      if (mounted) showMessage(context, l10n.profilePhotoCleanupFailed);
+    } on ArgumentError {
+      if (mounted) showMessage(context, l10n.profilePhotoTooLarge);
+    } catch (_) {
+      if (mounted) showMessage(context, l10n.saveFailed);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _removePhoto(String? storagePath) async {
+    final user = ref.read(authRepositoryProvider).currentUser;
+    if (user == null || _saving) return;
+    final l10n = AppLocalizations.of(context);
+    setState(() => _saving = true);
+    try {
+      await ref
+          .read(profileRepositoryProvider)
+          .removeProfilePhoto(user, storagePath: storagePath);
+      ref.invalidate(profileProvider);
+      if (mounted) showMessage(context, l10n.profilePhotoRemoved);
+    } on ProfilePhotoRemovalCleanupException {
+      if (mounted) showMessage(context, l10n.profilePhotoRemovalCleanupFailed);
+    } catch (_) {
+      if (mounted) showMessage(context, l10n.saveFailed);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -97,16 +152,59 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             _initialized = true;
           }
           final initial = p.name.isNotEmpty ? p.name[0].toUpperCase() : '?';
+          final photo = p.photoStoragePath == null
+              ? null
+              : ref.watch(profilePhotoBytesProvider(p.photoStoragePath!));
+          final photoBytes = photo?.when(
+            data: (bytes) => bytes,
+            error: (_, _) => null,
+            loading: () => null,
+          );
+          final ImageProvider<Object>? profileImage = photoBytes != null
+              ? MemoryImage(photoBytes)
+              : p.photoStoragePath == null && p.photoUrl != null
+              ? NetworkImage(p.photoUrl!)
+              : null;
           return ListView(
             padding: EdgeInsets.all(AppSpacing.lg),
             children: [
               Center(
-                child: CircleAvatar(
-                  radius: 40,
-                  child: Text(
-                    initial,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 48,
+                      backgroundImage: profileImage,
+                      child: profileImage == null
+                          ? Text(
+                              initial,
+                              style: Theme.of(context).textTheme.headlineMedium,
+                            )
+                          : null,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: AppSpacing.sm,
+                      children: [
+                        TextButton.icon(
+                          onPressed: _saving
+                              ? null
+                              : () => _changePhoto(p.photoStoragePath),
+                          icon: const Icon(Icons.photo_camera_outlined),
+                          label: Text(l10n.changeProfilePhoto),
+                        ),
+                        if (p.photoStoragePath != null)
+                          TextButton.icon(
+                            onPressed: _saving
+                                ? null
+                                : () => _removePhoto(p.photoStoragePath),
+                            icon: const Icon(Icons.delete_outline),
+                            label: Text(l10n.removeProfilePhoto),
+                          ),
+                      ],
+                    ),
+                    if (_saving) const LinearProgressIndicator(),
+                  ],
                 ),
               ),
               SizedBox(height: AppSpacing.xl),

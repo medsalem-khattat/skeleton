@@ -118,6 +118,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcome => 'Welcome';
 
   @override
+  String get onboardingWelcomeTitle => 'A clearer place to get started';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'Find the essential account and app features in one simple place.';
+
+  @override
+  String get onboardingSecurityTitle => 'Your account, protected';
+
+  @override
+  String get onboardingSecurityBody =>
+      'Verify your email, review account security, and manage your devices from Settings.';
+
+  @override
+  String get onboardingControlTitle => 'Make the app yours';
+
+  @override
+  String get onboardingControlBody =>
+      'Choose your appearance, language, notifications, and profile details when you are ready.';
+
+  @override
+  String get onboardingNext => 'Next';
+
+  @override
+  String get onboardingSkip => 'Skip';
+
+  @override
+  String get onboardingGetStarted => 'Get started';
+
+  @override
+  String get onboardingSaveFailed =>
+      'Could not save your onboarding choice. Please try again.';
+
+  @override
+  String onboardingPageSemantics(int current, int total) {
+    return 'Page $current of $total';
+  }
+
+  @override
   String welcomeName(String name) {
     return 'Welcome, $name';
   }
@@ -164,6 +203,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveChanges => 'Save changes';
+
+  @override
+  String get changeProfilePhoto => 'Change photo';
+
+  @override
+  String get removeProfilePhoto => 'Remove photo';
+
+  @override
+  String get profilePhotoUpdated => 'Profile photo updated.';
+
+  @override
+  String get profilePhotoRemoved => 'Profile photo removed.';
+
+  @override
+  String get profilePhotoTooLarge => 'Choose an image smaller than 5 MB.';
+
+  @override
+  String get profilePhotoCleanupFailed =>
+      'Your new photo is active, but an older photo could not be removed.';
+
+  @override
+  String get profilePhotoRemovalCleanupFailed =>
+      'Your photo was removed from the profile, but its stored image could not be deleted.';
 
   @override
   String get profileUpdated => 'Profile updated';
@@ -219,6 +281,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get termsOfService => 'Terms of service';
+
+  @override
+  String get accountDataExport => 'Export your account data';
+
+  @override
+  String get accountDataExportDescription =>
+      'Create a JSON copy of your profile and notifications.';
+
+  @override
+  String get accountDataExportFailed =>
+      'Could not create or share your data export. Please try again.';
+
+  @override
+  String get authActionTitle => 'Account email action';
+
+  @override
+  String get authActionInstructions =>
+      'Complete this account action in the app.';
+
+  @override
+  String get authActionInvalidLink =>
+      'This link is invalid, expired, or already used. Request a new email and try again.';
+
+  @override
+  String get authActionVerified => 'Your email address is verified.';
+
+  @override
+  String get authActionPasswordChanged => 'Your password has been reset.';
+
+  @override
+  String get authActionEmailRecovered =>
+      'Your previous email address has been restored.';
+
+  @override
+  String get authActionContinue => 'Continue';
+
+  @override
+  String get authActionSubmit => 'Update password';
 
   @override
   String get contactSupport => 'Contact support';

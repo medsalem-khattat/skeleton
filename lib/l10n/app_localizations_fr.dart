@@ -120,6 +120,45 @@ class AppLocalizationsFr extends AppLocalizations {
   String get welcome => 'Bienvenue';
 
   @override
+  String get onboardingWelcomeTitle => 'Un point de départ plus simple';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'Retrouvez les fonctions essentielles du compte et de l’application dans un espace simple.';
+
+  @override
+  String get onboardingSecurityTitle => 'Votre compte est protégé';
+
+  @override
+  String get onboardingSecurityBody =>
+      'Vérifiez votre adresse e-mail, consultez la sécurité du compte et gérez vos appareils dans les paramètres.';
+
+  @override
+  String get onboardingControlTitle => 'Personnalisez l’application';
+
+  @override
+  String get onboardingControlBody =>
+      'Choisissez l’apparence, la langue, les notifications et les informations de votre profil.';
+
+  @override
+  String get onboardingNext => 'Suivant';
+
+  @override
+  String get onboardingSkip => 'Ignorer';
+
+  @override
+  String get onboardingGetStarted => 'Commencer';
+
+  @override
+  String get onboardingSaveFailed =>
+      'Impossible d’enregistrer votre choix. Veuillez réessayer.';
+
+  @override
+  String onboardingPageSemantics(int current, int total) {
+    return 'Page $current sur $total';
+  }
+
+  @override
   String welcomeName(String name) {
     return 'Bienvenue, $name';
   }
@@ -166,6 +205,29 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get saveChanges => 'Enregistrer';
+
+  @override
+  String get changeProfilePhoto => 'Modifier la photo';
+
+  @override
+  String get removeProfilePhoto => 'Supprimer la photo';
+
+  @override
+  String get profilePhotoUpdated => 'La photo du profil a été mise à jour.';
+
+  @override
+  String get profilePhotoRemoved => 'La photo du profil a été supprimée.';
+
+  @override
+  String get profilePhotoTooLarge => 'Choisissez une image de moins de 5 Mo.';
+
+  @override
+  String get profilePhotoCleanupFailed =>
+      'La nouvelle photo est active, mais une ancienne photo n’a pas pu être supprimée.';
+
+  @override
+  String get profilePhotoRemovalCleanupFailed =>
+      'La photo a été retirée du profil, mais le fichier stocké n’a pas pu être supprimé.';
 
   @override
   String get profileUpdated => 'Profil mis à jour';
@@ -221,6 +283,45 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get termsOfService => 'Conditions d’utilisation';
+
+  @override
+  String get accountDataExport => 'Exporter les données du compte';
+
+  @override
+  String get accountDataExportDescription =>
+      'Créer une copie JSON de votre profil et de vos notifications.';
+
+  @override
+  String get accountDataExportFailed =>
+      'Impossible de créer ou partager l’export. Veuillez réessayer.';
+
+  @override
+  String get authActionTitle => 'Action sur l’adresse e-mail';
+
+  @override
+  String get authActionInstructions =>
+      'Terminez cette action sur le compte dans l’application.';
+
+  @override
+  String get authActionInvalidLink =>
+      'Ce lien est invalide, expiré ou déjà utilisé. Demandez un nouvel e-mail puis réessayez.';
+
+  @override
+  String get authActionVerified => 'Votre adresse e-mail est vérifiée.';
+
+  @override
+  String get authActionPasswordChanged =>
+      'Votre mot de passe a été réinitialisé.';
+
+  @override
+  String get authActionEmailRecovered =>
+      'Votre ancienne adresse e-mail a été restaurée.';
+
+  @override
+  String get authActionContinue => 'Continuer';
+
+  @override
+  String get authActionSubmit => 'Modifier le mot de passe';
 
   @override
   String get contactSupport => 'Contacter le support';

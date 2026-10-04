@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/application/auth_providers.dart';
+import '../../features/auth/presentation/email_action_screen.dart';
 import '../../features/auth/presentation/forgot_password_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
@@ -15,6 +16,8 @@ import '../../features/home/presentation/home_shell.dart';
 import '../../features/notifications/data/push_notification_service.dart';
 import '../../features/notifications/data/push_token_registrar.dart';
 import '../../features/notifications/presentation/notification_inbox_screen.dart';
+import '../../features/onboarding/application/onboarding_controller.dart';
+import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../config/feature_providers.dart';
@@ -41,15 +44,22 @@ class _AuthRefresh extends ChangeNotifier {
 final routerProvider = Provider<GoRouter>((ref) {
   final features = ref.watch(appFeaturesProvider);
   final auth = features.authentication ? ref.watch(firebaseAuthProvider) : null;
-  final authRefresh = auth == null
-      ? null
-      : _AuthRefresh(auth.authStateChanges());
-  if (authRefresh != null) ref.onDispose(authRefresh.dispose);
-  if (authRefresh != null) {
-    ref.listen(authControllerProvider, (_, _) => authRefresh.refresh());
+  final routerRefresh = _AuthRefresh(
+    auth?.authStateChanges() ?? const Stream<User?>.empty(),
+  );
+  ref.onDispose(routerRefresh.dispose);
+  if (auth != null) {
+    ref.listen(authControllerProvider, (_, _) => routerRefresh.refresh());
   }
+  ref.listen(onboardingControllerProvider, (_, _) => routerRefresh.refresh());
 
   final routes = <RouteBase>[];
+  routes.add(
+    GoRoute(
+      path: AppRoutes.onboarding,
+      builder: (context, state) => const OnboardingScreen(),
+    ),
+  );
   if (features.authentication) {
     routes.addAll([
       GoRoute(
@@ -67,6 +77,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.verifyEmail,
         builder: (context, state) => const VerifyEmailScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.authAction,
+        builder: (context, state) => EmailActionScreen(
+          mode: state.uri.queryParameters['mode'],
+          actionCode: state.uri.queryParameters['oobCode'],
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.firebaseAuthAction,
+        builder: (context, state) => EmailActionScreen(
+          mode: state.uri.queryParameters['mode'],
+          actionCode: state.uri.queryParameters['oobCode'],
+        ),
       ),
     ]);
   }
@@ -131,8 +155,24 @@ final routerProvider = Provider<GoRouter>((ref) {
 
   final router = GoRouter(
     initialLocation: features.initialLocation,
-    refreshListenable: authRefresh,
+    refreshListenable: routerRefresh,
     redirect: (context, state) {
+      final onboardingComplete = ref.read(onboardingControllerProvider);
+      final isEmailAction =
+          state.matchedLocation == AppRoutes.authAction ||
+          state.matchedLocation == AppRoutes.firebaseAuthAction;
+      if (!onboardingComplete &&
+          state.matchedLocation != AppRoutes.onboarding &&
+          !isEmailAction) {
+        return AppRoutes.onboarding;
+      }
+      if (onboardingComplete && state.matchedLocation == AppRoutes.onboarding) {
+        return auth?.currentUser == null
+            ? (features.authentication
+                  ? AppRoutes.login
+                  : features.initialLocation)
+            : features.authenticatedLocation;
+      }
       if (auth == null) return null;
       final user = auth.currentUser;
       if (user != null &&

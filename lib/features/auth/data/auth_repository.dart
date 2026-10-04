@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../core/storage/secure_storage.dart';
+import '../../../core/config/app_config.dart';
 import '../../../l10n/app_localizations.dart';
 
 class PhoneVerificationResult {
@@ -40,7 +41,7 @@ class AuthRepository {
       throw StateError('An authenticated user is required.');
     }
     if (!user.emailVerified) {
-      await user.sendEmailVerification();
+      await user.sendEmailVerification(_emailActionSettings);
     }
   }
 
@@ -68,7 +69,7 @@ class AuthRepository {
   }) async {
     final user = _requireEmailPasswordUser();
     await _reauthenticate(user, currentPassword);
-    await user.verifyBeforeUpdateEmail(newEmail.trim());
+    await user.verifyBeforeUpdateEmail(newEmail.trim(), _emailActionSettings);
   }
 
   Future<void> updatePhoneNumber({
@@ -216,8 +217,30 @@ class AuthRepository {
     await _auth.signOut();
   }
 
-  Future<void> sendPasswordReset(String email) =>
-      _auth.sendPasswordResetEmail(email: email.trim());
+  Future<void> sendPasswordReset(String email) => _auth.sendPasswordResetEmail(
+    email: email.trim(),
+    actionCodeSettings: _emailActionSettings,
+  );
+
+  ActionCodeSettings? get _emailActionSettings {
+    final uri = Uri.tryParse(AppConfig.authActionContinueUrl.trim());
+    if (uri == null ||
+        uri.scheme.toLowerCase() != 'https' ||
+        uri.host.isEmpty) {
+      return null;
+    }
+    return ActionCodeSettings(url: uri.toString());
+  }
+
+  Future<void> applyEmailActionCode(String code) => _auth.applyActionCode(code);
+
+  Future<String> verifyPasswordResetCode(String code) =>
+      _auth.verifyPasswordResetCode(code);
+
+  Future<void> confirmPasswordReset({
+    required String code,
+    required String newPassword,
+  }) => _auth.confirmPasswordReset(code: code, newPassword: newPassword);
 }
 
 /// Turns any error into a localized message that is safe to show to the user.

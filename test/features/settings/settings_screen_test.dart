@@ -63,6 +63,7 @@ void main() {
       find.text('This account can send push notifications to your devices.'),
       findsOneWidget,
     );
+    expect(find.text('Export your account data'), findsOneWidget);
     final notificationToggle = tester.getSemantics(find.byType(Switch).last);
     final toggleData = notificationToggle.getSemanticsData();
     expect(toggleData.label, contains('Push notifications'));

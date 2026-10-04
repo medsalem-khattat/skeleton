@@ -27,6 +27,14 @@ class AppConfig {
     'SUPPORT_EMAIL',
     defaultValue: '',
   );
+  static const String authActionContinueUrl = String.fromEnvironment(
+    'AUTH_ACTION_CONTINUE_URL',
+    defaultValue: '',
+  );
+  static const String firebaseEmulatorHost = String.fromEnvironment(
+    'FIREBASE_EMULATOR_HOST',
+    defaultValue: '',
+  );
   static const String appVersion = '1.0.0';
 
   // --- Firebase (details live in firebase_options.dart,

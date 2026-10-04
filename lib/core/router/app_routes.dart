@@ -1,4 +1,7 @@
 class AppRoutes {
+  static const onboarding = '/onboarding';
+  static const authAction = '/auth/action';
+  static const firebaseAuthAction = '/__/auth/action';
   static const login = '/login';
   static const register = '/register';
   static const forgotPassword = '/forgot-password';
@@ -23,6 +26,11 @@ class AppRoutes {
     String? requestedLocation,
     bool notificationInboxEnabled = true,
   }) {
+    if (location == authAction ||
+        location == firebaseAuthAction ||
+        location == onboarding) {
+      return null;
+    }
     final onAuthScreen = authRoutes.contains(location);
     final onVerificationScreen = location == verifyEmail;
     final directNotificationDestination =

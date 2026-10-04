@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
+import { getStorage } from "firebase-admin/storage";
 import { getMessaging, MulticastMessage } from "firebase-admin/messaging";
 import { logger } from "firebase-functions";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
@@ -41,12 +42,19 @@ function requireRecentAuthentication(
 }
 
 export const deleteAccount = onCall(
-  { region: "us-central1", timeoutSeconds: 300 },
+  {
+    region: "us-central1",
+    timeoutSeconds: 300,
+    enforceAppCheck: true,
+  },
   async (request) => {
     const uid = requireRecentAuthentication(request);
     const userRef = getFirestore().collection("users").doc(uid);
     try {
-      await getFirestore().recursiveDelete(userRef);
+      await Promise.all([
+        getFirestore().recursiveDelete(userRef),
+        getStorage().bucket().deleteFiles({ prefix: `users/${uid}/profile/` }),
+      ]);
       await getAuth().deleteUser(uid);
     } catch (error) {
       logger.error("Account deletion failed.", { uid, error });
@@ -59,7 +67,11 @@ export const deleteAccount = onCall(
 );
 
 export const revokeAllSessions = onCall(
-  { region: "us-central1", timeoutSeconds: 300 },
+  {
+    region: "us-central1",
+    timeoutSeconds: 300,
+    enforceAppCheck: true,
+  },
   async (request) => {
     const uid = requireRecentAuthentication(request);
     const tokenRef = getFirestore()

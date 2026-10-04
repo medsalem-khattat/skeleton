@@ -8,10 +8,11 @@ Only the features every app needs:
 
 | Feature | What it does |
 |---|---|
-| **Auth** | Register, verify email before app access, login, logout, forgot password (Firebase Auth, email/password) |
+| **Auth** | Register, verify email before app access, login, logout, forgot password, and in-app email action links |
 | **Home** | Dashboard for existing features, with navigation through the drawer |
-| **Profile** | Edit personal details |
-| **Settings** | Appearance, language, notifications, and account security |
+| **Profile** | Edit personal details and manage a profile photo |
+| **Settings** | Appearance, language, notifications, account security, and data export |
+| **Onboarding** | Localized first-run introduction with persistent skip/finish |
 
 Also included: theme, router with an auth redirect, global error handling with Crashlytics (release builds), form validators, reusable widgets, and a test baseline.
 
@@ -24,14 +25,18 @@ by changing `AppFeatures.current`. Rebuild the app after changing a flag.
 | Module | Independent behavior | Dependency |
 |---|---|---|
 | Authentication | Email/password sign-in, registration, verification, password reset | Firebase Auth |
+| Email action links | In-app email verification, recovery, and password reset | Authentication and verified Android/iOS app-link domains |
 | Home | Anonymous or authenticated landing screen | None |
-| Profile | Account details and account-security actions | Authentication and Firestore |
+| Onboarding | First-run introduction | Local preferences |
+| Profile | Account details and photos | Authentication, Firestore, and Firebase Storage |
+| Account-data export | Share/save a JSON export of account and inbox data | Authentication and Firestore |
 | Settings: appearance | Theme selection | Local preferences |
 | Settings: language | Language selection | Local preferences |
 | Settings: device authentication | App lock after launch/background | Authentication, Settings, and device authentication support |
 | Push notifications | Firebase Cloud Messaging; foreground notifications are displayed by the platform | Firebase Messaging |
 | Notification inbox | Per-user in-app security notifications with read status | Authentication and Firestore |
 | Crash reporting | Release crash reports | Firebase |
+| App Check | Debug provider for development; Play Integrity/App Attest for releases | Firebase App Check configuration |
 
 Profile and device authentication are automatically unavailable when
 Authentication is disabled. Authentication can run without Profile or
@@ -97,7 +102,9 @@ and monitored support address. The app opens configured web links in the
 browser and support through the device's email app.
 
 Account deletion and **Sign out all devices** use authenticated callable
-functions in `functions/`. Both require recent password reauthentication.
+functions in `functions/` with App Check enforcement. Both require recent
+password reauthentication. Register debug tokens and set up production App
+Check providers before enabling these callables.
 Account deletion recursively removes `users/{uid}` and its subcollections
 before deleting the Firebase Authentication user. If more user-owned data is
 added outside that path, extend the callable cleanup before shipping it.
@@ -128,6 +135,75 @@ Deploy the callable functions before exposing these actions in a release build.
    certificate for the `ios-release` workflow. The workflow now checks the
    selected profile for the entitlement before archiving and fails with a
    targeted message if it is absent.
+
+#### App Check, Firebase emulators, and rules tests
+
+The app initializes App Check before Firebase-backed services. Debug Android
+and iOS builds use Firebase's debug provider; register each printed debug token
+in Firebase Console → App Check → Manage debug tokens. Release builds use
+Play Integrity on Android and App Attest with DeviceCheck fallback on iOS.
+Register the production apps/providers in Firebase Console and validate traffic
+before enforcing App Check for Authentication, Firestore, Storage, or Functions.
+Do not ship a debug token or enforce App Check before the production app has
+obtained valid tokens.
+
+The repository configures local Auth, Firestore, Functions, and Storage
+emulators. Install the Functions tooling and start them from the repository
+root with:
+
+```
+cd functions
+npm ci
+npm exec firebase -- emulators:start --config ../firebase.json --only auth,firestore,functions,storage
+```
+
+For the Android emulator, set `FIREBASE_EMULATOR_HOST=10.0.2.2` with
+`--dart-define`; use `localhost` for iOS simulators or desktop clients:
+
+```
+flutter run --dart-define=FIREBASE_EMULATOR_HOST=10.0.2.2
+```
+
+Firestore and Storage rules tests run through the emulator suite and use a
+non-production demo project:
+
+```
+cd functions
+npm ci
+npm run test:rules
+```
+
+The tests verify owner-only Firestore access and profile-image type/ownership
+restrictions. Never point rules tests at a production project. Install a
+supported JDK (21 or later recommended) before starting the emulators.
+
+#### Authentication email links
+
+Firebase email action links are routed to the app's email-action screen for
+verification, email recovery, and password reset. The Android app link defaults
+to `whatsapp-bot-f57a8.firebaseapp.com`; for a cloned Firebase project, pass
+`AUTH_ACTION_HOST=<project-id>.firebaseapp.com` to the Android build
+environment (or set the Gradle property `authActionHost`) and replace the
+placeholder in `ios/Runner/Runner.entitlements`. Use the matching Firebase
+Auth domain in Firebase Console and register it as an authorized domain.
+To send action links back to a custom HTTPS path, set
+`--dart-define=AUTH_ACTION_CONTINUE_URL=https://<verified-domain>/auth/action`
+and configure that domain's Android asset links and iOS Apple App Site
+Association file for this app's package/bundle identifiers. Add this host to
+the Android `authActionHost` property and iOS associated domains. Until those
+domain associations are served and verified, links will continue to work in
+the Firebase-hosted web handler instead of reopening the app.
+
+#### Account data export and profile photos
+
+Settings → Export your account data creates a JSON file containing the current
+Firebase Auth account fields, the user's Firestore profile, and notification
+records, then opens the platform share sheet so the user can save or share it.
+FCM tokens are intentionally excluded. Profile photos can be changed or
+removed from Profile; images are resized before upload and Storage rules allow
+only the signed-in owner to access their JPEG/PNG/WebP image up to 5 MB.
+Configure Firebase Storage and deploy `storage.rules` alongside Firestore rules
+when setting up a cloned project.
 
 Android/iOS configuration files are generated by FlutterFire. If the Firebase
 project or app identifiers change, rerun `flutterfire configure` and commit the

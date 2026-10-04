@@ -24,6 +24,9 @@ val hasReleaseSigning = listOf(
     releaseKeyAlias,
     releaseKeyPassword,
 ).all { !it.isNullOrBlank() }
+val authActionHost = providers.gradleProperty("authActionHost")
+    .orElse(providers.environmentVariable("AUTH_ACTION_HOST"))
+    .getOrElse("whatsapp-bot-f57a8.firebaseapp.com")
 
 android {
     namespace = "com.yourname.skeleton"
@@ -46,6 +49,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["authActionHost"] = authActionHost
     }
 
     signingConfigs {

@@ -20,6 +20,8 @@ class FakeAuthRepository implements AuthRepository {
   String? lastPhoneSmsCode;
   PhoneAuthCredential? lastPhoneCredential;
   int? lastResendToken;
+  String? lastActionCode;
+  String? lastResetPassword;
 
   @override
   Future<void> signIn({required String email, required String password}) async {
@@ -67,6 +69,29 @@ class FakeAuthRepository implements AuthRepository {
   Future<void> sendPasswordReset(String email) async {
     if (shouldFail) throw FirebaseAuthException(code: 'user-not-found');
     lastEmail = email;
+  }
+
+  @override
+  Future<void> applyEmailActionCode(String code) async {
+    if (shouldFail) throw FirebaseAuthException(code: 'invalid-action-code');
+    lastActionCode = code;
+  }
+
+  @override
+  Future<String> verifyPasswordResetCode(String code) async {
+    if (shouldFail) throw FirebaseAuthException(code: 'expired-action-code');
+    lastActionCode = code;
+    return 'user@example.com';
+  }
+
+  @override
+  Future<void> confirmPasswordReset({
+    required String code,
+    required String newPassword,
+  }) async {
+    if (shouldFail) throw FirebaseAuthException(code: 'weak-password');
+    lastActionCode = code;
+    lastResetPassword = newPassword;
   }
 
   @override

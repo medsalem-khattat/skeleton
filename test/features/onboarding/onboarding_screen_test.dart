@@ -5,15 +5,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeleton/core/config/feature_config.dart';
 import 'package:skeleton/core/config/feature_providers.dart';
 import 'package:skeleton/core/router/app_router.dart';
-import 'package:skeleton/core/router/app_routes.dart';
-import 'package:skeleton/l10n/app_localizations.dart';
 import 'package:skeleton/features/settings/application/theme_controller.dart';
+import 'package:skeleton/l10n/app_localizations.dart';
 
 void main() {
-  testWidgets('Home works without Firebase when Authentication is disabled', (
+  testWidgets('first-run onboarding can be skipped and is remembered', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({'onboarding_completed': true});
+    SharedPreferences.setMockInitialValues({});
     final preferences = await SharedPreferences.getInstance();
     final container = ProviderContainer(
       overrides: [
@@ -22,7 +21,6 @@ void main() {
           const AppFeatures(
             authentication: false,
             home: true,
-            profile: true,
             settings: false,
             pushNotifications: false,
             crashReporting: false,
@@ -32,8 +30,6 @@ void main() {
     );
     addTearDown(container.dispose);
     final router = container.read(routerProvider);
-
-    expect(router.routeInformationProvider.value.uri.path, AppRoutes.home);
 
     await tester.pumpWidget(
       UncontrolledProviderScope(
@@ -47,12 +43,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Welcome'), findsOneWidget);
-    expect(find.text('Sign in'), findsNothing);
-
-    await tester.tap(find.byTooltip('Open menu'));
+    expect(find.text('A clearer place to get started'), findsOneWidget);
+    await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
-    expect(find.text('Log out'), findsNothing);
-    expect(find.text('Settings'), findsNothing);
+
+    expect(find.text('Welcome'), findsOneWidget);
+    expect(preferences.getBool('onboarding_completed'), isTrue);
   });
 }

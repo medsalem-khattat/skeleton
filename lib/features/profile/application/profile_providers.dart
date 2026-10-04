@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/firebase/firebase_providers.dart';
@@ -6,7 +8,17 @@ import '../data/profile_repository.dart';
 import '../data/user_profile.dart';
 
 final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
-  return ProfileRepository(ref.watch(firestoreProvider));
+  return ProfileRepository(
+    ref.watch(firestoreProvider),
+    ref.watch(firebaseStorageProvider),
+  );
+});
+
+final profilePhotoBytesProvider = FutureProvider.family<Uint8List?, String>((
+  ref,
+  storagePath,
+) {
+  return ref.watch(profileRepositoryProvider).loadProfilePhoto(storagePath);
 });
 
 /// The signed-in user's profile, or null when signed out.

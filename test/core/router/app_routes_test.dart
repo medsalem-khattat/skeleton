@@ -69,6 +69,28 @@ void main() {
       );
     });
 
+    test('allows signed-out users to handle email action links', () {
+      expect(
+        AppRoutes.authRedirect(
+          isLoggedIn: false,
+          emailVerified: false,
+          location: AppRoutes.firebaseAuthAction,
+        ),
+        isNull,
+      );
+    });
+
+    test('allows first-run users to remain in onboarding', () {
+      expect(
+        AppRoutes.authRedirect(
+          isLoggedIn: false,
+          emailVerified: false,
+          location: AppRoutes.onboarding,
+        ),
+        isNull,
+      );
+    });
+
     test('sends verified users away from auth screens', () {
       expect(
         AppRoutes.authRedirect(

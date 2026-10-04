@@ -296,6 +296,72 @@ abstract class AppLocalizations {
   /// **'Welcome'**
   String get welcome;
 
+  /// No description provided for @onboardingWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A clearer place to get started'**
+  String get onboardingWelcomeTitle;
+
+  /// No description provided for @onboardingWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Find the essential account and app features in one simple place.'**
+  String get onboardingWelcomeBody;
+
+  /// No description provided for @onboardingSecurityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account, protected'**
+  String get onboardingSecurityTitle;
+
+  /// No description provided for @onboardingSecurityBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email, review account security, and manage your devices from Settings.'**
+  String get onboardingSecurityBody;
+
+  /// No description provided for @onboardingControlTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Make the app yours'**
+  String get onboardingControlTitle;
+
+  /// No description provided for @onboardingControlBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your appearance, language, notifications, and profile details when you are ready.'**
+  String get onboardingControlBody;
+
+  /// No description provided for @onboardingNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get onboardingNext;
+
+  /// No description provided for @onboardingSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get onboardingSkip;
+
+  /// No description provided for @onboardingGetStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get onboardingGetStarted;
+
+  /// No description provided for @onboardingSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save your onboarding choice. Please try again.'**
+  String get onboardingSaveFailed;
+
+  /// No description provided for @onboardingPageSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {current} of {total}'**
+  String onboardingPageSemantics(int current, int total);
+
   /// No description provided for @welcomeName.
   ///
   /// In en, this message translates to:
@@ -379,6 +445,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save changes'**
   String get saveChanges;
+
+  /// No description provided for @changeProfilePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Change photo'**
+  String get changeProfilePhoto;
+
+  /// No description provided for @removeProfilePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get removeProfilePhoto;
+
+  /// No description provided for @profilePhotoUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile photo updated.'**
+  String get profilePhotoUpdated;
+
+  /// No description provided for @profilePhotoRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile photo removed.'**
+  String get profilePhotoRemoved;
+
+  /// No description provided for @profilePhotoTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an image smaller than 5 MB.'**
+  String get profilePhotoTooLarge;
+
+  /// No description provided for @profilePhotoCleanupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your new photo is active, but an older photo could not be removed.'**
+  String get profilePhotoCleanupFailed;
+
+  /// No description provided for @profilePhotoRemovalCleanupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your photo was removed from the profile, but its stored image could not be deleted.'**
+  String get profilePhotoRemovalCleanupFailed;
 
   /// No description provided for @profileUpdated.
   ///
@@ -475,6 +583,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Terms of service'**
   String get termsOfService;
+
+  /// No description provided for @accountDataExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export your account data'**
+  String get accountDataExport;
+
+  /// No description provided for @accountDataExportDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a JSON copy of your profile and notifications.'**
+  String get accountDataExportDescription;
+
+  /// No description provided for @accountDataExportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create or share your data export. Please try again.'**
+  String get accountDataExportFailed;
+
+  /// No description provided for @authActionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account email action'**
+  String get authActionTitle;
+
+  /// No description provided for @authActionInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete this account action in the app.'**
+  String get authActionInstructions;
+
+  /// No description provided for @authActionInvalidLink.
+  ///
+  /// In en, this message translates to:
+  /// **'This link is invalid, expired, or already used. Request a new email and try again.'**
+  String get authActionInvalidLink;
+
+  /// No description provided for @authActionVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Your email address is verified.'**
+  String get authActionVerified;
+
+  /// No description provided for @authActionPasswordChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Your password has been reset.'**
+  String get authActionPasswordChanged;
+
+  /// No description provided for @authActionEmailRecovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Your previous email address has been restored.'**
+  String get authActionEmailRecovered;
+
+  /// No description provided for @authActionContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get authActionContinue;
+
+  /// No description provided for @authActionSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Update password'**
+  String get authActionSubmit;
 
   /// No description provided for @contactSupport.
   ///
