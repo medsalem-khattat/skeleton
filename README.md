@@ -134,11 +134,12 @@ Deploy the callable functions before exposing these actions in a release build.
 3. Regenerate the App Store provisioning profile after enabling both
    capabilities. It must match the bundle ID and include the `aps-environment`
    entitlement and the `com.apple.developer.associated-domains` entitlement
-   containing `applinks:whatsapp-bot-f57a8.firebaseapp.com`.
+   authorizing `applinks:whatsapp-bot-f57a8.firebaseapp.com`. Apple profiles
+   may represent this capability with the wildcard value `*`.
 4. In Codemagic, update/select that profile and a matching Apple distribution
-   certificate for the `ios-release` workflow. The workflow checks the
-   available profile entitlements before archiving and reports which capability
-   is missing.
+   certificate for the `ios-release` workflow. The workflow verifies that the
+   profile includes both entitlements before archiving and reports which one is
+   missing.
 
 #### App Check, Firebase emulators, and rules tests
 
@@ -184,12 +185,13 @@ supported JDK (21 or later recommended) before starting the emulators.
 #### Authentication email links
 
 Firebase email action links are routed to the app's email-action screen for
-verification, email recovery, and password reset. The Android app link defaults
-to `whatsapp-bot-f57a8.firebaseapp.com`; for a cloned Firebase project, pass
+verification, email recovery, and password reset. Android app links default to
+`whatsapp-bot-f57a8.firebaseapp.com`; for a cloned Firebase project, pass
 `AUTH_ACTION_HOST=<project-id>.firebaseapp.com` to the Android build
 environment (or set the Gradle property `authActionHost`) and replace the
-placeholder in `ios/Runner/Runner.entitlements`. Use the matching Firebase
-Auth domain in Firebase Console and register it as an authorized domain.
+placeholder in `ios/Runner/Runner.entitlements` with the matching Firebase
+domain. Use the matching Firebase Auth domain in Firebase Console and register
+it as an authorized domain.
 To send action links back to a custom HTTPS path, set
 `--dart-define=AUTH_ACTION_CONTINUE_URL=https://<verified-domain>/auth/action`
 and configure that domain's Android asset links and iOS Apple App Site

@@ -90,7 +90,7 @@ workflows:
                 ;;
             esac
             case "$associated_domains" in
-              *"applinks:whatsapp-bot-f57a8.firebaseapp.com"*)
+              *"applinks:whatsapp-bot-f57a8.firebaseapp.com"*|*\**)
                 associated_domain_found=true
                 profile_has_associated_domain=true
                 ;;
