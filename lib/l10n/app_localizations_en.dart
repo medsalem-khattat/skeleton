@@ -189,6 +189,50 @@ class AppLocalizationsEn extends AppLocalizations {
       'Manage sign-in details and app lock.';
 
   @override
+  String get signOutAllSessions => 'Sign out all devices';
+
+  @override
+  String get signOutAllSessionsDescription =>
+      'Revoke sessions on all devices, including this one. Other devices may remain active for up to one hour.';
+
+  @override
+  String get signOutAllSessionsConfirmation =>
+      'All sessions will be revoked. This device signs out now; other devices may retain access for up to one hour. You will need to sign in again.';
+
+  @override
+  String get deleteAccount => 'Delete account';
+
+  @override
+  String get deleteAccountDescription =>
+      'Permanently delete your account and its data.';
+
+  @override
+  String get deleteAccountConfirmation =>
+      'This permanently deletes your account, profile, notifications, and stored devices. This cannot be undone.';
+
+  @override
+  String get accountActionFailed =>
+      'The account action could not be completed. Please try again.';
+
+  @override
+  String get privacyPolicy => 'Privacy policy';
+
+  @override
+  String get termsOfService => 'Terms of service';
+
+  @override
+  String get contactSupport => 'Contact support';
+
+  @override
+  String get supportEmailSubject => 'Support request';
+
+  @override
+  String get externalLinkFailed => 'Could not open this link on your device.';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
   String get changePassword => 'Change password';
 
   @override

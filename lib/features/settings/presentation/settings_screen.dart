@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/config/feature_providers.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/app_localizations.dart';
@@ -58,6 +60,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     } catch (_) {
       if (mounted) {
         showMessage(context, AppLocalizations.of(context).saveFailed);
+      }
+    }
+  }
+
+  Future<void> _openExternal(Uri uri) async {
+    try {
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        throw StateError('No application could open $uri');
+      }
+    } catch (_) {
+      if (mounted) {
+        showMessage(context, AppLocalizations.of(context).externalLinkFailed);
       }
     }
   }
@@ -140,6 +154,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         features.accountSecurityEnabled ||
         features.appearanceSettingsEnabled ||
         features.languageSettingsEnabled;
+    final privacyUrl = _configuredWebUrl(AppConfig.privacyPolicyUrl);
+    final termsUrl = _configuredWebUrl(AppConfig.termsOfServiceUrl);
+    final supportEmail = _configuredSupportEmail(AppConfig.supportEmail);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settings)),
@@ -204,10 +221,64 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               showUserPreference: features.authentication,
             ),
           ],
+          if (privacyUrl != null ||
+              termsUrl != null ||
+              supportEmail != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            Card(
+              child: Column(
+                children: [
+                  if (privacyUrl != null)
+                    ListTile(
+                      leading: const Icon(Icons.privacy_tip_outlined),
+                      title: Text(l10n.privacyPolicy),
+                      trailing: const Icon(Icons.open_in_new),
+                      onTap: () => _openExternal(privacyUrl),
+                    ),
+                  if (termsUrl != null)
+                    ListTile(
+                      leading: const Icon(Icons.description_outlined),
+                      title: Text(l10n.termsOfService),
+                      trailing: const Icon(Icons.open_in_new),
+                      onTap: () => _openExternal(termsUrl),
+                    ),
+                  if (supportEmail != null)
+                    ListTile(
+                      leading: const Icon(Icons.help_outline),
+                      title: Text(l10n.contactSupport),
+                      subtitle: Text(supportEmail),
+                      trailing: const Icon(Icons.open_in_new),
+                      onTap: () => _openExternal(
+                        Uri(
+                          scheme: 'mailto',
+                          path: supportEmail,
+                          queryParameters: {
+                            'subject': l10n.supportEmailSubject,
+                          },
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
+}
+
+Uri? _configuredWebUrl(String value) {
+  final uri = Uri.tryParse(value.trim());
+  if (uri == null || uri.scheme.toLowerCase() != 'https' || uri.host.isEmpty) {
+    return null;
+  }
+  return uri;
+}
+
+String? _configuredSupportEmail(String value) {
+  final email = value.trim();
+  return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email) ? email : null;
 }
 
 class _ThemeOption extends StatelessWidget {

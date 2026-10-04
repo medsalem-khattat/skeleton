@@ -422,6 +422,84 @@ abstract class AppLocalizations {
   /// **'Manage sign-in details and app lock.'**
   String get accountSecurityDescription;
 
+  /// No description provided for @signOutAllSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out all devices'**
+  String get signOutAllSessions;
+
+  /// No description provided for @signOutAllSessionsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke sessions on all devices, including this one. Other devices may remain active for up to one hour.'**
+  String get signOutAllSessionsDescription;
+
+  /// No description provided for @signOutAllSessionsConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'All sessions will be revoked. This device signs out now; other devices may retain access for up to one hour. You will need to sign in again.'**
+  String get signOutAllSessionsConfirmation;
+
+  /// No description provided for @deleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete your account and its data.'**
+  String get deleteAccountDescription;
+
+  /// No description provided for @deleteAccountConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently deletes your account, profile, notifications, and stored devices. This cannot be undone.'**
+  String get deleteAccountConfirmation;
+
+  /// No description provided for @accountActionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The account action could not be completed. Please try again.'**
+  String get accountActionFailed;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get privacyPolicy;
+
+  /// No description provided for @termsOfService.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of service'**
+  String get termsOfService;
+
+  /// No description provided for @contactSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact support'**
+  String get contactSupport;
+
+  /// No description provided for @supportEmailSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Support request'**
+  String get supportEmailSubject;
+
+  /// No description provided for @externalLinkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open this link on your device.'**
+  String get externalLinkFailed;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
+
   /// No description provided for @changePassword.
   ///
   /// In en, this message translates to:

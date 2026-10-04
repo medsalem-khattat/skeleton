@@ -1,8 +1,14 @@
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import { getAuth } from "firebase-admin/auth";
 import { getMessaging, MulticastMessage } from "firebase-admin/messaging";
 import { logger } from "firebase-functions";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import {
+  CallableRequest,
+  HttpsError,
+  onCall,
+} from "firebase-functions/v2/https";
 
 initializeApp();
 
@@ -10,6 +16,68 @@ const invalidTokenCodes = new Set([
   "messaging/invalid-registration-token",
   "messaging/registration-token-not-registered",
 ]);
+const recentAuthWindowSeconds = 5 * 60;
+
+function requireRecentAuthentication(
+  request: CallableRequest<unknown>,
+): string {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Sign in to continue.");
+  }
+  const authTime = request.auth.token.auth_time;
+  const ageSeconds = Date.now() / 1000 - Number(authTime);
+  if (
+    typeof authTime !== "number" ||
+    !Number.isFinite(ageSeconds) ||
+    ageSeconds < 0 ||
+    ageSeconds > recentAuthWindowSeconds
+  ) {
+    throw new HttpsError(
+      "failed-precondition",
+      "Recent authentication is required.",
+    );
+  }
+  return request.auth.uid;
+}
+
+export const deleteAccount = onCall(
+  { region: "us-central1", timeoutSeconds: 300 },
+  async (request) => {
+    const uid = requireRecentAuthentication(request);
+    const userRef = getFirestore().collection("users").doc(uid);
+    try {
+      await getFirestore().recursiveDelete(userRef);
+      await getAuth().deleteUser(uid);
+    } catch (error) {
+      logger.error("Account deletion failed.", { uid, error });
+      throw new HttpsError(
+        "internal",
+        "Account deletion could not be completed.",
+      );
+    }
+  },
+);
+
+export const revokeAllSessions = onCall(
+  { region: "us-central1", timeoutSeconds: 300 },
+  async (request) => {
+    const uid = requireRecentAuthentication(request);
+    const tokenRef = getFirestore()
+      .collection("users")
+      .doc(uid)
+      .collection("fcmTokens");
+    try {
+      await getFirestore().recursiveDelete(tokenRef);
+      await getAuth().revokeRefreshTokens(uid);
+    } catch (error) {
+      logger.error("Session revocation failed.", { uid, error });
+      throw new HttpsError(
+        "internal",
+        "Sessions could not be revoked. Please try again.",
+      );
+    }
+  },
+);
 
 export const sendInboxPush = onDocumentCreated(
   {

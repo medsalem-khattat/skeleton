@@ -1,3 +1,4 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,6 +26,7 @@ class AccountSecurityScreen extends ConsumerStatefulWidget {
 
 class _AccountSecurityScreenState extends ConsumerState<AccountSecurityScreen> {
   bool _deviceAuthBusy = false;
+  bool _accountActionBusy = false;
 
   Future<void> _setDeviceAuth(bool enabled) async {
     final l10n = AppLocalizations.of(context);
@@ -109,6 +111,75 @@ class _AccountSecurityScreenState extends ConsumerState<AccountSecurityScreen> {
     }
   }
 
+  Future<void> _runAccountAction({
+    required String title,
+    required String confirmation,
+    required String failureMessage,
+    required Future<void> Function(String password) action,
+  }) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        scrollable: true,
+        title: Text(title),
+        content: Text(confirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(title),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final password = await showDialog<String>(
+      context: context,
+      builder: (_) => _ConfirmPasswordDialog(title: title),
+    );
+    if (password == null || !mounted) return;
+
+    setState(() => _accountActionBusy = true);
+    try {
+      await action(password);
+    } catch (error) {
+      if (mounted) {
+        final message = switch (error) {
+          FirebaseAuthException() => authErrorMessage(l10n, error),
+          FirebaseFunctionsException(code: 'failed-precondition') =>
+            l10n.errorRecentLogin,
+          _ => failureMessage,
+        };
+        showMessage(context, message);
+      }
+    } finally {
+      if (mounted) setState(() => _accountActionBusy = false);
+    }
+  }
+
+  Future<void> _deleteAccount() => _runAccountAction(
+    title: AppLocalizations.of(context).deleteAccount,
+    confirmation: AppLocalizations.of(context).deleteAccountConfirmation,
+    failureMessage: AppLocalizations.of(context).accountActionFailed,
+    action: (password) => ref
+        .read(accountAdminRepositoryProvider)
+        .deleteAccount(currentPassword: password),
+  );
+
+  Future<void> _revokeSessions() => _runAccountAction(
+    title: AppLocalizations.of(context).signOutAllSessions,
+    confirmation: AppLocalizations.of(context).signOutAllSessionsConfirmation,
+    failureMessage: AppLocalizations.of(context).accountActionFailed,
+    action: (password) => ref
+        .read(accountAdminRepositoryProvider)
+        .signOutAllSessions(currentPassword: password),
+  );
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -162,8 +233,101 @@ class _AccountSecurityScreenState extends ConsumerState<AccountSecurityScreen> {
               ],
             ),
           ),
+          if (user != null &&
+              user.email != null &&
+              user.providerData.any(
+                (provider) => provider.providerId == 'password',
+              )) ...[
+            const SizedBox(height: AppSpacing.md),
+            Card(
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.devices_outlined),
+                    title: Text(l10n.signOutAllSessions),
+                    subtitle: Text(l10n.signOutAllSessionsDescription),
+                    trailing: _accountActionBusy
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.chevron_right),
+                    onTap: _accountActionBusy ? null : _revokeSessions,
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: Icon(
+                      Icons.delete_outline,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    title: Text(
+                      l10n.deleteAccount,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                    subtitle: Text(l10n.deleteAccountDescription),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: _accountActionBusy ? null : _deleteAccount,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
+    );
+  }
+}
+
+class _ConfirmPasswordDialog extends StatefulWidget {
+  const _ConfirmPasswordDialog({required this.title});
+
+  final String title;
+
+  @override
+  State<_ConfirmPasswordDialog> createState() => _ConfirmPasswordDialogState();
+}
+
+class _ConfirmPasswordDialogState extends State<_ConfirmPasswordDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _password = TextEditingController();
+
+  @override
+  void dispose() {
+    _password.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AlertDialog(
+      scrollable: true,
+      title: Text(widget.title),
+      content: Form(
+        key: _formKey,
+        child: AppTextField(
+          controller: _password,
+          label: l10n.currentPassword,
+          obscure: true,
+          validator: Validators.password(l10n),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: () {
+            if (!_formKey.currentState!.validate()) return;
+            Navigator.pop(context, _password.text);
+          },
+          child: Text(l10n.confirm),
+        ),
+      ],
     );
   }
 }

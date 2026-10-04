@@ -10,8 +10,8 @@ Only the features every app needs:
 |---|---|
 | **Auth** | Register, verify email before app access, login, logout, forgot password (Firebase Auth, email/password) |
 | **Home** | Dashboard for existing features, with navigation through the drawer |
-| **Profile** | Edit your name, change your password, and request an email change with verification |
-| **Settings** | Theme, language, app version, and logout in the navigation drawer |
+| **Profile** | Edit personal details |
+| **Settings** | Appearance, language, notifications, and account security |
 
 Also included: theme, router with an auth redirect, global error handling with Crashlytics (release builds), form validators, reusable widgets, and a test baseline.
 
@@ -82,6 +82,38 @@ inbox still need user-scoped Firestore permissions.
 Because this project already has existing rules, review and merge the relevant
 paths rather than deploying this repository's standalone rules file wholesale.
 
+#### Configure legal/support destinations and account actions
+
+Privacy, terms, and support destinations are supplied at build time. Blank or
+invalid values are not shown in Settings; the placeholder support address is
+not published as a real contact:
+
+```
+flutter build appbundle --dart-define=PRIVACY_POLICY_URL=https://example.com/privacy --dart-define=TERMS_OF_SERVICE_URL=https://example.com/terms --dart-define=SUPPORT_EMAIL=help@example.com
+```
+
+Replace the example destinations with the cloned app's published policy, terms,
+and monitored support address. The app opens configured web links in the
+browser and support through the device's email app.
+
+Account deletion and **Sign out all devices** use authenticated callable
+functions in `functions/`. Both require recent password reauthentication.
+Account deletion recursively removes `users/{uid}` and its subcollections
+before deleting the Firebase Authentication user. If more user-owned data is
+added outside that path, extend the callable cleanup before shipping it.
+Session revocation uses Firebase Admin `revokeRefreshTokens`; Firebase applies
+this to all refresh tokens, so the current device is signed out too. Other
+devices' existing ID tokens can remain valid until they expire (up to about one
+hour); they cannot renew their sessions after that. The app also removes the
+account's stored FCM tokens and clears its local session. Deploy these functions
+to the target Firebase project on Blaze:
+
+```
+firebase deploy --only functions:deleteAccount,functions:revokeAllSessions --project whatsapp-bot-f57a8
+```
+
+Deploy the callable functions before exposing these actions in a release build.
+
 #### Configure iOS/APNs and release signing
 
 1. In Apple Developer, open the App ID matching the app's bundle identifier
@@ -135,6 +167,10 @@ made outside this app are not recorded here.
 Device authentication can optionally be enabled in Settings → Account
 security. When enabled, the app requires the device's biometric or screen-lock
 credential on launch and when it returns from the background.
+Account security also supports password, email, and verified mobile-number
+changes, account deletion, and revoking refresh-token sessions. Destructive
+actions require current-password reauthentication; deleting an account removes
+its profile and nested notification/token data.
 
 ## Stack
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,6 +21,7 @@ void main() {
   testWidgets('notification preference is saved for the signed-in user', (
     tester,
   ) async {
+    final semantics = tester.ensureSemantics();
     final preferences = _FakeNotificationPreferencesRepository();
     final registrar = _FakePushTokenRegistrar();
 
@@ -61,6 +63,11 @@ void main() {
       find.text('This account can send push notifications to your devices.'),
       findsOneWidget,
     );
+    final notificationToggle = tester.getSemantics(find.byType(Switch).last);
+    final toggleData = notificationToggle.getSemanticsData();
+    expect(toggleData.label, contains('Push notifications'));
+    expect(toggleData.hasAction(SemanticsAction.tap), isTrue);
+    semantics.dispose();
     await tester.tap(find.byType(Switch).last);
     await tester.pumpAndSettle();
 
@@ -171,6 +178,82 @@ void main() {
     expect(find.text('Change password'), findsOneWidget);
     expect(find.text('Change email'), findsOneWidget);
     expect(find.text('Change mobile number'), findsOneWidget);
+  });
+
+  testWidgets('account security remains accessible at large text sizes', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appFeaturesProvider.overrideWithValue(
+            const AppFeatures(deviceAuthentication: false),
+          ),
+          authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
+        ],
+        child: MaterialApp(
+          locale: const Locale('fr'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: MediaQuery(
+            data: const MediaQueryData(
+              size: Size(320, 720),
+              textScaler: TextScaler.linear(1.5),
+            ),
+            child: const AccountSecurityScreen(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final changePassword = tester.getSemantics(
+      find.text('Modifier le mot de passe'),
+    );
+    expect(
+      changePassword.getSemanticsData().hasAction(SemanticsAction.tap),
+      isTrue,
+    );
+    semantics.dispose();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('unconfigured legal and support links are not shown', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final preferences = await SharedPreferences.getInstance();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(preferences),
+          appFeaturesProvider.overrideWithValue(
+            const AppFeatures(
+              authentication: false,
+              home: true,
+              profile: false,
+              settings: true,
+              deviceAuthentication: false,
+              pushNotifications: false,
+              crashReporting: false,
+            ),
+          ),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SettingsScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Privacy policy'), findsNothing);
+    expect(find.text('Terms of service'), findsNothing);
+    expect(find.text('Contact support'), findsNothing);
+    expect(find.text('support@example.com'), findsNothing);
   });
 
   testWidgets('requests push notification permission from Settings', (

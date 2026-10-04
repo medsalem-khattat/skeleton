@@ -191,6 +191,51 @@ class AppLocalizationsFr extends AppLocalizations {
       'Gérez vos identifiants et le verrouillage de l’application.';
 
   @override
+  String get signOutAllSessions => 'Déconnecter tous les appareils';
+
+  @override
+  String get signOutAllSessionsDescription =>
+      'Révoquer les sessions sur tous les appareils, y compris celui-ci. Les autres appareils peuvent rester actifs jusqu’à une heure.';
+
+  @override
+  String get signOutAllSessionsConfirmation =>
+      'Toutes les sessions seront révoquées. Cet appareil sera déconnecté immédiatement ; les autres peuvent conserver l’accès pendant une heure. Vous devrez vous reconnecter.';
+
+  @override
+  String get deleteAccount => 'Supprimer le compte';
+
+  @override
+  String get deleteAccountDescription =>
+      'Supprimer définitivement votre compte et ses données.';
+
+  @override
+  String get deleteAccountConfirmation =>
+      'Votre compte, votre profil, vos notifications et vos appareils enregistrés seront définitivement supprimés. Cette action est irréversible.';
+
+  @override
+  String get accountActionFailed =>
+      'L’action sur le compte n’a pas abouti. Veuillez réessayer.';
+
+  @override
+  String get privacyPolicy => 'Politique de confidentialité';
+
+  @override
+  String get termsOfService => 'Conditions d’utilisation';
+
+  @override
+  String get contactSupport => 'Contacter le support';
+
+  @override
+  String get supportEmailSubject => 'Demande d’assistance';
+
+  @override
+  String get externalLinkFailed =>
+      'Impossible d’ouvrir ce lien sur votre appareil.';
+
+  @override
+  String get confirm => 'Confirmer';
+
+  @override
   String get changePassword => 'Modifier le mot de passe';
 
   @override

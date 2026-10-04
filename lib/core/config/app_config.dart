@@ -15,7 +15,18 @@ class AppConfig {
   // `flutterfire configure` reports.
   static const String appName = 'Skeleton';
   static const String bundleId = 'com.yourname.skeleton';
-  static const String supportEmail = 'support@example.com';
+  static const String privacyPolicyUrl = String.fromEnvironment(
+    'PRIVACY_POLICY_URL',
+    defaultValue: '',
+  );
+  static const String termsOfServiceUrl = String.fromEnvironment(
+    'TERMS_OF_SERVICE_URL',
+    defaultValue: '',
+  );
+  static const String supportEmail = String.fromEnvironment(
+    'SUPPORT_EMAIL',
+    defaultValue: '',
+  );
   static const String appVersion = '1.0.0';
 
   // --- Firebase (details live in firebase_options.dart,

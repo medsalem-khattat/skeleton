@@ -6,7 +6,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/feature_providers.dart';
 import '../../../core/firebase/firebase_providers.dart';
 import '../../notifications/data/push_token_registrar.dart';
+import '../data/account_admin_repository.dart';
 import '../data/auth_repository.dart';
+
+final accountAdminRepositoryProvider = Provider<AccountAdminRepository>((ref) {
+  return FirebaseAccountAdminRepository(
+    ref.watch(firebaseAuthProvider),
+    ref.watch(firebaseFunctionsProvider),
+  );
+});
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final pushEnabled = ref.watch(appFeaturesProvider).pushNotificationsEnabled;
