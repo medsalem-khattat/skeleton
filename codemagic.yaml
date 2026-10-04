@@ -57,11 +57,14 @@ workflows:
         script: flutter test
       - name: Apply iOS signing profiles
         script: xcode-project use-profiles
-      - name: Verify Push Notifications entitlement in signing profile
+      - name: Verify iOS entitlements in signing profile
         script: |
           set -euo pipefail
           profiles_dir="$HOME/Library/MobileDevice/Provisioning Profiles"
-          profile_found=false
+          matching_profile_found=false
+          profile_with_required_entitlements_found=false
+          push_entitlement_found=false
+          associated_domain_found=false
           for profile in "$profiles_dir"/*.mobileprovision; do
             [ -f "$profile" ] || continue
             decoded_profile="$(mktemp)"
@@ -71,18 +74,50 @@ workflows:
             fi
             app_identifier=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" "$decoded_profile" 2>/dev/null || true)
             aps_environment=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:aps-environment" "$decoded_profile" 2>/dev/null || true)
+            associated_domains=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:com.apple.developer.associated-domains" "$decoded_profile" 2>/dev/null || true)
             rm -f "$decoded_profile"
             case "$app_identifier" in
               *".com.yourname.skeleton") ;;
               *) continue ;;
             esac
+            matching_profile_found=true
+            profile_has_push_entitlement=false
+            profile_has_associated_domain=false
             case "$aps_environment" in
-              development|production) profile_found=true; break ;;
+              development|production)
+                push_entitlement_found=true
+                profile_has_push_entitlement=true
+                ;;
             esac
+            case "$associated_domains" in
+              *"applinks:whatsapp-bot-f57a8.firebaseapp.com"*)
+                associated_domain_found=true
+                profile_has_associated_domain=true
+                ;;
+            esac
+            if [ "$profile_has_push_entitlement" = "true" ] && [ "$profile_has_associated_domain" = "true" ]; then
+              profile_with_required_entitlements_found=true
+              break
+            fi
           done
-          if [ "$profile_found" != "true" ]; then
-            echo "No provisioning profile for com.yourname.skeleton with the aps-environment entitlement was found."
+          if [ "$matching_profile_found" != "true" ]; then
+            echo "No provisioning profile for com.yourname.skeleton was found."
+            echo "Select or generate a matching App Store provisioning profile in Codemagic."
+            exit 1
+          fi
+          if [ "$push_entitlement_found" != "true" ]; then
+            echo "The com.yourname.skeleton provisioning profile is missing the aps-environment entitlement."
             echo "Enable Push Notifications for the App ID and regenerate/select its provisioning profile in Codemagic."
+            exit 1
+          fi
+          if [ "$associated_domain_found" != "true" ]; then
+            echo "The com.yourname.skeleton provisioning profile is missing applinks:whatsapp-bot-f57a8.firebaseapp.com."
+            echo "Enable Associated Domains for the App ID and regenerate/select its provisioning profile in Codemagic."
+            exit 1
+          fi
+          if [ "$profile_with_required_entitlements_found" != "true" ]; then
+            echo "No single com.yourname.skeleton provisioning profile includes both required entitlements."
+            echo "Select a profile that includes Push Notifications and Associated Domains in Codemagic."
             exit 1
           fi
       - name: Build iOS IPA

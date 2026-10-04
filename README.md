@@ -124,17 +124,21 @@ Deploy the callable functions before exposing these actions in a release build.
 #### Configure iOS/APNs and release signing
 
 1. In Apple Developer, open the App ID matching the app's bundle identifier
-   (`com.yourname.skeleton`) and enable **Push Notifications**.
+   (`com.yourname.skeleton`) and enable **Push Notifications** and
+   **Associated Domains**. The app uses
+   `applinks:whatsapp-bot-f57a8.firebaseapp.com` for Firebase email action links.
 2. Create an APNs authentication key (`.p8`) with Apple Push Notifications
    enabled. In Firebase Console → Project settings → Cloud Messaging, upload the
    key with its Key ID and Team ID for the iOS Firebase app. Keep the `.p8`
    private; do not commit it or add it to Codemagic environment variables.
-3. Regenerate the App Store provisioning profile after enabling the capability.
-   It must match the bundle ID and include the `aps-environment` entitlement.
+3. Regenerate the App Store provisioning profile after enabling both
+   capabilities. It must match the bundle ID and include the `aps-environment`
+   entitlement and the `com.apple.developer.associated-domains` entitlement
+   containing `applinks:whatsapp-bot-f57a8.firebaseapp.com`.
 4. In Codemagic, update/select that profile and a matching Apple distribution
-   certificate for the `ios-release` workflow. The workflow now checks the
-   selected profile for the entitlement before archiving and fails with a
-   targeted message if it is absent.
+   certificate for the `ios-release` workflow. The workflow checks the
+   available profile entitlements before archiving and reports which capability
+   is missing.
 
 #### App Check, Firebase emulators, and rules tests
 
