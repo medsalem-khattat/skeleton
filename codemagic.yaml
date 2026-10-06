@@ -74,6 +74,7 @@ workflows:
             fi
             app_identifier=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" "$decoded_profile" 2>/dev/null || true)
             aps_environment=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:aps-environment" "$decoded_profile" 2>/dev/null || true)
+            associated_domains=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:com.apple.developer.associated-domains" "$decoded_profile" 2>/dev/null || true)
             case "$app_identifier" in
               *".com.yourname.skeleton") ;;
               *)
@@ -90,16 +91,12 @@ workflows:
                 profile_has_push_entitlement=true
                 ;;
             esac
-            associated_domain_index=0
-            while associated_domain=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:com.apple.developer.associated-domains:$associated_domain_index" "$decoded_profile" 2>/dev/null); do
-              case "$associated_domain" in
-                "applinks:whatsapp-bot-f57a8.firebaseapp.com"|"*")
-                  associated_domain_found=true
-                  profile_has_associated_domain=true
-                  ;;
-              esac
-              associated_domain_index=$((associated_domain_index + 1))
-            done
+            normalized_associated_domains=$(printf '%s\n' "$associated_domains" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+            if printf '%s\n' "$normalized_associated_domains" | grep -Fxq "applinks:whatsapp-bot-f57a8.firebaseapp.com" ||
+               printf '%s\n' "$normalized_associated_domains" | grep -Fxq "*"; then
+              associated_domain_found=true
+              profile_has_associated_domain=true
+            fi
             rm -f "$decoded_profile"
             if [ "$profile_has_push_entitlement" = "true" ] && [ "$profile_has_associated_domain" = "true" ]; then
               profile_with_required_entitlements_found=true
