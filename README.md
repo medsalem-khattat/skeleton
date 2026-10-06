@@ -14,7 +14,10 @@ Only the features every app needs:
 | **Settings** | Appearance, language, notifications, account security, and data export |
 | **Onboarding** | Localized first-run introduction with persistent skip/finish |
 
-Also included: theme, router with an auth redirect, global error handling with Crashlytics (release builds), form validators, reusable widgets, and a test baseline.
+Also included: theme, router with an auth redirect, a Firebase Remote Config
+minimum-version gate for mobile releases, global error handling with
+Crashlytics (release builds), form validators, reusable widgets, and a test
+baseline.
 
 ### Optional feature modules
 
@@ -35,6 +38,7 @@ by changing `AppFeatures.current`. Rebuild the app after changing a flag.
 | Settings: device authentication | App lock after launch/background | Authentication, Settings, and device authentication support |
 | Push notifications | Firebase Cloud Messaging; foreground notifications are displayed by the platform | Firebase Messaging |
 | Notification inbox | Per-user in-app security notifications with read status | Authentication and Firestore |
+| Required app updates | Blocks unsupported Android/iOS versions and opens the configured store | Firebase Remote Config |
 | Crash reporting | Release crash reports | Firebase |
 | App Check | Debug provider for development; Play Integrity/App Attest for releases | Firebase App Check configuration |
 
@@ -48,7 +52,35 @@ The app validates these combinations at startup.
 For an anonymous build that does not initialize Firebase, disable
 `authentication`, `crashReporting`, and `pushNotifications`, and keep Home or
 a Settings module enabled. Home and local Settings then run independently of
-Firebase.
+Firebase; the Remote Config update gate is also skipped.
+
+#### Configure required app updates
+
+Firebase-enabled Android and iOS builds check the minimum supported version
+with Firebase Remote Config at startup. If the installed version is below the
+configured minimum, the app blocks navigation until the user opens the
+platform's store page and updates. Configure and publish these Remote Config
+parameters in the Firebase project:
+
+| Parameter | Type | Example/default |
+|---|---|---|
+| `minimum_app_version` | String | `0.0.0` (no minimum; update gate disabled) |
+| `android_store_url` | String | `https://play.google.com/store/apps/details?id=<android-application-id>` |
+| `ios_store_url` | String | `https://apps.apple.com/app/id<app-store-id>` |
+
+Use semantic version values such as `1.4.0` for the minimum; a prerelease
+version such as `1.4.0-beta.1` is also supported. An installed version below
+the minimum is blocked; the minimum itself is allowed. Configure a valid HTTPS
+store URL for each platform before raising the minimum above a released
+version. Release builds check Remote Config at most once per hour, so policy
+changes may take up to an hour to reach an installation. Refresh failures are
+logged and the last activated configuration is used, allowing cached update
+requirements to work offline. If the app has never activated a Remote Config
+policy, its default `0.0.0` minimum allows startup until Firebase provides the
+published values.
+An invalid version or missing/invalid store URL is shown as a blocking
+configuration-check error with a retry action rather than allowing a
+potentially unsupported app version to continue.
 
 Push notifications are enabled by default and ask for permission from Settings,
 not at app startup. Signed-in devices register their FCM token through an

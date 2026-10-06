@@ -33,6 +33,21 @@
   "sendResetLink": "Envoyer le lien",
   "resetLinkSent": "E-mail de réinitialisation envoyé. Vérifiez votre boîte de réception.",
   "welcome": "Bienvenue",
+  "forceUpdateChecking": "Recherche des mises à jour obligatoires…",
+  "forceUpdateTitle": "Mise à jour requise",
+  "forceUpdateMessage": "Mettez à jour vers la version {version} pour continuer à utiliser l’application.",
+  "@forceUpdateMessage": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "forceUpdateAction": "Mettre à jour",
+  "forceUpdateStoreUnavailable": "Impossible d’ouvrir la boutique d’applications. Veuillez réessayer.",
+  "forceUpdateCheckFailedTitle": "Vérification de la mise à jour indisponible",
+  "forceUpdateCheckFailedMessage": "Impossible de vérifier cette version de l’application. Vérifiez votre connexion et réessayez.",
+  "forceUpdateRetry": "Réessayer",
   "onboardingWelcomeTitle": "Un point de départ plus simple",
   "onboardingWelcomeBody": "Retrouvez les fonctions essentielles du compte et de l’application dans un espace simple.",
   "onboardingSecurityTitle": "Votre compte est protégé",

@@ -33,6 +33,21 @@
   "sendResetLink": "Send reset link",
   "resetLinkSent": "Password reset email sent. Check your inbox.",
   "welcome": "Welcome",
+  "forceUpdateChecking": "Checking for required updates…",
+  "forceUpdateTitle": "Update required",
+  "forceUpdateMessage": "Update to version {version} to continue using the app.",
+  "@forceUpdateMessage": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "forceUpdateAction": "Update now",
+  "forceUpdateStoreUnavailable": "Could not open the app store. Please try again.",
+  "forceUpdateCheckFailedTitle": "Update check unavailable",
+  "forceUpdateCheckFailedMessage": "We could not verify this app version. Check your connection and try again.",
+  "forceUpdateRetry": "Try again",
   "onboardingWelcomeTitle": "A clearer place to get started",
   "onboardingWelcomeBody": "Find the essential account and app features in one simple place.",
   "onboardingSecurityTitle": "Your account, protected",

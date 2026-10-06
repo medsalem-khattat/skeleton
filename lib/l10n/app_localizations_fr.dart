@@ -120,6 +120,35 @@ class AppLocalizationsFr extends AppLocalizations {
   String get welcome => 'Bienvenue';
 
   @override
+  String get forceUpdateChecking => 'Recherche des mises à jour obligatoires…';
+
+  @override
+  String get forceUpdateTitle => 'Mise à jour requise';
+
+  @override
+  String forceUpdateMessage(String version) {
+    return 'Mettez à jour vers la version $version pour continuer à utiliser l’application.';
+  }
+
+  @override
+  String get forceUpdateAction => 'Mettre à jour';
+
+  @override
+  String get forceUpdateStoreUnavailable =>
+      'Impossible d’ouvrir la boutique d’applications. Veuillez réessayer.';
+
+  @override
+  String get forceUpdateCheckFailedTitle =>
+      'Vérification de la mise à jour indisponible';
+
+  @override
+  String get forceUpdateCheckFailedMessage =>
+      'Impossible de vérifier cette version de l’application. Vérifiez votre connexion et réessayez.';
+
+  @override
+  String get forceUpdateRetry => 'Réessayer';
+
+  @override
   String get onboardingWelcomeTitle => 'Un point de départ plus simple';
 
   @override

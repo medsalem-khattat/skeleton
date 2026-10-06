@@ -118,6 +118,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcome => 'Welcome';
 
   @override
+  String get forceUpdateChecking => 'Checking for required updates…';
+
+  @override
+  String get forceUpdateTitle => 'Update required';
+
+  @override
+  String forceUpdateMessage(String version) {
+    return 'Update to version $version to continue using the app.';
+  }
+
+  @override
+  String get forceUpdateAction => 'Update now';
+
+  @override
+  String get forceUpdateStoreUnavailable =>
+      'Could not open the app store. Please try again.';
+
+  @override
+  String get forceUpdateCheckFailedTitle => 'Update check unavailable';
+
+  @override
+  String get forceUpdateCheckFailedMessage =>
+      'We could not verify this app version. Check your connection and try again.';
+
+  @override
+  String get forceUpdateRetry => 'Try again';
+
+  @override
   String get onboardingWelcomeTitle => 'A clearer place to get started';
 
   @override

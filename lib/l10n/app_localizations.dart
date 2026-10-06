@@ -296,6 +296,54 @@ abstract class AppLocalizations {
   /// **'Welcome'**
   String get welcome;
 
+  /// No description provided for @forceUpdateChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking for required updates…'**
+  String get forceUpdateChecking;
+
+  /// No description provided for @forceUpdateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update required'**
+  String get forceUpdateTitle;
+
+  /// No description provided for @forceUpdateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Update to version {version} to continue using the app.'**
+  String forceUpdateMessage(String version);
+
+  /// No description provided for @forceUpdateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Update now'**
+  String get forceUpdateAction;
+
+  /// No description provided for @forceUpdateStoreUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the app store. Please try again.'**
+  String get forceUpdateStoreUnavailable;
+
+  /// No description provided for @forceUpdateCheckFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update check unavailable'**
+  String get forceUpdateCheckFailedTitle;
+
+  /// No description provided for @forceUpdateCheckFailedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not verify this app version. Check your connection and try again.'**
+  String get forceUpdateCheckFailedMessage;
+
+  /// No description provided for @forceUpdateRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get forceUpdateRetry;
+
   /// No description provided for @onboardingWelcomeTitle.
   ///
   /// In en, this message translates to:
