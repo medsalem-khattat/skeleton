@@ -58,10 +58,16 @@ another feature's presentation layer.
 
 ### 3.3 Composition and configuration
 
-- `frontend/lib/core/config/app_config.dart` contains clone-specific identity
-  and build-time configuration.
-- `frontend/lib/core/config/feature_config.dart` contains compile-time feature switches and derived
-  dependencies.
+- `deployments/<id>/deployment.json` is the single source of deployment
+  values. `tool/deployment.mjs use <id>` validates it and generates
+  `frontend/deployment.g.json` (Dart defines), the Firebase client files,
+  `frontend/android/deployment.properties` (application ID, label, App Links
+  host), and `frontend/ios/Flutter/Deployment.xcconfig` (bundle ID, display
+  name, associated domain). The generated files are git-ignored.
+- `frontend/lib/core/config/app_config.dart` reads deployment values with
+  `String.fromEnvironment`; its defaults apply only without a define file.
+- `frontend/lib/core/config/feature_config.dart` reads the `FEATURE_*`
+  defines and holds derived dependencies.
 - `frontend/lib/main.dart` initializes required services and creates `ProviderScope`
   overrides.
 - `frontend/lib/app.dart` composes root-level gates, localization, themes, and the router.
@@ -144,14 +150,17 @@ users/{uid}
   fcmTokens/{token}
 ```
 
-The profile document is owner-readable/writable. Notification creation is
-constrained by rules to the supported password-change record shape; users can
-mark their own notification read. Device token documents are private and
-owner-managed. Unknown paths default to denied.
+The profile document is owner-readable. The owner may write only the
+app-owned fields `name`, `email`, `photoStoragePath` (inside their own profile
+prefix), and `notificationsEnabled`; updates check only the changed keys, so
+legacy fields survive. Server-trusted fields (roles, plans, entitlements) must
+never be added to that allowlist. Clients cannot delete the profile or create
+inbox records; users can mark their own notification read. Device token
+documents are private and owner-managed. Unknown paths default to denied.
 
-`backend/firestore.rules` is a starter ruleset. When installing into an existing
-Firebase project, merge and review rules rather than replacing unrelated
-production rules.
+Each deployment has its own dedicated, customer-owned Firebase project, so
+`backend/firestore.rules` and `backend/storage.rules` are deployed as the
+project's complete rulesets.
 
 ### 7.2 Storage
 
@@ -163,23 +172,32 @@ that user's profile prefix.
 
 ### 7.3 Cloud Functions
 
-`backend/functions/src/index.ts` contains:
+`backend/functions/src/index.ts` contains the deployed functions; pure logic
+lives in `auth.ts` (recent-authentication check) and `push.ts` (push text and
+stale-token selection) and is unit-tested by `npm test`.
 
+- `recordPasswordChange`: App Check-enforced callable requiring recent
+  authentication. It writes the password-change inbox record with the
+  caller's app language (`en` or `fr`, default `en`).
 - `sendInboxPush`: Firestore `onDocumentCreated` trigger for
   `users/{userId}/notifications/{notificationId}`. It sends only the supported
-  password-change notification type, respects the user's notification
-  preference, batches FCM sends, and removes invalid tokens.
+  password-change notification type in the record's language, respects the
+  user's notification preference, batches FCM sends, and removes invalid
+  tokens.
 - `deleteAccount`: App Check-enforced callable requiring a recent authenticated
   session. It removes the user Firestore subtree and profile Storage objects,
-  then deletes the Authentication account.
+  then deletes the Authentication account. A retry after partial failure is
+  safe.
+- `cleanupDeletedUser`: Auth `onDelete` trigger that removes the same data when
+  a user is deleted outside the app, such as from the Firebase console.
 - `revokeAllSessions`: App Check-enforced callable requiring recent
   authentication. It removes FCM token documents and revokes refresh tokens,
   which also signs out the current device.
 
-The password-change inbox record is currently written by the signed-in client;
-the trigger sends the push. This is not an authoritative server audit trail.
-Add future server-side security events through trusted functions rather than
-trusting client-created audit data.
+Inbox records are written only by trusted functions. Firebase has no
+password-change trigger, so the app still reports that the change happened;
+the record is a user-facing confirmation, not an authoritative audit trail.
+Add future security events through trusted functions.
 
 ### 7.4 Firebase App Check and diagnostics
 
@@ -195,14 +213,13 @@ trusting client-created audit data.
 
 ## 8. Configuration and secrets
 
-- Set project identity, display name, bundle ID documentation, seed color, and
-  collection name in `frontend/lib/core/config/app_config.dart`.
-- Set module switches and dependency behavior in
-  `frontend/lib/core/config/feature_config.dart`.
-- Regenerate Firebase platform options with FlutterFire when changing Firebase
-  projects or app IDs.
-- Pass API credentials and app destinations using build-time `--dart-define`
-  values or CI secret variables; never commit secrets.
+- Set app name, app ID, Firebase project, links, seed color, and modules in
+  `deployments/<id>/deployment.json`; keep the deployment's FlutterFire
+  output in `deployments/<id>/firebase/`. See [DEPLOYMENT.md](DEPLOYMENT.md).
+- Every value compiled into the app is public. Secrets (deploy credential,
+  signing keys, App Store Connect key, APNs key) are created in and stay in
+  the customer's accounts and Codemagic team; `tool/deployment.mjs` rejects a
+  deployment folder that contains one.
 - Configure `minimum_app_version`, `android_store_url`, and `ios_store_url` in
   Firebase Remote Config. Keep the minimum at `0.0.0` until store URLs are
   verified.
@@ -270,6 +287,7 @@ validated by Dart tests.
 cd backend/functions
 npm ci
 npm run build
+npm test
 npm run test:rules
 ```
 

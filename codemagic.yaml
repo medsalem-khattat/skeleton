@@ -1,16 +1,89 @@
+# One file for every deployment. Each customer runs these workflows in the
+# customer's own Codemagic team, where the customer's secrets live; the
+# repository holds no secrets. The deployment is selected by DEPLOYMENT_ID
+# (deployments/<id>/deployment.json). See docs/DEPLOYMENT.md.
+#
+# Environment groups expected in the customer's Codemagic team:
+#   deployment       DEPLOYMENT_ID, CM_PUBLISH_EMAIL, optional API_KEY
+#   firebase_deploy  FIREBASE_SERVICE_ACCOUNT (secure)
+#   ios_signing      APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER,
+#                    APP_STORE_CONNECT_PRIVATE_KEY, CERTIFICATE_PRIVATE_KEY (all secure)
+# Code signing identity: the Android upload keystore with reference name
+# upload_keystore.
+
 definitions:
   scripts:
+    - &use_deployment
+      name: Select deployment
+      script: node tool/deployment.mjs use "$DEPLOYMENT_ID"
     - &backend_install
       name: Install backend dependencies
       script: cd backend/functions && npm ci
     - &backend_build
       name: Build Cloud Functions
       script: cd backend/functions && npm run build
+    - &backend_test_functions
+      name: Test Cloud Functions logic
+      script: cd backend/functions && npm test
     - &backend_test_rules
       name: Test Firestore and Storage rules
       script: cd backend/functions && npm run test:rules
+    - &frontend_install
+      name: Install dependencies
+      script: cd frontend && flutter pub get
+    - &frontend_analyze
+      name: Analyze Dart code
+      script: cd frontend && flutter analyze
+    - &frontend_test
+      name: Run tests
+      script: cd frontend && flutter test
+  email: &email
+    email:
+      recipients:
+        - $CM_PUBLISH_EMAIL
+      notify:
+        success: true
+        failure: true
 
 workflows:
+  # Runs in our team on every change. Uses the committed example deployment
+  # (placeholder Firebase values), so it needs no customer data or secrets.
+  frontend-ci:
+    name: Frontend CI
+    instance_type: linux_x2
+    max_build_duration: 30
+    environment:
+      flutter: stable
+      node: 22
+      vars:
+        DEPLOYMENT_ID: example
+    triggering:
+      events:
+        - push
+        - pull_request
+      branch_patterns:
+        - pattern: '*'
+          include: true
+          source: true
+      cancel_previous_builds: true
+    when:
+      changeset:
+        includes:
+          - 'frontend/'
+          - 'deployments/'
+          - 'tool/'
+    scripts:
+      - name: Check every deployment
+        script: |
+          set -euo pipefail
+          for dir in deployments/*/; do
+            node tool/deployment.mjs check "$(basename "$dir")"
+          done
+      - *use_deployment
+      - *frontend_install
+      - *frontend_analyze
+      - *frontend_test
+
   backend-ci:
     name: Backend CI
     instance_type: linux_x2
@@ -34,8 +107,11 @@ workflows:
     scripts:
       - *backend_install
       - *backend_build
+      - *backend_test_functions
       - *backend_test_rules
 
+  # Started manually in the customer's team. Refuses to run unless the
+  # customer's service account belongs to the deployment's Firebase project.
   backend-deploy:
     name: Backend deploy
     instance_type: linux_x2
@@ -44,42 +120,26 @@ workflows:
       node: 22
       java: 21
       groups:
+        - deployment
         - firebase_deploy
-    triggering:
-      events:
-        - push
-      branch_patterns:
-        - pattern: main
-          include: true
-    when:
-      changeset:
-        includes:
-          - 'backend/'
     scripts:
+      - name: Check deployment and deploy credential
+        script: node tool/deployment.mjs check "$DEPLOYMENT_ID"
       - *backend_install
       - *backend_build
+      - *backend_test_functions
       - *backend_test_rules
       - name: Write Firebase deploy credentials
         script: |
           set -euo pipefail
           credentials_path="$HOME/firebase-deploy-sa.json"
           printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$credentials_path"
+          chmod 600 "$credentials_path"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$credentials_path" >> "$CM_ENV"
       - name: Deploy Functions and rules
-        script: |
-          cd backend/functions
-          npx firebase deploy \
-            --config ../firebase.json \
-            --only functions,firestore:rules,storage \
-            --project "$FIREBASE_PROJECT_ID" \
-            --non-interactive
+        script: node tool/deployment.mjs deploy-backend "$DEPLOYMENT_ID"
     publishing:
-      email:
-        recipients:
-          - $CM_PUBLISH_EMAIL
-        notify:
-          success: true
-          failure: true
+      <<: *email
 
   android-release:
     name: Android release
@@ -87,62 +147,58 @@ workflows:
     max_build_duration: 30
     environment:
       flutter: stable
+      node: 22
       groups:
-        - app_secrets
+        - deployment
       android_signing:
-        - medsalem
+        - upload_keystore
     scripts:
-      - name: Install dependencies
-        script: cd frontend && flutter pub get
-      - name: Analyze Dart code
-        script: cd frontend && flutter analyze
-      - name: Run tests
-        script: cd frontend && flutter test
+      - *use_deployment
+      - *frontend_install
+      - *frontend_analyze
+      - *frontend_test
       - name: Build Android App Bundle
         script: |
           cd frontend
           flutter build appbundle \
             --release \
-            --build-name=1.0.0 \
             --build-number="$BUILD_NUMBER" \
-            --dart-define=API_BASE_URL="$API_BASE_URL" \
-            --dart-define=API_KEY="$API_KEY"
+            --dart-define-from-file=deployment.g.json \
+            --dart-define=API_KEY="${API_KEY:-}"
     artifacts:
       - frontend/build/app/outputs/bundle/release/*.aab
       - frontend/build/app/outputs/mapping/release/mapping.txt
     publishing:
-      email:
-        recipients:
-          - $CM_PUBLISH_EMAIL
-        notify:
-          success: true
-          failure: true
+      <<: *email
 
   ios-release:
     name: iOS release
     instance_type: mac_mini_m2
     max_build_duration: 30
-    integrations:
-      app_store_connect: codemagic
     environment:
       flutter: stable
+      node: 22
       groups:
-        - app_secrets
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.yourname.skeleton
+        - deployment
+        - ios_signing
     scripts:
-      - name: Install dependencies
-        script: cd frontend && flutter pub get
-      - name: Analyze Dart code
-        script: cd frontend && flutter analyze
-      - name: Run tests
-        script: cd frontend && flutter test
-      - name: Apply iOS signing profiles
-        script: cd frontend && xcode-project use-profiles
+      - *use_deployment
+      - *frontend_install
+      - *frontend_analyze
+      - *frontend_test
+      - name: Fetch iOS signing files for the deployment's app ID
+        script: |
+          set -euo pipefail
+          keychain initialize
+          app-store-connect fetch-signing-files "$APP_ID" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+          cd frontend && xcode-project use-profiles
       - name: Verify iOS entitlements in signing profile
         script: |
           set -euo pipefail
+          required_domain="applinks:$AUTH_ACTION_HOST"
           profiles_dir="$HOME/Library/MobileDevice/Provisioning Profiles"
           matching_profile_found=false
           profile_with_required_entitlements_found=false
@@ -159,7 +215,7 @@ workflows:
             aps_environment=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:aps-environment" "$decoded_profile" 2>/dev/null || true)
             associated_domains=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:com.apple.developer.associated-domains" "$decoded_profile" 2>/dev/null || true)
             case "$app_identifier" in
-              *".com.yourname.skeleton") ;;
+              *".$APP_ID") ;;
               *)
                 rm -f "$decoded_profile"
                 continue
@@ -175,7 +231,7 @@ workflows:
                 ;;
             esac
             normalized_associated_domains=$(printf '%s\n' "$associated_domains" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
-            if printf '%s\n' "$normalized_associated_domains" | grep -Fxq "applinks:whatsapp-bot-f57a8.firebaseapp.com" ||
+            if printf '%s\n' "$normalized_associated_domains" | grep -Fxq "$required_domain" ||
                printf '%s\n' "$normalized_associated_domains" | grep -Fxq "*"; then
               associated_domain_found=true
               profile_has_associated_domain=true
@@ -187,23 +243,22 @@ workflows:
             fi
           done
           if [ "$matching_profile_found" != "true" ]; then
-            echo "No provisioning profile for com.yourname.skeleton was found."
-            echo "Select or generate a matching App Store provisioning profile in Codemagic."
+            echo "No provisioning profile for $APP_ID was found."
+            echo "Register the App ID in the customer's Apple Developer account."
             exit 1
           fi
           if [ "$push_entitlement_found" != "true" ]; then
-            echo "The com.yourname.skeleton provisioning profile is missing the aps-environment entitlement."
-            echo "Enable Push Notifications for the App ID and regenerate/select its provisioning profile in Codemagic."
+            echo "The $APP_ID provisioning profile is missing the aps-environment entitlement."
+            echo "Enable Push Notifications for the App ID, then rerun to regenerate the profile."
             exit 1
           fi
           if [ "$associated_domain_found" != "true" ]; then
-            echo "The com.yourname.skeleton provisioning profile is missing applinks:whatsapp-bot-f57a8.firebaseapp.com."
-            echo "Enable Associated Domains for the App ID and regenerate/select its provisioning profile in Codemagic."
+            echo "The $APP_ID provisioning profile is missing $required_domain."
+            echo "Enable Associated Domains for the App ID, then rerun to regenerate the profile."
             exit 1
           fi
           if [ "$profile_with_required_entitlements_found" != "true" ]; then
-            echo "No single com.yourname.skeleton provisioning profile includes both required entitlements."
-            echo "Select a profile that includes Push Notifications and Associated Domains in Codemagic."
+            echo "No single $APP_ID provisioning profile includes both required entitlements."
             exit 1
           fi
       - name: Build iOS IPA
@@ -211,21 +266,17 @@ workflows:
           cd frontend
           flutter build ipa \
             --release \
-            --build-name=1.0.0 \
             --build-number="$BUILD_NUMBER" \
             --export-options-plist=/Users/builder/export_options.plist \
-            --dart-define=API_BASE_URL="$API_BASE_URL" \
-            --dart-define=API_KEY="$API_KEY"
+            --dart-define-from-file=deployment.g.json \
+            --dart-define=API_KEY="${API_KEY:-}"
     artifacts:
       - frontend/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
     publishing:
       app_store_connect:
-        auth: integration
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         submit_to_testflight: true
-      email:
-        recipients:
-          - $CM_PUBLISH_EMAIL
-        notify:
-          success: true
-          failure: true
+      <<: *email

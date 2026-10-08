@@ -18,11 +18,18 @@ configuration and isolated deployments**:
 - Keep customer changes out of the shared product unless they are approved as
   reusable roadmap features.
 
-The current repository is configured for one Firebase project and one iOS
-bundle identifier in places such as `frontend/lib/firebase_options.dart`,
-`frontend/firebase.json`, `backend/firebase.json`, and `codemagic.yaml`. It does **not** yet provide a
-customer-matrix build system or automated per-customer deployment. Follow
-these steps manually until that automation is designed and implemented.
+**One deployment = one Firebase project = one backend.** Every deployment gets
+its own Firebase project. The customer owns that project and pays its Firebase
+billing; no two deployments ever share a project, a database, or Cloud
+Functions. As part of each deployment, we create the customer's Firebase
+project under the customer's account and choose the app identifiers (see
+[Step 3](#step-3-create-the-customer-owned-firebase-project)).
+
+Each deployment is one file, `deployments/<id>/deployment.json`, plus its
+public Firebase client files. One `codemagic.yaml` builds every deployment,
+and every secret stays in the customer's accounts. The technical steps are in
+[DEPLOYMENT.md](DEPLOYMENT.md); this guide covers ownership, policy, and
+support.
 
 ## 2. Ownership and deployment records
 
@@ -43,6 +50,7 @@ Maintain a private deployment register outside source control. Record at least:
 | Contract/license | Plan, licensed modules, dates, support level, user/device limits |
 | App identity | Display name, Android application ID, iOS bundle ID |
 | Firebase environment | Project ID per environment (development/staging/production) |
+| Firebase ownership | Customer Google account or organization that owns each project, customer billing account, our granted IAM roles and when they were granted |
 | Release | Platform version/tag, commit SHA, customer extension version, build number |
 | Enabled modules | Standard and customer-specific modules, with dependencies |
 | Deployment state | Planned, testing, submitted, released, rolled back/forward-fixed |
@@ -70,14 +78,21 @@ actual register and credentials in approved access-controlled systems.
    Apple/Google developer accounts, Firebase billing, APNs, App Check, domains,
    and store listings.
 
-### Step 2: Create the customer configuration
+### Step 2: Create the deployment
+
+Follow [DEPLOYMENT.md](DEPLOYMENT.md) §4. In policy terms:
 
 1. Start from a reviewed platform tag, not an arbitrary developer branch.
-2. Assign a stable customer identifier and unique app display name.
-3. Choose unique Android application and iOS bundle identifiers. Confirm the
-   customer owns or controls the related store listings.
-4. Set branding and supported module switches. Validate module dependencies
-   and landing destinations.
+2. Assign a stable customer identifier (the deployment ID) and a unique app
+   display name.
+3. We choose the app identifier, the same for Android and iOS, for example
+   `<our-reverse-domain>.<customer-id>`. It must be unique, is permanent once
+   the app is published, and is recorded in the deployment register before
+   the Firebase apps are registered. Confirm the customer owns or controls
+   the related store listings.
+4. Branding, links, and module switches go in
+   `deployments/<id>/deployment.json`; `node tool/deployment.mjs check <id>`
+   validates module dependencies and landing destinations.
 5. Keep customer-only code isolated in an extension package or module. Avoid
    editing shared core just to customize text, color, URLs, or enabled modules.
 6. Record the exact base platform tag and customer extension version.
@@ -86,51 +101,45 @@ Do not create an untracked long-lived fork for ordinary customization. If an
 exceptional core divergence is unavoidable, document its owner, reason,
 upstream synchronization plan, and expiry/review date.
 
-### Step 3: Provision isolated services
+### Step 3: Create the customer-owned Firebase project
 
-For each customer, create separate Firebase projects for development/staging
-and production when the customer/support model requires environment isolation.
-At minimum:
+Each deployment has its own backend: a Firebase project that the customer
+owns and pays for. Creating it is part of our deployment work
+([DEPLOYMENT.md](DEPLOYMENT.md) §4, Step 1):
 
-1. Register separate Android and iOS apps in the customer Firebase project.
-2. Enable only the required Firebase products and providers.
-3. Generate app configuration with FlutterFire and commit only the generated
-   public app configuration that belongs in source control.
-4. Deploy reviewed Firestore and Storage rules. Merge rules into existing
-   projects instead of replacing unrelated production rules.
-5. Deploy only the required Cloud Functions. Review region, IAM, billing,
-   App Check, and external-function coexistence before deployment.
-6. Configure Firebase Remote Config values and test update behavior.
-7. Configure domains, Android App Links, iOS Associated Domains, APNs, and
-   Apple provisioning entitlements when the enabled features require them.
-8. Register production App Check providers and validate tokens before
-   enforcing App Check for a Firebase product.
-9. Seed no real user data into test environments. Use synthetic test accounts.
-
-Refer to [README.md](README.md) for the repository's current Firebase setup,
-emulator, email-link, App Check, and signing details.
+1. **Customer account.** Use the customer's Google account or Google Cloud
+   organization. If the customer has none, create one with the customer, in
+   the customer's name and with the customer's contact address. Never create
+   the project under our own account.
+2. **Billing.** The customer provides a Cloud Billing account with their own
+   payment method. Cloud Functions require the Blaze plan.
+3. **Project.** Created under the customer's account (`<customer-id>-prod`)
+   and linked to the customer's billing account. When the support model
+   requires environment isolation, also create `<customer-id>-staging` as a
+   separate deployment.
+4. **Our access.** The customer grants our team the narrowest IAM roles needed
+   (for example **Firebase Admin**) and stays the project **Owner**. Record the
+   roles and the date in the deployment register; the customer removes them
+   when the support agreement ends.
+5. Seed no real user data into test environments. Use synthetic test accounts.
 
 ### Step 4: Configure release credentials and CI
 
-1. Create a separate Codemagic application/environment group for the customer
-   and environment. Limit access to staff who need it.
-2. Add that customer's signing credentials and store/API integrations through
-   Codemagic secure variables/integrations. Do not commit credentials.
-3. Configure workflow values for bundle/application ID, Firebase target,
-   distribution channel, build number, and customer feature configuration.
-4. Confirm the workflow builds the intended customer configuration and cannot
-   accidentally deploy to another customer's Firebase project.
-5. Run dependency installation, static analysis, client tests, Functions build,
-   Firebase rules tests, and the platform release build.
-6. Check the produced artifact identity and signing profile before submission.
-   For iOS, confirm the provisioning profile includes the entitlements declared
-   by the app.
+All secrets are created in and stay in the customer's accounts; see
+[DEPLOYMENT.md](DEPLOYMENT.md) §3 for the full inventory.
 
-The current `codemagic.yaml` has a single configured customer identity. Until
-the workflows are parameterized, use a reviewed customer-specific workflow
-configuration or explicitly update and review the relevant configuration
-before each build. Never rely on an implicit environment value that can point
-to the wrong customer project.
+1. The workflows run in a Codemagic team owned by the customer, with our
+   staff invited as members. Limit membership to staff who need it.
+2. The customer's signing credentials, App Store Connect key, and Firebase
+   deploy credential are stored only there, as secure variables or code
+   signing identities. Never download them to personal machines or commit them.
+3. The `deployment` group's `DEPLOYMENT_ID` selects the deployment;
+   `backend-deploy` refuses to run unless the deploy credential belongs to
+   that deployment's Firebase project.
+4. Every build runs dependency installation, static analysis, client tests,
+   and, for the backend, Functions and rules tests.
+5. Check the produced artifact identity and signing profile before submission.
+   `ios-release` verifies the profile's entitlements automatically.
 
 ### Step 5: Verify, accept, and release
 
@@ -328,21 +337,17 @@ not for protecting customer data or server operations.
 
 ## 9. Recommended automation to add later
 
-The repository currently needs additional deployment engineering before
-customer scale. A future implementation should add:
+Already in place: a validated deployment file per customer
+(`deployments/<id>/deployment.json`), CI that builds from it with an explicit
+`DEPLOYMENT_ID`, customer-owned secret groups, a guard that rejects a deploy
+credential for the wrong Firebase project, a secret scan, and client,
+Functions, and rules tests on every change. Still to add:
 
-1. A typed, validated customer manifest containing non-secret identifiers,
-   enabled modules, environment references, and release channels.
-2. CI workflows that build from a manifest and require explicit customer and
-   environment selection.
-3. Per-customer secret groups/permissions and guardrails that reject a
-   mismatched app ID/Firebase project.
-4. A build matrix for supported module combinations and customer extensions.
-5. Automated client, Functions, and emulator rules tests for every candidate.
-6. Artifact provenance recording commit SHA, manifest version, dependency
-   lockfiles, and build number.
-7. Staging promotion and human approval before production deployment.
-8. A deployment register/inventory for customer app versions and Firebase
+1. A build matrix for supported module combinations and customer extensions.
+2. Artifact provenance recording commit SHA, deployment file version,
+   dependency lockfiles, and build number.
+3. Staging promotion and human approval before production deployment.
+4. A deployment register/inventory for customer app versions and Firebase
    backend versions.
 
 Do not add a customer license server or remote entitlement enforcement without
@@ -357,7 +362,9 @@ embed a signing secret in the mobile application.
 - [ ] Scope, acceptance, support, and license recorded
 - [ ] App identifiers and distribution ownership confirmed
 - [ ] Customer extension boundary and base platform version recorded
-- [ ] Firebase projects and providers provisioned
+- [ ] App identifier chosen and recorded
+- [ ] Firebase project created under the customer's account, linked to the customer's billing account (Blaze), our IAM roles recorded
+- [ ] Firebase providers provisioned
 - [ ] Rules, Functions, App Check, Remote Config, and domains reviewed
 - [ ] CI credentials isolated and workflow target verified
 - [ ] Staging acceptance completed

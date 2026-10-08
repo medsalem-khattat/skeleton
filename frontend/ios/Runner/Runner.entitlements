@@ -6,7 +6,7 @@
 	<string>$(APS_ENVIRONMENT)</string>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:whatsapp-bot-f57a8.firebaseapp.com</string>
+		<string>applinks:$(AUTH_ACTION_HOST)</string>
 	</array>
 </dict>
 </plist>

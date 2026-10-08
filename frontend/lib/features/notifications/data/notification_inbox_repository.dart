@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,6 +12,7 @@ final notificationInboxRepositoryProvider =
       return FirestoreNotificationInboxRepository(
         ref.watch(firestoreProvider),
         ref.watch(firebaseAuthProvider),
+        ref.watch(firebaseFunctionsProvider),
       );
     });
 
@@ -30,17 +32,24 @@ abstract interface class NotificationInboxRepository {
 
   Stream<AppNotification?> watchNotification(String notificationId);
 
-  Future<void> recordPasswordChanged();
+  /// Asks the trusted backend to record a password change in the signed-in
+  /// user's inbox. Clients cannot create inbox records directly.
+  Future<void> recordPasswordChanged({required String languageCode});
 
   Future<void> markRead(String notificationId);
 }
 
 class FirestoreNotificationInboxRepository
     implements NotificationInboxRepository {
-  FirestoreNotificationInboxRepository(this._firestore, this._auth);
+  FirestoreNotificationInboxRepository(
+    this._firestore,
+    this._auth,
+    this._functions,
+  );
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
+  final FirebaseFunctions _functions;
 
   CollectionReference<Map<String, dynamic>> _notifications(String uid) =>
       _firestore
@@ -81,12 +90,10 @@ class FirestoreNotificationInboxRepository
   }
 
   @override
-  Future<void> recordPasswordChanged() async {
-    final uid = _requireUserId();
-    await _notifications(uid).add({
-      'type': 'password_changed',
-      'createdAt': FieldValue.serverTimestamp(),
-      'isRead': false,
+  Future<void> recordPasswordChanged({required String languageCode}) async {
+    _requireUserId();
+    await _functions.httpsCallable('recordPasswordChange').call<void>({
+      'languageCode': languageCode,
     });
   }
 

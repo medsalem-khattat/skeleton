@@ -73,7 +73,9 @@ class _AccountSecurityScreenState extends ConsumerState<AccountSecurityScreen> {
     try {
       await ref
           .read(notificationInboxRepositoryProvider)
-          .recordPasswordChanged();
+          .recordPasswordChanged(
+            languageCode: Localizations.localeOf(context).languageCode,
+          );
       if (mounted) {
         showMessage(context, l10n.passwordChanged);
       }

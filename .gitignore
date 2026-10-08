@@ -45,3 +45,21 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Generated per deployment by `node tool/deployment.mjs use <id>`.
+# The source of truth is deployments/<id>/.
+/frontend/deployment.g.json
+/frontend/lib/firebase_options.dart
+/frontend/firebase.json
+/frontend/android/app/google-services.json
+/frontend/android/deployment.properties
+/frontend/ios/Runner/GoogleService-Info.plist
+/frontend/ios/Flutter/Deployment.xcconfig
+
+# Secrets belong to the customer and never enter this repository.
+*.jks
+*.keystore
+*.p8
+*.p12
+*.mobileprovision
+*service-account*.json

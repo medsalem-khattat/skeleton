@@ -1,7 +1,8 @@
 # Skeleton
 
-Reusable Flutter + Firebase application foundation, currently configured as a
-single-customer deployment.
+Reusable Flutter + Firebase application foundation. Each customer deployment
+is one file, `deployments/<id>/deployment.json`, with its own customer-owned
+Firebase project; customers own every secret and all user data.
 
 ## Repository layout
 
@@ -9,45 +10,40 @@ single-customer deployment.
   client tests.
 - [`backend/`](backend/) — Firebase Functions, Firestore/Storage rules,
   emulator and deployment configuration.
+- [`deployments/`](deployments/) — one folder per deployment: the deployment
+  file and its public Firebase client files. No secrets.
+- [`tool/deployment.mjs`](tool/deployment.mjs) — checks, selects, and deploys
+  a deployment.
 - [`docs/`](docs/) — setup, architecture, functional/technical specifications,
-  feature development, and customer deployment guides.
-- [`codemagic.yaml`](codemagic.yaml) — repository-level Android/iOS release
-  workflows.
+  feature development, and deployment guides.
+- [`codemagic.yaml`](codemagic.yaml) — CI and release workflows for every
+  deployment.
 
 ## Quick start
 
-Install and run the Flutter app:
+Select a deployment, then run the app with its values (`example` uses the
+local Firebase emulators and placeholder values):
 
 ```sh
+node tool/deployment.mjs use example
 cd frontend
 flutter pub get
-flutter run
+flutter run --dart-define-from-file=deployment.g.json
 ```
 
-Run client checks:
+Run the checks:
 
 ```sh
-cd frontend
-flutter analyze
-flutter test
+node tool/deployment.mjs list
+cd frontend && flutter analyze && flutter test
+cd ../backend/functions && npm ci && npm test && npm run test:rules
 ```
 
-Build and test Firebase Functions/rules:
-
-```sh
-cd backend/functions
-npm ci
-npm run build
-npm run test:rules
-```
-
-See [`docs/README.md`](docs/README.md) for Firebase setup, emulator usage,
-signing, and release configuration. For architecture and extension guidance,
-see the [FSD](docs/FSD.md), [TSD](docs/TSD.md), and
-[feature guide](docs/HOW_TO_ADD_A_FEATURE.md). Customer-specific deployment and
-fix procedures are documented in
-[docs/CUSTOMER_DEPLOYMENT.md](docs/CUSTOMER_DEPLOYMENT.md).
-
-This repository is not yet a multi-customer build system: Firebase project,
-app identifiers, and Codemagic signing values are currently configured for one
-deployment.
+To deploy for a customer, follow [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md):
+parameters, secrets strategy, step-by-step setup, and testing. Ownership,
+support, and bug-fix policy are in
+[docs/CUSTOMER_DEPLOYMENT.md](docs/CUSTOMER_DEPLOYMENT.md). See
+[`docs/README.md`](docs/README.md) for feature details, the
+[FSD](docs/FSD.md), [TSD](docs/TSD.md), and
+[feature guide](docs/HOW_TO_ADD_A_FEATURE.md) for architecture, and
+[docs/ROADMAP.md](docs/ROADMAP.md) for upcoming versions.
