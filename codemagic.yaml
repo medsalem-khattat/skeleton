@@ -1,4 +1,86 @@
+definitions:
+  scripts:
+    - &backend_install
+      name: Install backend dependencies
+      script: cd backend/functions && npm ci
+    - &backend_build
+      name: Build Cloud Functions
+      script: cd backend/functions && npm run build
+    - &backend_test_rules
+      name: Test Firestore and Storage rules
+      script: cd backend/functions && npm run test:rules
+
 workflows:
+  backend-ci:
+    name: Backend CI
+    instance_type: linux_x2
+    max_build_duration: 20
+    environment:
+      node: 22
+      java: 21
+    triggering:
+      events:
+        - push
+        - pull_request
+      branch_patterns:
+        - pattern: '*'
+          include: true
+          source: true
+      cancel_previous_builds: true
+    when:
+      changeset:
+        includes:
+          - 'backend/'
+    scripts:
+      - *backend_install
+      - *backend_build
+      - *backend_test_rules
+
+  backend-deploy:
+    name: Backend deploy
+    instance_type: linux_x2
+    max_build_duration: 30
+    environment:
+      node: 22
+      java: 21
+      groups:
+        - firebase_deploy
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+    when:
+      changeset:
+        includes:
+          - 'backend/'
+    scripts:
+      - *backend_install
+      - *backend_build
+      - *backend_test_rules
+      - name: Write Firebase deploy credentials
+        script: |
+          set -euo pipefail
+          credentials_path="$HOME/firebase-deploy-sa.json"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$credentials_path"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$credentials_path" >> "$CM_ENV"
+      - name: Deploy Functions and rules
+        script: |
+          cd backend/functions
+          npx firebase deploy \
+            --config ../firebase.json \
+            --only functions,firestore:rules,storage \
+            --project "$FIREBASE_PROJECT_ID" \
+            --non-interactive
+    publishing:
+      email:
+        recipients:
+          - $CM_PUBLISH_EMAIL
+        notify:
+          success: true
+          failure: true
+
   android-release:
     name: Android release
     instance_type: mac_mini_m2
