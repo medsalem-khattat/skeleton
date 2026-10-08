@@ -147,5 +147,31 @@ void main() {
         AppRoutes.home,
       );
     });
+
+    test('does not restore a destination for a disabled module', () {
+      expect(
+        AppRoutes.authRedirect(
+          isLoggedIn: true,
+          emailVerified: true,
+          location: AppRoutes.login,
+          authenticatedLocation: AppRoutes.home,
+          authenticatedLocations: const {AppRoutes.home},
+          requestedLocation: AppRoutes.profile,
+        ),
+        AppRoutes.home,
+      );
+    });
+
+    test('rejects malformed notification paths', () {
+      expect(
+        AppRoutes.authRedirect(
+          isLoggedIn: true,
+          emailVerified: true,
+          location: AppRoutes.login,
+          requestedLocation: '/notifications/id/extra',
+        ),
+        AppRoutes.home,
+      );
+    });
   });
 }

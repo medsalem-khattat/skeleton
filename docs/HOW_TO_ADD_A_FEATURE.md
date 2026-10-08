@@ -5,8 +5,8 @@ This guide adds a small example feature, **notes** (a per-user list of notes), e
 Every feature has three layers and is built as one vertical slice:
 
 ```
-features/notes/
-  data/          model + repository (Firebase access only here)
+frontend/lib/features/notes/
+  data/          model + repository (Firebase data access)
   application/   Riverpod providers (state)
   presentation/  screens and widgets
 ```
@@ -17,25 +17,28 @@ features/notes/
 - [ ] 2. Model and repository (`data/`)
 - [ ] 3. Providers (`application/`)
 - [ ] 4. Screen (`presentation/`)
-- [ ] 5. Add the route
-- [ ] 6. Add the navigation entry (if it is a main tab)
-- [ ] 7. Update Firestore rules
-- [ ] 8. Write tests
-- [ ] 9. `flutter analyze`, `flutter test`, run the app, commit
+- [ ] 5. Decide the feature's dependencies and enabled/disabled behavior; update `AppFeatures` and its tests if it is optional
+- [ ] 6. Add localized strings for user-facing text
+- [ ] 7. Add the route conditionally and the navigation entry (if it is a main tab)
+- [ ] 8. Define and test Firestore/Storage rules for any new data
+- [ ] 9. Update export, account-deletion, or server-function behavior if the feature owns user data or trusted operations
+- [ ] 10. Write unit/widget tests and relevant rules tests
+- [ ] 11. Update FSD/TSD and setup documentation
+- [ ] 12. Run `flutter analyze`, `flutter test`, relevant Functions/rules tests, and run the app
 
 ---
 
 ## 1. Create the folders
 
 ```
-lib/features/notes/data
-lib/features/notes/application
-lib/features/notes/presentation
+frontend/lib/features/notes/data
+frontend/lib/features/notes/application
+frontend/lib/features/notes/presentation
 ```
 
 ## 2. Model and repository
 
-`lib/features/notes/data/note.dart`
+`frontend/lib/features/notes/data/note.dart`
 
 ```dart
 class Note {
@@ -46,7 +49,7 @@ class Note {
 }
 ```
 
-`lib/features/notes/data/notes_repository.dart`
+`frontend/lib/features/notes/data/notes_repository.dart`
 
 ```dart
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -88,7 +91,7 @@ Rule: **UI code never imports Firebase.** Only repositories do.
 
 ## 3. Providers
 
-`lib/features/notes/application/notes_providers.dart`
+`frontend/lib/features/notes/application/notes_providers.dart`
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -110,11 +113,13 @@ final notesProvider = StreamProvider<List<Note>>((ref) {
 });
 ```
 
-For actions that can fail and show a loading state (create, save), follow the pattern in `features/auth/application/auth_providers.dart` (an `AsyncNotifier` with a `_run` helper).
+For actions that can fail and show a loading state (create, save), follow the
+pattern in `frontend/lib/features/auth/application/auth_providers.dart` (an
+`AsyncNotifier` with a `_run` helper).
 
 ## 4. Screen
 
-`lib/features/notes/presentation/notes_screen.dart`
+`frontend/lib/features/notes/presentation/notes_screen.dart`
 
 ```dart
 import 'package:flutter/material.dart';
@@ -160,13 +165,14 @@ Every screen handles the three states: **loading, error, data**.
 
 ## 5. Add the route
 
-`lib/core/router/app_routes.dart`: add a constant:
+`frontend/lib/core/router/app_routes.dart`: add a constant:
 
 ```dart
 static const notes = '/notes';
 ```
 
-`lib/core/router/app_router.dart`: import the screen and add a `StatefulShellBranch` (for a main tab) next to the others:
+`frontend/lib/core/router/app_router.dart`: import the screen and add a
+`StatefulShellBranch` (for a main tab) next to the others:
 
 ```dart
 StatefulShellBranch(routes: [
@@ -181,7 +187,9 @@ For a screen that is not a tab (a detail or form screen), add a plain `GoRoute` 
 
 ## 6. Add the navigation entry
 
-`lib/features/home/presentation/home_shell.dart`: add a matching `NavigationDestination`. **The order of destinations must match the order of the branches in the router.**
+`frontend/lib/features/home/presentation/home_shell.dart`: add a matching
+`NavigationDestination`. **The order of destinations must match the order of
+the branches in the router.**
 
 ```dart
 NavigationDestination(
@@ -193,30 +201,43 @@ NavigationDestination(
 
 ## 7. Update Firestore rules
 
-Add to `firestore.rules` (inside `match /documents`) and publish in the Firebase console:
+Add a narrowly scoped rule beneath
+`match /databases/{database}/documents` in `backend/firestore.rules`:
 
 ```
 match /users/{uid}/notes/{noteId} {
-  allow read, write: if request.auth != null && request.auth.uid == uid;
+  allow read, create, update, delete: if request.auth != null
+    && request.auth.uid == uid;
 }
 ```
 
-Never leave a new collection open. Every collection needs a rule.
+This example grants the owner access to their own notes. Validate allowed fields
+and mutations where the feature needs stronger integrity guarantees. Never
+leave a new collection open or use broad rules such as `allow read, write: if
+request.auth != null;`. Test the rule with the Firebase emulators before
+publishing it.
 
 ## 8. Write tests
 
-Follow the pattern in `test/`:
+Follow the pattern in `frontend/test/`:
 
-- Put fake repositories in `test/helpers/` (in-memory, no Firebase).
+- Put fake repositories in `frontend/test/helpers/` (in-memory, no Firebase).
 - Override the repository provider in the test with `overrideWithValue(fake)`.
 - Unit-test logic, widget-test the screen states (empty, data, error).
+- Test relevant auth/feature combinations and write emulator rules tests for
+  persisted data.
 
 ## 9. Verify and commit
 
 ```
+cd frontend
 flutter analyze
 flutter test
 flutter run
+cd ../backend/functions
+npm run build
+npm run test:rules
+cd ../..
 git add .
 git commit -m "feat: add notes"
 ```
@@ -224,8 +245,10 @@ git commit -m "feat: add notes"
 ## Definition of done for a feature
 
 - Works end to end on a device (UI, state, data)
-- Firestore rules cover any new collection
+- Firestore/Storage rules cover only the intended users and operations
 - Analyzer clean, tests pass
 - Screens handle loading, error and empty states
-- No Firebase imports outside `data/`
-- No project-specific values outside `core/config/app_config.dart`
+- Firebase data access stays behind repositories
+- User-facing strings are localized
+- Export and account deletion include the feature's user data when applicable
+- No project-specific values outside the appropriate configuration boundary

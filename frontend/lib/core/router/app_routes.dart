@@ -23,6 +23,7 @@ class AppRoutes {
     required bool emailVerified,
     required String location,
     String authenticatedLocation = home,
+    Set<String> authenticatedLocations = const {home, profile, settings},
     String? requestedLocation,
     bool notificationInboxEnabled = true,
   }) {
@@ -37,6 +38,7 @@ class AppRoutes {
         location == notifications || location.startsWith('$notifications/');
     final destination = _validAuthenticatedLocation(
       requestedLocation ?? (directNotificationDestination ? location : null),
+      authenticatedLocations: authenticatedLocations,
       notificationInboxEnabled: notificationInboxEnabled,
     );
 
@@ -64,6 +66,7 @@ class AppRoutes {
 
   static String? _validAuthenticatedLocation(
     String? candidate, {
+    required Set<String> authenticatedLocations,
     required bool notificationInboxEnabled,
   }) {
     if (candidate == null) return null;
@@ -74,12 +77,18 @@ class AppRoutes {
         !uri.path.startsWith('/')) {
       return null;
     }
-    if (uri.path == home || uri.path == profile || uri.path == settings) {
+    if (authenticatedLocations.contains(uri.path)) {
       return uri.toString();
     }
     if (!notificationInboxEnabled) return null;
     if (uri.path == notifications) return uri.toString();
-    if (uri.path.startsWith('$notifications/')) return uri.toString();
+    final segments = uri.pathSegments;
+    if (segments.length == 2 &&
+        segments.first == notifications.substring(1) &&
+        segments.last.isNotEmpty &&
+        !segments.last.contains('/')) {
+      return uri.toString();
+    }
     return null;
   }
 }

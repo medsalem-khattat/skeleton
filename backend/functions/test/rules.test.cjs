@@ -46,20 +46,38 @@ test("Storage allows a bounded image only for its owner", async () => {
   const metadata = { contentType: "image/jpeg" };
 
   await assertSucceeds(
-    uploadBytes(ref(owner, "users/owner/profile/avatar.jpg"), image, metadata),
-  );
-  await assertFails(
     uploadBytes(
-      ref(otherUser, "users/owner/profile/avatar.jpg"),
+      ref(owner, "users/owner/profile/avatar_123456.jpg"),
       image,
       metadata,
     ),
   );
   await assertFails(
     uploadBytes(
-      ref(owner, "users/owner/profile/avatar.jpg"),
+      ref(otherUser, "users/owner/profile/avatar_123456.jpg"),
+      image,
+      metadata,
+    ),
+  );
+  await assertFails(
+    uploadBytes(
+      ref(owner, "users/owner/profile/avatar_123456.jpg"),
       image,
       { contentType: "text/plain" },
+    ),
+  );
+  await assertFails(
+    uploadBytes(
+      ref(owner, "users/owner/unrelated/file.jpg"),
+      image,
+      metadata,
+    ),
+  );
+  await assertFails(
+    uploadBytes(
+      ref(owner, "users/owner/profile/avatar_too_large.jpg"),
+      new Uint8Array(5 * 1024 * 1024 + 1),
+      metadata,
     ),
   );
 });

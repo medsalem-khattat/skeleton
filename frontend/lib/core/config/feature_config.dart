@@ -5,6 +5,8 @@ import '../router/app_routes.dart';
 /// Change [AppFeatures.current] to enable or disable modules. Profile,
 /// notification inbox, and device authentication require Authentication;
 /// dependent modules are considered disabled when Authentication is off.
+/// When adding a module, define its dependency rules here and cover valid and
+/// invalid combinations in `test/core/config/feature_config_test.dart`.
 class AppFeatures {
   const AppFeatures({
     this.authentication = true,

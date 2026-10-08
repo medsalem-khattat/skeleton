@@ -53,6 +53,9 @@ final routerProvider = Provider<GoRouter>((ref) {
   }
   ref.listen(onboardingControllerProvider, (_, _) => routerRefresh.refresh());
 
+  // Keep route registration conditional on the same feature configuration
+  // used by navigation and providers; disabled modules must not be reachable
+  // through a stale deep link.
   final routes = <RouteBase>[];
   routes.add(
     GoRoute(
@@ -186,6 +189,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         emailVerified: user?.emailVerified ?? false,
         location: state.matchedLocation,
         authenticatedLocation: features.authenticatedLocation,
+        authenticatedLocations: {
+          if (features.home) AppRoutes.home,
+          if (features.profileEnabled) AppRoutes.profile,
+          if (features.settingsEnabled) AppRoutes.settings,
+        },
         requestedLocation: state.uri.queryParameters['redirect'],
         notificationInboxEnabled: features.notificationInboxEnabled,
       );
