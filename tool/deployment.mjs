@@ -228,11 +228,15 @@ function use(id) {
     `authActionHost=${config.firebase.authActionHost}`,
     "",
   ].join("\n"));
+  // Firebase phone auth returns from reCAPTCHA through the encoded iOS app ID.
+  const iosPlist = fs.readFileSync(path.join(deploymentsDir, id, "firebase", "GoogleService-Info.plist"), "utf8");
+  const iosAppId = plistValue(iosPlist, "GOOGLE_APP_ID") ?? fail("GoogleService-Info.plist has no GOOGLE_APP_ID.");
   writeGenerated("ios/Flutter/Deployment.xcconfig", [
     `// ${header}`,
     `APP_ID=${config.appId}`,
     `APP_DISPLAY_NAME=${config.appName}`,
     `AUTH_ACTION_HOST=${config.firebase.authActionHost}`,
+    `FIREBASE_IOS_URL_SCHEME=app-${iosAppId.replaceAll(":", "-")}`,
     "",
   ].join("\n"));
 

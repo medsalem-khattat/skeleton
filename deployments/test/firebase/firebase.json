@@ -1,0 +1,22 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "medsalem-skeleton-test",
+          "appId": "1:735983129986:android:efcd2770b3aae2517d2b9b",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "medsalem-skeleton-test",
+          "configurations": {
+            "android": "1:735983129986:android:efcd2770b3aae2517d2b9b",
+            "ios": "1:735983129986:ios:5ab00c0bab532e7f7d2b9b"
+          }
+        }
+      }
+    }
+  }
+}
