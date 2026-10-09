@@ -42,6 +42,7 @@ run `node tool/deployment.mjs use <id>` and rebuild.
 | Module | Independent behavior | Dependency |
 |---|---|---|
 | Authentication | Email/password sign-in, registration, verification, password reset | Firebase Auth |
+| Phone verification | SMS-verified phone number at registration and in Account security | Authentication, Firebase Phone Auth (Blaze plan) |
 | Email action links | In-app email verification, recovery, and password reset | Authentication and verified Android/iOS app-link domains |
 | Home | Anonymous or authenticated landing screen | None |
 | Onboarding | First-run introduction | Local preferences |

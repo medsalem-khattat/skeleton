@@ -47,6 +47,7 @@ The repository includes two deployments:
   "seedColor": "#3F51B5",
   "features": {
     "authentication": true,
+    "phoneVerification": true,
     "home": true,
     "profile": true,
     "settings": true,
@@ -70,7 +71,7 @@ The repository includes two deployments:
 | `links.*` | No | Privacy policy, terms, support email, and a custom email-action URL. Empty values are hidden in the app. |
 | `api.baseUrl` | No | Optional REST API used by `core/network/api_client.dart`. |
 | `seedColor` | No | Material 3 color seed, `#RRGGBB`. Default `#3F51B5`. |
-| `features.*` | No | Module switches; missing ones default to `true`. Invalid combinations are rejected. |
+| `features.*` | No | Module switches; missing ones default to `true`. Invalid combinations are rejected. `phoneVerification: false` registers with email only (phone sign-in needs the Firebase Blaze plan). |
 
 The `firebase/` folder next to it holds the four files that
 `flutterfire configure` generates for the customer's project:

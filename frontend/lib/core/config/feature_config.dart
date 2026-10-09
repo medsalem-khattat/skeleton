@@ -12,6 +12,7 @@ import '../router/app_routes.dart';
 class AppFeatures {
   const AppFeatures({
     this.authentication = true,
+    this.phoneVerification = true,
     this.home = true,
     this.profile = true,
     this.settings = true,
@@ -26,6 +27,10 @@ class AppFeatures {
   static const current = AppFeatures(
     authentication: bool.fromEnvironment(
       'FEATURE_AUTHENTICATION',
+      defaultValue: true,
+    ),
+    phoneVerification: bool.fromEnvironment(
+      'FEATURE_PHONE_VERIFICATION',
       defaultValue: true,
     ),
     home: bool.fromEnvironment('FEATURE_HOME', defaultValue: true),
@@ -58,6 +63,10 @@ class AppFeatures {
   );
 
   final bool authentication;
+
+  /// Registration requires an SMS-verified phone number, and users can change
+  /// it in Account security. Firebase phone sign-in needs the Blaze plan.
+  final bool phoneVerification;
   final bool home;
   final bool profile;
   final bool settings;
@@ -67,6 +76,8 @@ class AppFeatures {
   final bool pushNotifications;
   final bool notificationInbox;
   final bool crashReporting;
+
+  bool get phoneVerificationEnabled => authentication && phoneVerification;
 
   bool get profileEnabled => authentication && profile;
 

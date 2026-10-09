@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:skeleton/core/config/feature_config.dart';
+import 'package:skeleton/core/config/feature_providers.dart';
 import 'package:skeleton/features/auth/application/auth_providers.dart';
 import 'package:skeleton/features/auth/presentation/register_screen.dart';
 import 'package:skeleton/l10n/app_localizations.dart';
@@ -71,11 +73,56 @@ void main() {
     expect(repository.lastVerificationId, 'test-verification-id');
     expect(repository.lastSmsCode, '123456');
   });
+
+  testWidgets('registers with email only when phone verification is off', (
+    tester,
+  ) async {
+    final repository = FakeAuthRepository();
+    await tester.pumpWidget(
+      _wrap(repository, features: const AppFeatures(phoneVerification: false)),
+    );
+
+    expect(find.widgetWithText(TextFormField, 'Phone number'), findsNothing);
+    expect(find.text('Send verification code'), findsNothing);
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Full name'),
+      'Test User',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Email'),
+      'user@example.com',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Password'),
+      'secret1',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Confirm password'),
+      'secret1',
+    );
+    await tester.ensureVisible(
+      find.widgetWithText(FilledButton, 'Create account'),
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Create account'));
+    await tester.pumpAndSettle();
+
+    expect(repository.lastEmail, 'user@example.com');
+    expect(repository.lastPhoneNumber, isNull);
+    expect(repository.lastVerificationId, isNull);
+    expect(repository.lastSmsCode, isNull);
+  });
 }
 
-Widget _wrap(FakeAuthRepository repository) {
+Widget _wrap(
+  FakeAuthRepository repository, {
+  AppFeatures features = const AppFeatures(),
+}) {
   return ProviderScope(
-    overrides: [authRepositoryProvider.overrideWithValue(repository)],
+    overrides: [
+      authRepositoryProvider.overrideWithValue(repository),
+      appFeaturesProvider.overrideWithValue(features),
+    ],
     child: const MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,

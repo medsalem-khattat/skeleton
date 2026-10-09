@@ -19,6 +19,7 @@
   "seedColor": "#3F51B5",
   "features": {
     "authentication": true,
+    "phoneVerification": false,
     "home": true,
     "profile": true,
     "settings": true,

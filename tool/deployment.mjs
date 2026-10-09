@@ -31,6 +31,7 @@ const firebaseFiles = {
 /** deployment.json feature key -> compile-time define read by AppFeatures. */
 const featureDefines = {
   authentication: "FEATURE_AUTHENTICATION",
+  phoneVerification: "FEATURE_PHONE_VERIFICATION",
   home: "FEATURE_HOME",
   profile: "FEATURE_PROFILE",
   settings: "FEATURE_SETTINGS",

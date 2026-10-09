@@ -81,7 +81,7 @@ workflows. Those are product features to be added to a clone.
 
 | ID | Requirement |
 |---|---|
-| F-020 | A guest can register with a name, email, password, and an SMS-verified phone number. |
+| F-020 | A guest can register with a name, email, and password, plus an SMS-verified phone number when the deployment enables `phoneVerification`. |
 | F-021 | Phone numbers used for verification are expected in E.164 format. |
 | F-022 | A newly registered account must verify its email before accessing authenticated app destinations. |
 | F-023 | A guest can sign in with email and password, or request a password reset link. |
