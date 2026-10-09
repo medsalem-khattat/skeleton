@@ -55,6 +55,7 @@ app.*.map.json
 /frontend/android/deployment.properties
 /frontend/ios/Runner/GoogleService-Info.plist
 /frontend/ios/Flutter/Deployment.xcconfig
+/backend/functions/.env.*
 
 # Secrets belong to the customer and never enter this repository.
 *.jks

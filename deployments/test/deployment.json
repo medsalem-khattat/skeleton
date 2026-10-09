@@ -4,7 +4,8 @@
   "appId": "com.medsalem.skeletontest",
   "firebase": {
     "projectId": "medsalem-skeleton-test",
-    "authActionHost": "medsalem-skeleton-test.firebaseapp.com"
+    "authActionHost": "medsalem-skeleton-test.firebaseapp.com",
+    "functionsRegion": "europe-west1"
   },
   "links": {
     "privacyPolicyUrl": "",

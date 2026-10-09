@@ -4,7 +4,8 @@
   "appId": "com.yourname.skeleton",
   "firebase": {
     "projectId": "whatsapp-bot-f57a8",
-    "authActionHost": "whatsapp-bot-f57a8.firebaseapp.com"
+    "authActionHost": "whatsapp-bot-f57a8.firebaseapp.com",
+    "functionsRegion": "us-central1"
   },
   "links": {
     "privacyPolicyUrl": "",

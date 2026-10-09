@@ -4,6 +4,7 @@ import { getAuth } from "firebase-admin/auth";
 import { getStorage } from "firebase-admin/storage";
 import { getMessaging } from "firebase-admin/messaging";
 import { logger } from "firebase-functions";
+import { defineString } from "firebase-functions/params";
 import * as functionsV1 from "firebase-functions/v1";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
@@ -17,7 +18,9 @@ import {
 
 initializeApp();
 
-const region = "us-central1";
+// Set per deployment (firebase.functionsRegion); tool/deployment.mjs writes
+// it to .env.<projectId> before deploying.
+const region = defineString("FUNCTIONS_REGION", { default: "us-central1" });
 
 /** Removes the user's Firestore subtree and profile photos. Idempotent. */
 async function deleteUserData(uid: string): Promise<void> {

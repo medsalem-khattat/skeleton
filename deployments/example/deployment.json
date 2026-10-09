@@ -4,7 +4,8 @@
   "appId": "com.example.skeleton",
   "firebase": {
     "projectId": "demo-skeleton",
-    "authActionHost": "demo-skeleton.firebaseapp.com"
+    "authActionHost": "demo-skeleton.firebaseapp.com",
+    "functionsRegion": "us-central1"
   },
   "links": {
     "privacyPolicyUrl": "",

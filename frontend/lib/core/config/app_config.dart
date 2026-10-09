@@ -57,6 +57,12 @@ class AppConfig {
   );
   static const String usersCollection = 'users';
 
+  /// Region of the deployment's Cloud Functions (`firebase.functionsRegion`).
+  static const String functionsRegion = String.fromEnvironment(
+    'FUNCTIONS_REGION',
+    defaultValue: 'us-central1',
+  );
+
   // --- Design: this single seed drives the light/dark Material 3 scheme ---
   static const Color seedColor = Color(
     int.fromEnvironment('SEED_COLOR', defaultValue: 0xFF3F51B5),
