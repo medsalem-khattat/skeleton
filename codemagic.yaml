@@ -199,13 +199,18 @@ workflows:
         script: |
           set -euo pipefail
           required_domain="applinks:$AUTH_ACTION_HOST"
-          profiles_dir="$HOME/Library/MobileDevice/Provisioning Profiles"
+          # Xcode 16+ keeps profiles under UserData; older Xcode used MobileDevice.
+          profiles_dirs=(
+            "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
+            "$HOME/Library/MobileDevice/Provisioning Profiles"
+          )
           matching_profile_found=false
           profile_with_required_entitlements_found=false
           push_entitlement_found=false
           associated_domain_found=false
-          for profile in "$profiles_dir"/*.mobileprovision; do
+          for profile in "${profiles_dirs[0]}"/*.mobileprovision "${profiles_dirs[1]}"/*.mobileprovision; do
             [ -f "$profile" ] || continue
+            echo "Checking profile: $(basename "$profile")"
             decoded_profile="$(mktemp)"
             if ! security cms -D -i "$profile" > "$decoded_profile" 2>/dev/null; then
               rm -f "$decoded_profile"
@@ -243,8 +248,9 @@ workflows:
             fi
           done
           if [ "$matching_profile_found" != "true" ]; then
-            echo "No provisioning profile for $APP_ID was found."
-            echo "Register the App ID in the customer's Apple Developer account."
+            echo "No provisioning profile for $APP_ID was found in:"
+            printf '  %s\n' "${profiles_dirs[@]}"
+            echo "Check the 'Fetch iOS signing files' step and that the App ID is registered."
             exit 1
           fi
           if [ "$push_entitlement_found" != "true" ]; then
