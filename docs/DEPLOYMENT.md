@@ -101,6 +101,7 @@ timings: [DEPLOYMENT_RUNBOOK.md](DEPLOYMENT_RUNBOOK.md).
 | `firebase.authActionHost` | No | Host for email action links (Android App Links, iOS Associated Domains). Defaults to `<projectId>.firebaseapp.com`. |
 | `firebase.functionsRegion` | No | Region of the Cloud Functions, used by the backend deploy and the app's callable calls. Default `us-central1`. |
 | `firebase.firestoreLocation` | No | Location of the Firestore database and Storage bucket that `tool/provision.mjs` creates; permanent once created. Default: `functionsRegion`. |
+| `stores.appleId` | No | The app's numeric Apple ID from App Store Connect (App Information). `tool/provision.mjs` publishes `ios_store_url` from it; the Android store link comes from `appId`. |
 | `links.*` | No | Privacy policy, terms, support email, and a custom email-action URL. Empty values are hidden in the app. |
 | `api.baseUrl` | No | Optional REST API used by `core/network/api_client.dart`. |
 | `seedColor` | No | Material 3 color seed, `#RRGGBB`. Default `#3F51B5`. |
@@ -205,7 +206,7 @@ node tool/provision.mjs <id> [--create] [--billing-account <ID>]
 It creates the project (`--create`), links billing, enables the APIs, sets
 the sign-in methods, creates Firestore and the Storage bucket, registers the
 Android and iOS apps, writes their config files into
-`deployments/<id>/firebase/`, publishes the Remote Config defaults, and
+`deployments/<id>/firebase/`, publishes the Remote Config defaults and store links, and
 creates the `codemagic-deploy` service account with its roles. It can be run
 again at any time, and ends with the list of steps left by hand (the deploy
 key, the APNs key). It uses your `firebase login`. Timings are tracked in
