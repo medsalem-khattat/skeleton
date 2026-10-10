@@ -7,32 +7,9 @@ reads it at every build. About 30 minutes.
 
 ## Step 1: Prepare your computer
 
-1. Install [Git](https://git-scm.com/downloads) and
-   [Node.js 22](https://nodejs.org/).
-2. Get your own read-only key to our repository, as in
-   [guide 1, Step 3](1-codemagic.md#step-3-get-access-to-the-apps-source-code):
-   create a key pair named `skeleton_key` on this computer and send us the
-   `.pub` file. Keep the private file in your `~/.ssh` folder.
-3. Tell SSH to use it for our repository: add these lines to `~/.ssh/config`
-   (create the file if it does not exist; on Windows it is
-   `C:\Users\<you>\.ssh\config`):
-
-   ```
-   Host skeleton-source
-     HostName github.com
-     User git
-     IdentityFile ~/.ssh/skeleton_key
-     IdentitiesOnly yes
-   ```
-
-4. Clone the source code and switch to the latest release tag (we announce
-   it; `git tag` lists them):
-
-   ```
-   git clone skeleton-source:medsalem-khattat/skeleton.git
-   cd skeleton
-   git checkout v1.1.0
-   ```
+1. Follow [guide 0](0-get-access.md) on this computer, if not done yet: the
+   source code is cloned and on the latest release tag.
+2. Install [Node.js 22](https://nodejs.org/).
 
 ## Step 2: Choose your values
 

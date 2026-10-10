@@ -14,7 +14,7 @@ these guides, the [FAQ](FAQ.md), and answers to your questions.
 
 | We provide | How |
 | --- | --- |
-| The app's source code, at each release | Read-only access to our repository (guide 1, Step 3) |
+| The app's source code and these guides, at each release | Read-only access to our repository, per computer ([guide 0](0-get-access.md)) and for Codemagic ([guide 1](1-codemagic.md), Step 3) |
 | Releases | A version tag such as `v1.2.0`, with release notes and upgrade notes |
 | Build and deployment automation | The workflows in Codemagic and the tools in the repository |
 | Documentation and support | These guides, the [FAQ](FAQ.md), and answers by email at [medsalemkhattat@gmail.com](mailto:medsalemkhattat@gmail.com) |
@@ -51,6 +51,9 @@ secret is ever exposed, replace it (see the [FAQ](FAQ.md#a-secret-was-sent-by-mi
 
 ## The guides
 
+These guides are private: you read them in your copy of the source code,
+after [guide 0](0-get-access.md), which we send you by email.
+
 **On day one, start the two account approvals that take time:** the Apple
 Developer Program ([guide 4](4-apple.md), Steps 1–2: 1–3 weeks) and the
 Google Play developer account ([guide 5](5-google-play.md), Step 1: several
@@ -58,6 +61,7 @@ days). Then follow the guides in order:
 
 | # | Guide | Hands-on time |
 | --- | --- | --- |
+| 0 | [Get access](0-get-access.md): read-only access to the source code and these guides | 10 min |
 | 1 | [Codemagic](1-codemagic.md): the build service, where every secret goes | 20 min |
 | 2 | [Your deployment repository](2-deployment-repository.md): your app's settings | 30 min |
 | 3 | [Google Cloud and Firebase](3-google-cloud-firebase.md): your backend | 20 min by command, or 1 hour in the console |

@@ -71,6 +71,16 @@ The log lists each problem in your `deployment.json` or Firebase files. Fix
 them in your deployment repository, run `node tool/deployment.mjs check
 <deployment ID>` on your computer, push, and start the build again.
 
+### "Permission denied (publickey)" or "Repository not found" when cloning
+
+Our confirmation has not arrived yet, or SSH does not use your key. See
+[guide 0](0-get-access.md#if-something-goes-wrong).
+
+### A new colleague needs access
+
+Each computer has its own key: they follow [guide 0](0-get-access.md) and
+send us their public key.
+
 ### Codemagic cannot read the source code, or shows no tags
 
 The source code key is missing or was replaced. Repeat

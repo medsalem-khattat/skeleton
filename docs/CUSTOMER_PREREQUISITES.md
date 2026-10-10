@@ -32,18 +32,23 @@ message, and ask them to replace the secret
    and support policy ([RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md)):
    upgrade deadlines and end of support.
 2. **Kick-off.** Send the customer's technical contact:
-   - the guides of [customer-setup/](customer-setup/README.md) (export the
-     folder to PDF: they cannot read the repository before step 3);
+   - the text of [guide 0](customer-setup/0-get-access.md) (paste it in the
+     email): it gives their computers read-only access, and with it the
+     guides. The guides are never published or sent as files: they are read
+     in the customer's copy of the repository;
    - the release tag to start from (the latest);
    - our support email address, medsalemkhattat@gmail.com.
 
    Point out the two long lead times: Apple organization enrollment (1–3
    weeks) and Google Play organization verification (several days).
-3. **Source code access.** The customer sends us **public** SSH keys (`.pub`
-   files, starting with `ssh-ed25519`): one for their Codemagic application
-   ([guide 1, Step 3](customer-setup/1-codemagic.md#step-3-get-access-to-the-apps-source-code)),
-   and one per computer of their technical team
-   ([guide 2, Step 1](customer-setup/2-deployment-repository.md#step-1-prepare-your-computer)).
+3. **Source code access.** The repository stays a personal GitHub
+   repository, and customers never get access on the GitHub website (on a
+   personal repository that would mean write access). Instead, the customer
+   sends us **public** SSH keys (`.pub` files, starting with `ssh-ed25519`):
+   one per computer of their technical team
+   ([guide 0](customer-setup/0-get-access.md)) and one for their Codemagic
+   application
+   ([guide 1, Step 3](customer-setup/1-codemagic.md#step-3-get-access-to-the-apps-source-code)).
    For each:
    1. Check that it is a public key (one line starting with `ssh-`). If it is
       a private key (`-----BEGIN ... PRIVATE KEY-----`), do not add it: delete
