@@ -215,8 +215,11 @@ select the deployment, run analysis and tests, and build with
 `frontend/pubspec.yaml`, and the build number from Codemagic.
 
 `android-release` uploads the App Bundle to the Play Console **internal
-testing** track, and `ios-release` uploads the IPA to TestFlight. Before the
-first Android upload:
+testing** track, and `ios-release` uploads the IPA to TestFlight for internal
+testers. Neither goes further on its own: for external TestFlight testers,
+submit the build for beta review in App Store Connect; for wider Play testing
+or production, promote the release in the Play Console. Before the first
+Android upload:
 
 1. In the customer's Play Console, create the app and upload the first App
    Bundle by hand: Play accepts API uploads only for an app that already has
