@@ -8,6 +8,7 @@
 #   firebase_deploy  FIREBASE_SERVICE_ACCOUNT (secure)
 #   ios_signing      APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER,
 #                    APP_STORE_CONNECT_PRIVATE_KEY, CERTIFICATE_PRIVATE_KEY (all secure)
+#   google_play      GCLOUD_SERVICE_ACCOUNT_CREDENTIALS (secure)
 # Code signing identity: the Android upload keystore with reference name
 # upload_keystore.
 
@@ -150,6 +151,7 @@ workflows:
       node: 22
       groups:
         - deployment
+        - google_play
       android_signing:
         - upload_keystore
     scripts:
@@ -169,6 +171,9 @@ workflows:
       - frontend/build/app/outputs/bundle/release/*.aab
       - frontend/build/app/outputs/mapping/release/mapping.txt
     publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
       <<: *email
 
   ios-release:

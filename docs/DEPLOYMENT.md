@@ -93,6 +93,7 @@ certificate file in a deployment folder. `.gitignore` blocks the same files.
 | Firebase deploy credential (`FIREBASE_SERVICE_ACCOUNT`) | Customer's Google Cloud project | Customer's Codemagic team, group `firebase_deploy` | `backend-deploy` |
 | Android upload keystore + passwords | Customer's Codemagic team (generated or uploaded there) | Customer's Codemagic team, reference `upload_keystore` | `android-release` |
 | Android app-signing key | Google Play App Signing | Customer's Play Console | Google Play |
+| Google Play upload credential (`GCLOUD_SERVICE_ACCOUNT_CREDENTIALS`) | Customer's Google Cloud project, granted access in the customer's Play Console | Customer's Codemagic team, group `google_play` | `android-release` (upload to the internal testing track) |
 | App Store Connect API key | Customer's App Store Connect | Customer's Codemagic team, group `ios_signing` | `ios-release` (signing and TestFlight upload) |
 | iOS distribution certificate private key (`CERTIFICATE_PRIVATE_KEY`) | Customer's Codemagic team | Customer's Codemagic team, group `ios_signing` | `ios-release` |
 | APNs authentication key (`.p8`) | Customer's Apple account | Uploaded directly to the customer's Firebase project | Firebase Cloud Messaging |
@@ -174,6 +175,7 @@ Create these environment groups in the **customer's** team:
 | `deployment` | `DEPLOYMENT_ID` = `<id>`, `CM_PUBLISH_EMAIL` = address for build emails, optional `API_KEY` |
 | `firebase_deploy` | `FIREBASE_SERVICE_ACCOUNT` (secure): JSON key of the deploy service account, created in the customer's Google Cloud console |
 | `ios_signing` | `APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_KEY_IDENTIFIER`, `APP_STORE_CONNECT_PRIVATE_KEY`, `CERTIFICATE_PRIVATE_KEY` (all secure) |
+| `google_play` | `GCLOUD_SERVICE_ACCOUNT_CREDENTIALS` (secure): JSON key of a service account invited in the customer's Play Console with release permissions for the app |
 
 Under **Code signing identities**, add the Android upload keystore with the
 reference name `upload_keystore`. `CERTIFICATE_PRIVATE_KEY` is an RSA private
@@ -211,6 +213,24 @@ Run `android-release` and `ios-release` in the customer's Codemagic team. Both
 select the deployment, run analysis and tests, and build with
 `--dart-define-from-file=deployment.g.json`. The version comes from
 `frontend/pubspec.yaml`, and the build number from Codemagic.
+
+`android-release` uploads the App Bundle to the Play Console **internal
+testing** track, and `ios-release` uploads the IPA to TestFlight. Before the
+first Android upload:
+
+1. In the customer's Play Console, create the app and upload the first App
+   Bundle by hand: Play accepts API uploads only for an app that already has
+   one. Take the `.aab` from the artifacts of an `android-release` run; that
+   run's publishing step fails until this is done.
+2. In the customer's Google Cloud project, enable the Google Play Android
+   Developer API, then create a service account and a JSON key.
+3. In the Play Console (Users and permissions), invite the service account's
+   email with release permissions for the app. Paste the JSON key into the
+   `google_play` group and delete the local file.
+
+While the app has never been published, Play accepts only draft releases:
+add `submit_as_draft: true` under `google_play` in `codemagic.yaml` until the
+first release is rolled out.
 
 ## 5. Test
 

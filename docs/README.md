@@ -385,7 +385,7 @@ The root [`codemagic.yaml`](../codemagic.yaml) serves every deployment:
 | `frontend-ci` | Every push/PR that changes `frontend/`, `deployments/`, or `tool/` | Checks every deployment file, then analyze and tests with `example` |
 | `backend-ci` | Every push/PR that changes `backend/` | Functions build, unit tests, and rules tests in the emulator |
 | `backend-deploy` | Manually, in the customer's Codemagic team | Checks the deployment and that the deploy credential belongs to its project, runs the tests, then deploys Functions and rules |
-| `android-release` | Manually, in the customer's Codemagic team | Signed App Bundle for the deployment |
+| `android-release` | Manually, in the customer's Codemagic team | Signed App Bundle, uploaded to the Play Console internal testing track |
 | `ios-release` | Manually, in the customer's Codemagic team | Signed IPA, uploaded to TestFlight |
 
 The deployment is chosen by `DEPLOYMENT_ID`. The version comes only from
