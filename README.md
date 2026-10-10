@@ -1,8 +1,10 @@
 # Skeleton
 
-Reusable Flutter + Firebase application foundation. Each customer deployment
-is one file, `deployments/<id>/deployment.json`, with its own customer-owned
-Firebase project; customers own every secret and all user data.
+Reusable Flutter + Firebase application foundation. Each deployment is one
+`deployment.json` plus two public Firebase files, with its own customer-owned
+Firebase project; customers own every secret and all user data. Our own
+deployments are in `deployments/`; each customer's lives in its own private
+repository.
 
 ## Repository layout
 
@@ -10,8 +12,9 @@ Firebase project; customers own every secret and all user data.
   client tests.
 - [`backend/`](backend/) — Firebase Functions, Firestore/Storage rules,
   emulator and deployment configuration.
-- [`deployments/`](deployments/) — one folder per deployment: the deployment
-  file and its public Firebase client files. No secrets.
+- [`deployments/`](deployments/) — our own deployments (`dev`, `test`,
+  `demo`, `example`): the deployment file and its public Firebase client
+  files. No secrets, and no customer deployments.
 - [`tool/deployment.mjs`](tool/deployment.mjs) — checks, selects, and deploys
   a deployment.
 - [`docs/`](docs/) — setup, architecture, functional/technical specifications,

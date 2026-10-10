@@ -214,8 +214,10 @@ Add future security events through trusted functions.
 ## 8. Configuration and secrets
 
 - Set app name, app ID, Firebase project, links, seed color, and modules in
-  `deployments/<id>/deployment.json`; keep the deployment's FlutterFire
-  output in `deployments/<id>/firebase/`. See [DEPLOYMENT.md](DEPLOYMENT.md).
+  the deployment's `deployment.json`, with the two Firebase console files in
+  its `firebase/` folder; `use` generates `firebase_options.dart`. Our
+  deployments are in `deployments/`; each customer's is in its own private
+  repository, fetched at build time. See [DEPLOYMENT.md](DEPLOYMENT.md).
 - Every value compiled into the app is public. Secrets (deploy credential,
   signing keys, App Store Connect key, APNs key) are created in and stay in
   the customer's accounts and Codemagic team; `tool/deployment.mjs` rejects a

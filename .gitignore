@@ -64,3 +64,11 @@ app.*.map.json
 *.p12
 *.mobileprovision
 *service-account*.json
+
+# Customer deployments live in each customer's own private repository and are
+# fetched at build time (docs/DEPLOYMENT.md). Only our own are committed here.
+/deployments/*
+!/deployments/dev/
+!/deployments/test/
+!/deployments/demo/
+!/deployments/example/

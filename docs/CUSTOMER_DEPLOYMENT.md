@@ -116,8 +116,9 @@ temporarily.
 ### Step 3: Create the customer-owned Firebase project
 
 Each deployment has its own backend: a Firebase project that the customer
-owns and pays for. Creating it is part of our deployment work
-([DEPLOYMENT.md](DEPLOYMENT.md) §4, Step 1):
+owns and pays for. The customer creates it, or we create it with their access,
+following [customer-setup/2-google-cloud-firebase.md](customer-setup/2-google-cloud-firebase.md);
+it is validated in the readiness check:
 
 1. **Customer account.** Use the customer's Google account or Google Cloud
    organization. If the customer has none, create one with the customer, in
@@ -141,10 +142,13 @@ All secrets are created in and stay in the customer's accounts; see
 [DEPLOYMENT.md](DEPLOYMENT.md) §3 for the full inventory.
 
 1. The workflows run in a Codemagic team owned by the customer, with our
-   staff invited as members. Limit membership to staff who need it.
+   staff invited as members. Limit membership to staff who need it. The
+   customer's deployment folder comes from its own private repository
+   (`DEPLOYMENT_REPO`), so the team can read no other customer's deployment.
 2. The customer's signing credentials, App Store Connect key, and Firebase
    deploy credential are stored only there, as secure variables or code
-   signing identities. Never download them to personal machines or commit them.
+   signing identities. They go there straight from where they are created,
+   by the customer or by us, and are never sent to anyone or committed.
 3. The `deployment` group's `DEPLOYMENT_ID` selects the deployment;
    `backend-deploy` refuses to run unless the deploy credential belongs to
    that deployment's Firebase project.
@@ -341,7 +345,8 @@ defined in [RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md). In short:
 
 Already in place: a validated deployment file per customer
 (`deployments/<id>/deployment.json`), CI that builds from it with an explicit
-`DEPLOYMENT_ID`, customer-owned secret groups, a guard that rejects a deploy
+`DEPLOYMENT_ID`, customer deployment folders in per-customer repositories,
+customer-owned secret groups, a `readiness-check` workflow, a guard that rejects a deploy
 credential for the wrong Firebase project, a guard that builds customer
 deployments only from the release tag, a secret scan, and client,
 Functions, and rules tests on every change. Still to add:

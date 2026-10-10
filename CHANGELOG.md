@@ -7,8 +7,14 @@ billed by the customer. See [docs/CUSTOMER_DEPLOYMENT.md](docs/CUSTOMER_DEPLOYME
 
 ### Deployment
 
-- Each deployment is one file, `deployments/<id>/deployment.json`, plus its
-  public Firebase client files in `deployments/<id>/firebase/`.
+- Each deployment is one file, `deployment.json`, plus the two Firebase
+  files from the Firebase console in `firebase/`. `use` generates
+  `firebase_options.dart` and FlutterFire's `firebase.json` from them; the
+  FlutterFire CLI is no longer needed.
+- Our deployments are in `deployments/`. A customer's deployment lives in its
+  own private repository, which `node tool/deployment.mjs fetch` clones at
+  build time (`DEPLOYMENT_REPO`, `DEPLOYMENT_REPO_SSH_KEY`); `.gitignore`
+  keeps customer folders out of this repository.
 - New `tool/deployment.mjs` (`list`, `check`, `use`, `deploy-backend`)
   validates a deployment, scans it for secrets, and generates the app's
   Dart defines, Firebase files, Android application ID/label/App Links host,
@@ -61,6 +67,8 @@ billed by the customer. See [docs/CUSTOMER_DEPLOYMENT.md](docs/CUSTOMER_DEPLOYME
   It uploads to TestFlight without submitting for beta review, and finds
   provisioning profiles in the Xcode 16 location.
 - `android-release` uploads to the Play Console internal testing track.
+- New `readiness-check` workflow proves, before a customer's first
+  deployment, that every secret in their Codemagic team works.
 - Release builds take the version from `pubspec.yaml` only.
 - `backend-deploy`, `android-release`, and `ios-release` build a customer
   deployment only from the release tag `v<version>` (`node tool/deployment.mjs

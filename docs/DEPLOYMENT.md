@@ -1,9 +1,9 @@
 # Deployment Guide
 
-Every deployment is described by **one file**,
-`deployments/<id>/deployment.json`. One command checks it and switches the
-app to it, and the same `codemagic.yaml` builds every deployment. Customers
-own every secret and all user data; this repository holds only public values.
+Every deployment is described by **one file**, `deployment.json`, plus two
+public Firebase files. One command checks it and switches the app to it, and
+the same `codemagic.yaml` builds every deployment. Customers own every secret
+and all user data; deployment folders hold only public values.
 
 Before a customer deployment starts, collect and validate its prerequisites:
 [CUSTOMER_PREREQUISITES.md](CUSTOMER_PREREQUISITES.md). For contracts,
@@ -16,12 +16,16 @@ a new version and end of support, see
 
 | Piece | Where it lives | Owner |
 | --- | --- | --- |
-| Deployment file (`deployment.json`) | `deployments/<id>/` in this repository | Us (public values only) |
-| Public Firebase client files | `deployments/<id>/firebase/` in this repository | Us (generated from the customer's project) |
+| Deployment folder (`deployment.json` and two public Firebase files) | Ours: `deployments/<id>/` in this repository. A customer's: its own private repository `deployment-<customer-id>`, fetched into `deployments/<id>/` at build time | Us (public values only) |
 | Firebase project: Auth users, Firestore data, Storage files, billing | Customer's Google account | Customer |
 | Apple Developer account, App Store listing, signing certificates | Customer's Apple account | Customer |
 | Google Play listing, upload keystore | Customer's Play Console and Codemagic team | Customer |
 | Build secrets and the deploy credential | Customer's Codemagic team | Customer |
+
+A customer's deployment folder is never committed here: this repository is
+cloned by every customer's Codemagic team, and no customer may see another
+customer's deployment. `.gitignore` ignores every folder in `deployments/`
+except ours.
 
 ### Our three environments
 
@@ -100,37 +104,40 @@ Current state: `dev` still uses the shared `whatsapp-bot-f57a8` project, and
 | `seedColor` | No | Material 3 color seed, `#RRGGBB`. Default `#3F51B5`. |
 | `features.*` | No | Module switches; missing ones default to `true`. Invalid combinations are rejected. `phoneVerification: false` registers with email only (phone sign-in needs the Firebase Blaze plan). |
 
-The `firebase/` folder next to it holds the four files that
-`flutterfire configure` generates for the customer's project:
-`firebase_options.dart`, `google-services.json`, `GoogleService-Info.plist`,
-and `firebase.json`. They identify the app to Firebase and ship inside the
-app, so they are public; they are not secrets.
+The `firebase/` folder next to it holds the two files that the Firebase
+console offers when an app is registered: `google-services.json` (Android)
+and `GoogleService-Info.plist` (iOS). `use` generates
+`frontend/lib/firebase_options.dart` and FlutterFire's `frontend/firebase.json`
+from them, so the FlutterFire CLI is not needed. They identify the app to
+Firebase and ship inside the app, so they are public; they are not secrets.
 
 ## 3. Secrets and sensitive data
 
-**Rule: every secret is created in, and stays in, the customer's own
-accounts.** We use secrets through access the customer grants; we never keep a
-copy. The repository holds no secret, and `tool/deployment.mjs` stops if it
-finds a private key, a service-account key, or a keystore, profile, or
-certificate file in a deployment folder. `.gitignore` blocks the same files.
+**Rule: every secret is created in the customer's own accounts and goes
+straight into the customer's Codemagic team** (the APNs key: straight into
+the customer's Firebase project). It is never sent by email, chat, ticket, or
+shared folder, and we never keep a copy. Codemagic hides a secret once it is
+saved. Deployment folders hold no secret, and `tool/deployment.mjs` stops if
+it finds a private key, a service-account key, or a keystore, profile, or
+certificate file in one. `.gitignore` blocks the same files.
 
 | Secret or sensitive data | Created in | Stored in | Used by |
 | --- | --- | --- | --- |
 | End-user data (accounts, profiles, photos, notifications, tokens) | The app | Customer's Firebase project only | The app and the Cloud Functions |
-| Firebase deploy credential (`FIREBASE_SERVICE_ACCOUNT`) | Customer's Google Cloud project | Customer's Codemagic team, group `firebase_deploy` | `backend-deploy` |
-| Android upload keystore + passwords | Customer's Codemagic team (generated or uploaded there) | Customer's Codemagic team, reference `upload_keystore` | `android-release` |
+| Firebase deploy credential (`FIREBASE_SERVICE_ACCOUNT`) | Customer's Google Cloud project | Customer's Codemagic team, group `firebase_deploy` | `backend-deploy`, `readiness-check` |
+| Android upload keystore + passwords | A terminal (`keytool`), then deleted or kept in the customer's password manager | Customer's Codemagic team, reference `upload_keystore` | `android-release`, `readiness-check` |
 | Android app-signing key | Google Play App Signing | Customer's Play Console | Google Play |
-| Google Play upload credential (`GCLOUD_SERVICE_ACCOUNT_CREDENTIALS`) | Customer's Google Cloud project, granted access in the customer's Play Console | Customer's Codemagic team, group `google_play` | `android-release` (upload to the internal testing track) |
-| App Store Connect API key | Customer's App Store Connect | Customer's Codemagic team, group `ios_signing` | `ios-release` (signing and TestFlight upload) |
-| iOS distribution certificate private key (`CERTIFICATE_PRIVATE_KEY`) | Customer's Codemagic team | Customer's Codemagic team, group `ios_signing` | `ios-release` |
+| Google Play upload credential (`GCLOUD_SERVICE_ACCOUNT_CREDENTIALS`) | Customer's Google Cloud project, granted access in the customer's Play Console | Customer's Codemagic team, group `google_play` | `android-release`, `readiness-check` |
+| App Store Connect API key | Customer's App Store Connect | Customer's Codemagic team, group `ios_signing` | `ios-release`, `readiness-check` |
+| iOS distribution certificate private key (`CERTIFICATE_PRIVATE_KEY`) | A terminal (`ssh-keygen`), then deleted | Customer's Codemagic team, group `ios_signing` | `ios-release`, `readiness-check` |
 | APNs authentication key (`.p8`) | Customer's Apple account | Uploaded directly to the customer's Firebase project | Firebase Cloud Messaging |
+| Deployment repository deploy key (`DEPLOYMENT_REPO_SSH_KEY`) | Us, read-only on `deployment-<customer-id>` | Customer's Codemagic team, group `deployment` | `tool/deployment.mjs fetch` |
 
 Practices:
 
-- **Never download a secret to a personal machine.** Create keys in the
-  customer's console and paste them straight into the customer's Codemagic
-  team as secure variables. If a file must be downloaded (a JSON key, a
-  `.p8`), delete it right after uploading it.
+- **A downloaded secret lives only minutes.** Paste or upload it into
+  Codemagic, then delete the file. The only copies kept outside Codemagic are
+  the customer's own, in the customer's password manager.
 - **Least privilege.** The deploy service account gets only Firebase Admin,
   Cloud Functions Admin, Service Account User, and Artifact Registry
   Administrator. Our people get the narrowest roles that let them work; the
@@ -143,7 +150,8 @@ Practices:
   from the app binary. `API_KEY` only identifies the app to an API; it must
   not grant privileged access.
 - **Offboarding.** When support ends, the customer removes our IAM roles and
-  Codemagic membership and rotates the deploy key. Nothing needs to be
+  our memberships, and rotates the deploy key. We delete the read-only
+  deploy keys of the customer's Codemagic team. Nothing else needs to be
   deleted on our side, because we hold no copies.
 
 ## 4. Deploy a new customer
@@ -151,121 +159,91 @@ Practices:
 Build a new customer from the latest release tag
 ([RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md)).
 
-**Do not start until the readiness check has passed.** Every prerequisite,
-account, and access below is collected and validated first, as described in
+**Do not start until the readiness check has passed.** The customer prepares
+their accounts with the step-by-step guides in
+[customer-setup/](customer-setup/README.md), choosing per platform to give us
+access (Option A) or to do the setup themselves (Option B). We validate
+everything as described in
 [CUSTOMER_PREREQUISITES.md](CUSTOMER_PREREQUISITES.md).
 
-### Step 1: Customer accounts (customer owns them, validated in the readiness check)
+### Step 1: Accounts and access (readiness check)
 
-1. **Google account and billing.** The customer provides a Google account or
-   Google Cloud organization and a Cloud Billing account with their own
-   payment method (Firebase Blaze plan). Suggest a budget alert.
-2. **Firebase project.** Create it under the customer's account (project ID
-   such as `<customer-id>-prod`), link the customer's billing account, and
-   have the customer grant us Firebase Admin.
-3. **Apple Developer** and **Google Play Console** accounts in the customer's
-   name, with us invited as members.
-4. **Codemagic team** owned by the customer, with us invited as members, and
-   this repository added as an application.
+At the end of the readiness check:
 
-### Step 2: Choose the identity and create the deployment file
+- the customer's Codemagic team exists, we are Admin, and every secret is in
+  it (groups below);
+- the Firebase project exists on Blaze, with the two apps registered;
+- the Apple App ID (Push Notifications, Associated Domains) and App Store
+  Connect app exist, and the APNs key is in Firebase;
+- the Play Console app exists, with the publishing service account invited;
+- the `readiness-check` workflow passes.
 
-1. Choose the app ID: `<our-reverse-domain>.<customer-id>`. It is the same for
-   Android and iOS and permanent after the first release.
-2. In the customer's Firebase project, register the Android and iOS apps with
-   that ID and enable Authentication (Email/Password, and Phone when
-   `phoneVerification` is on), Firestore, Storage, and Remote Config.
-3. Generate the public Firebase files, then move them into the deployment
-   folder (the app locations are git-ignored and rewritten by `use`):
+| Group | Variables |
+| --- | --- |
+| `deployment` | `DEPLOYMENT_ID` = `<id>`, `DEPLOYMENT_REPO` = SSH URL of `deployment-<customer-id>`, `DEPLOYMENT_REPO_SSH_KEY` (secure), `CM_PUBLISH_EMAIL` = address for build emails, optional `API_KEY` |
+| `firebase_deploy` | `FIREBASE_SERVICE_ACCOUNT` (secure) |
+| `ios_signing` | `APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_KEY_IDENTIFIER`, `APP_STORE_CONNECT_PRIVATE_KEY`, `CERTIFICATE_PRIVATE_KEY` (all secure) |
+| `google_play` | `GCLOUD_SERVICE_ACCOUNT_CREDENTIALS` (secure) |
 
-   ```sh
-   cd frontend
-   flutterfire configure --project=<customer-project-id> \
-     --platforms=android,ios \
-     --android-package-name=<app-id> --ios-bundle-id=<app-id> --yes
-   mkdir -p ../deployments/<id>/firebase
-   cp lib/firebase_options.dart android/app/google-services.json \
-     ios/Runner/GoogleService-Info.plist firebase.json \
-     ../deployments/<id>/firebase/
-   cd .. && git status   # only deployments/<id>/ should be new
-   ```
+Plus the Android keystore under **Code signing identities** with the
+reference name `upload_keystore`.
 
-4. Copy `deployments/example/deployment.json` to `deployments/<id>/` and fill
-   it in.
-5. Check it:
+### Step 2: The customer's deployment repository
+
+Done during the readiness check
+([CUSTOMER_PREREQUISITES.md](CUSTOMER_PREREQUISITES.md) §4):
+
+1. Create the private repository `deployment-<customer-id>` with
+   `deployment.json` (start from `deployments/example/deployment.json`
+   without `internal`) and the two Firebase files in `firebase/`.
+2. Check it locally, cloned into `deployments/<id>/` (git-ignored here):
 
    ```sh
    node tool/deployment.mjs check <id>
    ```
 
-6. Commit `deployments/<id>/`.
+A configuration change for the customer is a commit to that repository,
+followed by a rebuild on the customer's current tag
+([RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md) §6).
 
-### Step 3: Customer's Codemagic team
-
-Create these environment groups in the **customer's** team:
-
-| Group | Variables |
-| --- | --- |
-| `deployment` | `DEPLOYMENT_ID` = `<id>`, `CM_PUBLISH_EMAIL` = address for build emails, optional `API_KEY` |
-| `firebase_deploy` | `FIREBASE_SERVICE_ACCOUNT` (secure): JSON key of the deploy service account, created in the customer's Google Cloud console |
-| `ios_signing` | `APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_KEY_IDENTIFIER`, `APP_STORE_CONNECT_PRIVATE_KEY`, `CERTIFICATE_PRIVATE_KEY` (all secure) |
-| `google_play` | `GCLOUD_SERVICE_ACCOUNT_CREDENTIALS` (secure): JSON key of a service account invited in the customer's Play Console with release permissions for the app |
-
-Under **Code signing identities**, add the Android upload keystore with the
-reference name `upload_keystore`. `CERTIFICATE_PRIVATE_KEY` is an RSA private
-key generated for this customer (`ssh-keygen -t rsa -b 2048 -m PEM -f key -q -N ""`).
-Paste it and delete the local file.
-
-### Step 4: Apple capabilities and APNs
-
-1. In the customer's Apple Developer account, register the App ID `<app-id>`
-   and enable **Push Notifications** and **Associated Domains**.
-2. Create an APNs key and upload it in the customer's Firebase console
-   (Project settings → Cloud Messaging). Delete the local `.p8`.
-3. Signing files are created automatically on the first `ios-release` run.
-
-### Step 5: Deploy the backend
+### Step 3: Deploy the backend
 
 Run the `backend-deploy` workflow in the customer's Codemagic team, on the
-release tag. It checks the deployment and refuses to run unless the service
-account belongs to `firebase.projectId` and the build is on the release tag. It then runs the backend tests and deploys the Cloud
-Functions, Firestore rules, and Storage rules.
+release tag. It fetches the deployment, checks it, and refuses to run unless
+the service account belongs to `firebase.projectId` and the build is on the
+release tag. It then runs the backend tests and deploys the Cloud Functions,
+Firestore rules, and Storage rules.
 
-Locally, signed in with an account the customer granted access to:
+Locally, signed in with an account the customer granted access to, and with
+the deployment folder in place:
 
 ```sh
 node tool/deployment.mjs deploy-backend <id>
 ```
 
-Then, in the customer's Firebase console, set the Remote Config values
-(`minimum_app_version`, `android_store_url`, `ios_store_url`), register the
-App Check providers, and authorize `firebase.authActionHost` for Auth.
+Then, in the customer's Firebase console (Option A, or the customer with
+[guide 2, Part 3](customer-setup/2-google-cloud-firebase.md#part-3-after-the-first-store-release-option-b-only)
+in Option B), set the Remote Config values (`minimum_app_version`,
+`android_store_url`, `ios_store_url`), register the App Check providers, and
+authorize `firebase.authActionHost` for Auth when it is a custom domain.
 
-### Step 6: Release the apps
+### Step 4: Release the apps
 
 Run `android-release` and `ios-release` in the customer's Codemagic team, on
-the release tag. Both
-select the deployment, run analysis and tests, and build with
-`--dart-define-from-file=deployment.g.json`. The version comes from
-`frontend/pubspec.yaml`, and the build number from Codemagic.
+the release tag. Both fetch and select the deployment, run analysis and
+tests, and build with `--dart-define-from-file=deployment.g.json`. The
+version comes from `frontend/pubspec.yaml`, and the build number from
+Codemagic. iOS signing files are created on the first `ios-release` run.
 
 `android-release` uploads the App Bundle to the Play Console **internal
 testing** track, and `ios-release` uploads the IPA to TestFlight for internal
 testers. Neither goes further on its own: for external TestFlight testers,
 submit the build for beta review in App Store Connect; for wider Play testing
-or production, promote the release in the Play Console. Before the first
-Android upload:
+or production, promote the release in the Play Console.
 
-1. In the customer's Play Console, create the app and upload the first App
-   Bundle by hand: Play accepts API uploads only for an app that already has
-   one. Take the `.aab` from the artifacts of an `android-release` run; that
-   run's publishing step fails until this is done.
-2. In the customer's Google Cloud project, enable the Google Play Android
-   Developer API, then create a service account and a JSON key.
-3. In the Play Console (Users and permissions), invite the service account's
-   email with release permissions for the app. Paste the JSON key into the
-   `google_play` group and delete the local file.
-
+Play accepts API uploads only for an app that already has one bundle: the
+first `android-release` run's publishing step fails, and its `.aab` is
+uploaded by hand ([guide 4, Part 3](customer-setup/4-google-play.md#part-3-first-upload-everyone-about-10-minutes)).
 While the app has never been published, Play accepts only draft releases:
 add `submit_as_draft: true` under `google_play` in `codemagic.yaml` until the
 first release is rolled out.
@@ -274,7 +252,8 @@ first release is rolled out.
 
 | What | How |
 | --- | --- |
-| Deployment files | `node tool/deployment.mjs check <id>`, or `list` to check all. CI checks every deployment on each push. |
+| Deployment files | `node tool/deployment.mjs check <id>`, or `list` to check all. CI checks every deployment in this repository on each push. |
+| A customer's accounts and secrets | The `readiness-check` workflow in the customer's Codemagic team |
 | App logic | `node tool/deployment.mjs use example`, then `cd frontend && flutter analyze && flutter test` |
 | Backend logic and rules | `cd backend/functions && npm ci && npm test && npm run test:rules` |
 | Full app without a real backend | Start the emulators (`cd backend/functions && npm exec firebase -- emulators:start --config ../firebase.json --project demo-skeleton --only auth,firestore,functions,storage`), then `node tool/deployment.mjs use example` and `cd frontend && flutter run --dart-define-from-file=deployment.g.json --dart-define=FIREBASE_EMULATOR_HOST=10.0.2.2` (`localhost` for iOS simulators) |
@@ -287,9 +266,10 @@ Run from the repository root:
 
 | Command | Does |
 | --- | --- |
-| `node tool/deployment.mjs list` | Lists deployments and whether each one is valid |
+| `node tool/deployment.mjs list` | Lists the deployments in `deployments/` and whether each one is valid |
 | `node tool/deployment.mjs check <id>` | Validates the file, the Firebase files, and the secret scan |
-| `node tool/deployment.mjs use <id>` | Checks, then writes the app's generated files (`frontend/deployment.g.json`, Firebase files, Android `deployment.properties`, iOS `Deployment.xcconfig`) |
+| `node tool/deployment.mjs fetch <id>` | With `DEPLOYMENT_REPO` (and `DEPLOYMENT_REPO_SSH_KEY`), clones the customer's deployment repository into `deployments/<id>/` and checks it. Without it, confirms the deployment is one of ours |
+| `node tool/deployment.mjs use <id>` | Checks, then writes the app's generated files (`frontend/deployment.g.json`, Firebase files and options, Android `deployment.properties`, iOS `Deployment.xcconfig`) |
 | `node tool/deployment.mjs deploy-backend <id>` | Checks, runs `release-check`, then deploys Functions and rules to `firebase.projectId` |
 | `node tool/deployment.mjs release-check <id>` | For a customer deployment, stops unless the commit has the tag `v<version>` of `frontend/pubspec.yaml` and no uncommitted changes. Internal deployments pass |
 

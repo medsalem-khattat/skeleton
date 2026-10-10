@@ -2,7 +2,7 @@
 
 This guide is for the deployment team. A customer deployment
 ([DEPLOYMENT.md](DEPLOYMENT.md) §4) **does not start** until everything in
-this guide has been collected from the customer and validated (§4). This
+this guide has been collected from the customer and validated (§5). This
 avoids starting work that then stops for weeks on a missing account or an
 access request.
 
@@ -11,23 +11,58 @@ Apple, Google Play, and Codemagic. The customer pays for them and stays their
 owner. We only get access, and the customer can remove that access at any
 time.
 
-## 1. Start early: lead times
+The customer follows the step-by-step guides in
+[customer-setup/](customer-setup/README.md). Send them that link, with the
+values listed there, when the contract is signed.
 
-Send the customer the list in §3 when the contract is signed. Some items take
-time that we cannot shorten:
+## 1. Two options per platform
+
+For Google Cloud and Firebase, Apple, and Google Play, the customer chooses,
+per platform:
+
+| | Option A: give us access | Option B: the customer does the setup |
+| --- | --- | --- |
+| Customer | Creates and pays for the account, invites our team | Follows the guide's Part 2B |
+| Us | Do the whole setup in the customer's account | Check screenshots and the readiness check workflow |
+| How we validate | Signed in with our own account | Screenshots and the `readiness-check` workflow (§5) |
+
+**Codemagic is required in both options**: the customer creates the team and
+invites us as Admin, because we run the builds there.
+
+**Secrets in both options.** Whoever creates a secret pastes or uploads it
+straight into the customer's Codemagic team; the Apple push key goes straight
+into the customer's Firebase project. Secrets are never sent by email, chat,
+ticket, or shared folder, to us or to anyone. Codemagic hides a secret once
+it is saved, so even as Admin we cannot read it. If a customer sends us a
+secret by mistake, delete it, tell the customer, and have it replaced.
+
+| Secret | Created in | Goes to | Guide |
+| --- | --- | --- | --- |
+| Firebase deploy key | Customer's Google Cloud project | Codemagic `firebase_deploy` / `FIREBASE_SERVICE_ACCOUNT` | [2](customer-setup/2-google-cloud-firebase.md), Part 2B Step 7 |
+| APNs push key (`.p8`) | Customer's Apple account | Customer's Firebase project (Cloud Messaging) | [3](customer-setup/3-apple.md), Part 2B Step 3 |
+| App Store Connect API key | Customer's App Store Connect | Codemagic `ios_signing` (three variables) | [3](customer-setup/3-apple.md), Part 2B Step 4 |
+| Certificate private key | A terminal, by whoever sets up Apple | Codemagic `ios_signing` / `CERTIFICATE_PRIVATE_KEY` | [3](customer-setup/3-apple.md), Part 2B Step 5 |
+| Google Play publishing key | Customer's Google Cloud project | Codemagic `google_play` / `GCLOUD_SERVICE_ACCOUNT_CREDENTIALS` | [4](customer-setup/4-google-play.md), Part 2B Step 3 |
+| Android upload keystore | A terminal, by whoever sets up Play | Codemagic code signing identity `upload_keystore` | [4](customer-setup/4-google-play.md), Part 2B Step 5 |
+| Deployment repository key | Us | Codemagic `deployment` / `DEPLOYMENT_REPO_SSH_KEY` | §4 |
+
+## 2. Start early: lead times
 
 | Item | Typical delay | Why |
 | --- | --- | --- |
 | Apple Developer Program, organization membership | 1–3 weeks | Apple checks the organization; it needs a D-U-N-S number, which can itself take days to obtain |
 | Google Play Console, organization account | Several days | Google verifies the organization's identity |
 | Google Play Console, **personal** account | Do not use | New personal accounts must run a closed test with at least 12 testers for 14 days before they can publish to production. Ask for an organization account |
+| Google Cloud organization blocking service account keys | Depends on the customer's IT team | Organizations created since 2024 block key creation by default; their administrator must allow it for the project ([guide 2](customer-setup/2-google-cloud-firebase.md), Step 7) |
 | Firebase, Google Cloud billing, Codemagic | Same day | — |
 | Custom email-link domain (optional) | Depends on the customer's IT team | They must host files on the domain and change DNS |
 
-## 2. Permanent choices
+## 3. Before sending the guides
 
-Confirm these in writing before the deployment starts. They cannot be
-changed later without a new app or a data migration:
+### Permanent choices
+
+Confirm these in writing. They cannot be changed later without a new app or
+a data migration:
 
 | Choice | Why it is permanent |
 | --- | --- |
@@ -35,112 +70,107 @@ changed later without a new app or a data migration:
 | Firestore location and Cloud Functions region (`firebase.functionsRegion`) | The Firestore location cannot be changed after the database is created; choose it to match the customer's data-residency needs |
 | Firebase project ID | Fixed when the project is created |
 
-## 3. What to collect
+### Values to send the customer
 
-Each line says who provides it and how we validate it in §4.
+Customer ID, App ID, app name, Firebase project ID, data location, our team's
+email address, and whether phone verification is on (see
+[customer-setup/README.md](customer-setup/README.md)).
 
-### A. Contract and people
+### Contract, people, and app content
 
 | Item | Provided by | How we validate |
 | --- | --- | --- |
 | Signed contract, including support level and acceptance of the release and support policy ([RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md)) | Customer + us | Copy filed; reference in the deployment register |
-| Business owner, technical contact, acceptance approver, billing contact (names and emails) | Customer | Recorded in the register |
-
-### B. App identity and content
-
-| Item | Provided by | How we validate |
-| --- | --- | --- |
-| App name (1–30 characters) | Customer | `node tool/deployment.mjs check` passes with it |
-| App icon: 1024×1024 PNG, no transparency | Customer | Opened and checked for size and transparency |
-| Brand color (`#RRGGBB`) | Customer | `check` passes |
+| Business owner, technical contact, acceptance approver, billing contact | Customer | Recorded in the register |
+| App name (1–30 characters), brand color, modules | Customer, with us | `node tool/deployment.mjs check` passes |
+| App icon: 1024×1024 PNG, no transparency | Customer | Opened and checked |
 | Privacy policy URL, public HTTPS. **Required by both stores** | Customer | Opens in a private browser window |
-| Terms of service URL (optional) and support email | Customer | URL opens; test email to the support address is received |
-| Modules to enable (see [docs/README.md](README.md), "Optional feature modules") | Customer, with us | `check` passes with the `features` section |
-| Data region (Firestore location and Functions region) | Customer, with us | Written confirmation (§2) |
-| Store listing: short and full description, category, contact details, screenshots (we can produce them) | Customer | Complete in the shared folder |
-| Store questionnaires: Google Play content rating and Data safety, Apple App Privacy. We prepare the answers for the enabled modules, the customer confirms them | Us + customer | Customer's written confirmation |
+| Terms of service URL (optional), support email | Customer | URL opens; a test email arrives |
+| Store texts and images; answers to the Play content rating and Data safety and the Apple App Privacy questions (we prepare them for the enabled modules) | Customer confirms | Written confirmation |
 | Custom email-link domain (optional) | Customer | They can host `/.well-known/` files and change DNS on it |
 
-### C. Google Cloud and Firebase
+## 4. Our part: the customer's deployment repository
 
-| Item | Provided by | How we validate |
-| --- | --- | --- |
-| Google Cloud organization, or a Google account in the customer's name | Customer | We see the organization or account owner in the IAM page |
-| Cloud Billing account with the customer's payment method | Customer | Billing page shows the account as active |
-| Firebase project under the customer's account (`<customer-id>-prod`), linked to that billing account, on the **Blaze** plan | Customer, or us during a shared call | Firebase console shows the project on Blaze; owner is the customer |
-| A budget alert on the billing account | Customer | Visible in Billing → Budgets |
-| Access for our team's Google group: **Firebase Admin**. For the setup only, also **Project IAM Admin**, **Service Account Admin**, and **Service Account Key Admin**, removed after setup | Customer | We open the project with our account and the roles show in IAM |
+A customer's deployment folder never lives in this repository. Each customer
+has its own **private** repository in our GitHub organization, named
+`deployment-<customer-id>`, containing only:
 
-### D. Apple
+```
+deployment.json
+firebase/google-services.json
+firebase/GoogleService-Info.plist
+```
 
-| Item | Provided by | How we validate |
-| --- | --- | --- |
-| Apple Developer Program membership as an organization, fee paid | Customer | Membership page shows the organization and an expiry date |
-| Latest Apple Developer Program License Agreement accepted by the Account Holder | Customer | App Store Connect → Business shows no pending agreement (uploads fail otherwise) |
-| Our team invited in App Store Connect → Users and Access as **Admin** (or App Manager with access to Certificates, Identifiers & Profiles) | Customer | We sign in and can open Certificates, Identifiers & Profiles |
-| A team App Store Connect API key with **App Manager** or **Admin** access, pasted straight into the customer's Codemagic team (§F) | Customer, or us with that access | Codemagic accepts the key (§4) |
+The release workflows fetch it at build time (`node tool/deployment.mjs
+fetch`). This way a customer's Codemagic team can read only its own
+deployment, never another customer's.
 
-### E. Google Play
+1. Create the private repository and add the three files. The Firebase files
+   come from the customer (Option B) or from the Firebase console (Option A).
+   Check locally: clone it to `deployments/<customer-id>/` (git-ignored here)
+   and run `node tool/deployment.mjs check <customer-id>`.
+2. Create a key pair for the customer's Codemagic team:
+   `ssh-keygen -t ed25519 -f deploy_key -q -N "" -C codemagic-<customer-id>`.
+3. Add `deploy_key.pub` to the repository as a **read-only** deploy key
+   (GitHub → repository → Settings → Deploy keys).
+4. Paste `deploy_key` into the customer's Codemagic team, group `deployment`,
+   variable `DEPLOYMENT_REPO_SSH_KEY`, Secret on. Add `DEPLOYMENT_REPO` (the
+   repository's SSH URL), `DEPLOYMENT_ID`, and `CM_PUBLISH_EMAIL` to the same
+   group.
+5. Delete both key files.
+6. Add the application to the customer's Codemagic team from this
+   repository, with its own read-only deploy key on this repository, created
+   the same way.
 
-| Item | Provided by | How we validate |
-| --- | --- | --- |
-| Google Play Console **organization** developer account, fee paid, identity verification finished | Customer | Play Console shows no verification banner |
-| Our team invited in Users and permissions as **Admin**, or with release permissions for the app | Customer | We sign in and see the account |
-| Google Play Android Developer API enabled in the customer's Google Cloud project, a service account with a JSON key, and that service account invited in Play Console with release permissions | Customer, or us with the roles in §C | The service account is listed in Users and permissions |
+## 5. Readiness check (go / no-go)
 
-### F. Codemagic
+The release operator runs this check before
+[DEPLOYMENT.md](DEPLOYMENT.md) §4 starts.
 
-| Item | Provided by | How we validate |
-| --- | --- | --- |
-| A Codemagic team owned by the customer, with billing set up (iOS builds need macOS build minutes) | Customer | Team billing page shows an active plan or payment method |
-| Our team invited as **Admin** (needed to create environment groups and signing identities) | Customer | We open the team settings |
-| Access to this repository from that team, with a **read-only deploy key for that customer only** | Us | The team's application lists the repository's branches and tags |
+1. **Collected:** every item of §3 is received, and the customer has sent the
+   **Send us** items of each guide.
+2. **Platform checks:** for each platform, do every line of the guide's
+   **Check** list:
+   - Option A: yourself, signed in with our own account. "The customer said it
+     is done" does not count.
+   - Option B: from the customer's screenshots.
+3. **Secrets work:** in the customer's Codemagic team, run the
+   **Readiness check** workflow (`readiness-check`) on the latest release
+   tag. It fetches the deployment, validates it and its Firebase files, and
+   proves each secret works without showing it:
 
-## 4. Readiness check (go / no-go)
+   | Check | Proves |
+   | --- | --- |
+   | Firebase deploy key | It belongs to the deployment's project and can access it |
+   | App Store Connect key | It works, and the app with the App ID exists |
+   | Certificate private key | It is an RSA private key |
+   | Google Play key | It is a service account key; after the first manual upload, that it can access the app (before, it only shows **WAIT**) |
+   | Android keystore | `upload_keystore` exists and opens with its password and alias |
+   | `CM_PUBLISH_EMAIL` | It is set |
 
-The release operator runs this check, with the customer's technical contact
-if possible, before [DEPLOYMENT.md](DEPLOYMENT.md) §4 starts.
-
-1. Go through every line of §3 and do its validation yourself, signed in with
-   our own account. "The customer said it is done" does not count.
-2. In the customer's Codemagic team, confirm we can create a test environment
-   group, then delete it.
-3. Record the result in the deployment register: date, operator, and every
-   item as ✅ or ❌.
-4. Decide:
-   - **Go**: every item in A–F is ✅. The product owner approves, and the
-     deployment starts.
-   - **No-go**: send the customer the list of ❌ items, each with what is
-     missing and who must do it. Run the check again when they report it is
-     done.
+   Any **FAIL** line names the guide step to fix.
+4. Record the result in the deployment register: date, operator, option per
+   platform, and every item as ✅ or ❌.
+5. Decide:
+   - **Go**: every item is ✅ and the workflow passes. The product owner
+     approves, and the deployment starts.
+   - **No-go**: send the customer the list of ❌ items, each with the guide
+     step that fixes it and who must do it. Run the check again when they
+     report it is done.
 
 There are no partial starts. A deployment that starts without Apple access,
 for example, stops later at the iOS release and leaves a half-configured
 customer.
 
-## 5. After the deployment
+## 6. After the deployment
 
-Once the deployment is released, remove the setup-only roles (§C), and
-record the access we keep in the register: Firebase Admin, Apple and Play
-Console access, and Codemagic Admin. When support ends, the customer removes
-all of it ([DEPLOYMENT.md](DEPLOYMENT.md) §3, "Offboarding").
+Once the deployment is released:
 
-## 6. Checklist to send to the customer
-
-Send this list with the contract. It uses no internal terms.
-
-- [ ] Signed contract and four contacts: business owner, technical contact,
-      acceptance approver, billing contact
-- [ ] App name, 1024×1024 app icon, brand color
-- [ ] Public privacy policy page (required by Apple and Google), support
-      email, terms of service (optional)
-- [ ] Modules wanted and the region where user data must be stored
-- [ ] Store texts: short and full description, category
-- [ ] Google Cloud: a billing account with your payment method; we will
-      create the Firebase project with you
-- [ ] Apple Developer Program membership for your organization (start now:
-      it can take 1–3 weeks), latest agreement accepted, our team invited
-- [ ] Google Play Console account for your organization, identity verified,
-      our team invited
-- [ ] Codemagic team for your organization with billing, our team invited as
-      Admin
+- With Google Cloud Option A, ask the customer to remove the setup-only roles
+  (Project IAM Admin, Service Account Admin, Service Account Key Admin).
+- With Option B, send the customer the reminder for
+  [guide 2, Part 3](customer-setup/2-google-cloud-firebase.md#part-3-after-the-first-store-release-option-b-only)
+  (fingerprints, App Check, store links).
+- Record in the register the access we keep. When support ends, the customer
+  removes all of it ([DEPLOYMENT.md](DEPLOYMENT.md) §3, "Offboarding"), and
+  we delete the read-only deploy keys.

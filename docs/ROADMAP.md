@@ -8,7 +8,7 @@ As of 2026-10-10.
 its own Firebase project, owned by the customer and billed to the customer's
 own Firebase/Cloud Billing account. As part of each deployment we create that
 project under the customer's account and choose the app identifier. Each
-deployment is one file, `deployments/<id>/deployment.json`, and every secret
+deployment is one `deployment.json` (ours in `deployments/`, each customer's in its own private repository), and every secret
 stays in the customer's accounts and Codemagic team. The procedure is in
 [DEPLOYMENT.md](DEPLOYMENT.md).
 
@@ -65,7 +65,7 @@ and the first release is tagged `v1.1.0`.
 - [x] One deployment file per deployment, generated native identity, customer-owned secrets (G11, pulled forward)
 - [ ] Verify the new CLI-based iOS signing on the first `ios-release` run
 - [ ] Add `CM_PUBLISH_EMAIL` to each customer's `deployment` group (G2)
-- [ ] Move the `dev` deployment from `whatsapp-bot-f57a8` to a dedicated project: regenerate `deployments/dev/firebase/` and update `deployments/dev/deployment.json`
+- [ ] Move the `dev` deployment from `whatsapp-bot-f57a8` to a dedicated project: replace the two files in `deployments/dev/firebase/` and update `deployments/dev/deployment.json`
 - [ ] Create the `demo` deployment: its own Firebase project on Blaze, all modules on, not internal; distribute through Play open/closed testing and a TestFlight public link
 - [ ] Prepare our own accounts for the three environments (Google Cloud billing, Apple Developer, Play Console, Codemagic), see [DEPLOYMENT.md](DEPLOYMENT.md) §1
 - [ ] Deploy the new functions and rules to that project, then release the app (the new app needs `recordPasswordChange` deployed first)
@@ -97,7 +97,7 @@ to shared files.
 ## Open questions
 
 - [x] Shared or dedicated Firebase project? Dedicated, customer-owned, one per deployment.
-- [ ] Each customer's Codemagic team clones this repository, which contains every customer's deployment folder (public values only, but it shows who our customers are). Is that acceptable, or should customer deployment files live somewhere separate per customer?
+- [x] Where do customer deployment files live? In one private repository per customer, fetched at build time, so no customer sees another.
 - [ ] Which reverse domain do we use for app identifiers (`<our-reverse-domain>.<customer-id>`)?
 - [ ] Is the first real customer expected before v2.0? If so, which parts of the manifest work move earlier?
 - [ ] Which languages beyond EN/FR are needed, and are they in scope for the shared skeleton?

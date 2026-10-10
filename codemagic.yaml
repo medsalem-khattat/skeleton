@@ -4,7 +4,10 @@
 # (deployments/<id>/deployment.json). See docs/DEPLOYMENT.md.
 #
 # Environment groups expected in the customer's Codemagic team:
-#   deployment       DEPLOYMENT_ID, CM_PUBLISH_EMAIL, optional API_KEY
+#   deployment       DEPLOYMENT_ID, CM_PUBLISH_EMAIL, optional API_KEY;
+#                    for a customer also DEPLOYMENT_REPO (SSH URL of the
+#                    customer's deployment repository) and
+#                    DEPLOYMENT_REPO_SSH_KEY (secure, its read-only deploy key)
 #   firebase_deploy  FIREBASE_SERVICE_ACCOUNT (secure)
 #   ios_signing      APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER,
 #                    APP_STORE_CONNECT_PRIVATE_KEY, CERTIFICATE_PRIVATE_KEY (all secure)
@@ -19,6 +22,9 @@
 
 definitions:
   scripts:
+    - &fetch_deployment
+      name: Fetch deployment
+      script: node tool/deployment.mjs fetch "$DEPLOYMENT_ID"
     - &release_check
       name: Check release tag
       script: node tool/deployment.mjs release-check "$DEPLOYMENT_ID"
@@ -119,6 +125,92 @@ workflows:
       - *backend_test_functions
       - *backend_test_rules
 
+  # Started manually in the customer's team before the first deployment
+  # (docs/CUSTOMER_PREREQUISITES.md §4). Proves that every secret the customer
+  # pasted works, without anyone reading it; changes nothing.
+  readiness-check:
+    name: Readiness check
+    instance_type: mac_mini_m2
+    max_build_duration: 20
+    environment:
+      node: 22
+      groups:
+        - deployment
+        - firebase_deploy
+        - ios_signing
+        - google_play
+      android_signing:
+        - upload_keystore
+    scripts:
+      - *fetch_deployment
+      - name: Check deployment and deploy credential
+        script: node tool/deployment.mjs check "$DEPLOYMENT_ID"
+      - *use_deployment
+      - *backend_install
+      - name: Check customer accounts and secrets
+        script: |
+          set -uo pipefail
+          failures=0
+          pass() { echo "OK    $1"; }
+          fail() { echo "FAIL  $1"; failures=$((failures + 1)); }
+          warn() { echo "WAIT  $1"; }
+
+          [ -n "${CM_PUBLISH_EMAIL:-}" ] && pass "CM_PUBLISH_EMAIL is set" \
+            || fail "CM_PUBLISH_EMAIL is missing from group deployment"
+
+          credentials_path="$HOME/firebase-deploy-sa.json"
+          printf '%s' "${FIREBASE_SERVICE_ACCOUNT:-}" > "$credentials_path"
+          chmod 600 "$credentials_path"
+          if output=$(cd backend/functions && GOOGLE_APPLICATION_CREDENTIALS="$credentials_path" \
+              npx firebase apps:list --project "$FIREBASE_PROJECT_ID" 2>&1); then
+            pass "Firebase deploy key can access $FIREBASE_PROJECT_ID"
+          else
+            fail "Firebase deploy key cannot access $FIREBASE_PROJECT_ID (guide 2, Part 2B Step 7)"
+            printf '%s\n' "$output" | tail -5
+          fi
+          rm -f "$credentials_path"
+
+          if output=$(app-store-connect apps list 2>&1); then
+            if printf '%s\n' "$output" | grep -Fq "$APP_ID"; then
+              pass "App Store Connect key works and the app $APP_ID exists"
+            else
+              fail "App Store Connect key works, but there is no app for $APP_ID (guide 3, Part 2B Step 2)"
+            fi
+          else
+            fail "App Store Connect key does not work (guide 3, Part 2B Step 4)"
+            printf '%s\n' "$output" | tail -5
+          fi
+
+          printf '%s\n' "${CERTIFICATE_PRIVATE_KEY:-}" | openssl rsa -check -noout >/dev/null 2>&1 \
+            && pass "CERTIFICATE_PRIVATE_KEY is an RSA private key" \
+            || fail "CERTIFICATE_PRIVATE_KEY is missing or not an RSA private key (guide 3, Part 2B Step 5)"
+
+          if play_email=$(node -e 'const c = JSON.parse(process.env.GCLOUD_SERVICE_ACCOUNT_CREDENTIALS || "{}");
+              if (c.type !== "service_account" || !c.client_email) process.exit(1);
+              console.log(c.client_email);' 2>/dev/null); then
+            pass "Google Play key is a service account key for $play_email"
+            if google-play tracks list --package-name "$APP_ID" >/dev/null 2>&1; then
+              pass "Google Play key can access $APP_ID"
+            else
+              warn "Google Play access to $APP_ID not confirmed: normal before the first manual upload (guide 4, Part 3); otherwise invite $play_email (guide 4, Part 2B Step 4)"
+            fi
+          else
+            fail "GCLOUD_SERVICE_ACCOUNT_CREDENTIALS is missing or not a service account key (guide 4, Part 2B Step 3)"
+          fi
+
+          if [ -n "${CM_KEYSTORE_PATH:-}" ] && keytool -list -keystore "$CM_KEYSTORE_PATH" \
+              -storepass "$CM_KEYSTORE_PASSWORD" -alias "$CM_KEY_ALIAS" >/dev/null 2>&1; then
+            pass "Android keystore upload_keystore opens with its password and alias"
+          else
+            fail "Android keystore upload_keystore is missing, or its password or alias is wrong (guide 4, Part 2B Step 5)"
+          fi
+
+          if [ "$failures" -gt 0 ]; then
+            echo "$failures check(s) failed: the readiness check is No-go."
+            exit 1
+          fi
+          echo "All checks passed."
+
   # Started manually in the customer's team. Refuses to run unless the
   # customer's service account belongs to the deployment's Firebase project.
   backend-deploy:
@@ -132,6 +224,7 @@ workflows:
         - deployment
         - firebase_deploy
     scripts:
+      - *fetch_deployment
       - name: Check deployment and deploy credential
         script: node tool/deployment.mjs check "$DEPLOYMENT_ID"
       - *release_check
@@ -164,6 +257,7 @@ workflows:
       android_signing:
         - upload_keystore
     scripts:
+      - *fetch_deployment
       - *release_check
       - *use_deployment
       - *frontend_install
@@ -197,6 +291,7 @@ workflows:
         - deployment
         - ios_signing
     scripts:
+      - *fetch_deployment
       - *release_check
       - *use_deployment
       - *frontend_install
