@@ -85,15 +85,18 @@ async function accessToken(projectId) {
 }
 
 function client(token, projectId) {
+  // A header given as null is left out. Billing calls drop the quota project:
+  // the Cloud Billing API is not enabled in a new project.
   return async function call(method, url, body, headers = {}) {
+    const merged = {
+      Authorization: `Bearer ${token}`,
+      "x-goog-user-project": projectId,
+      "Content-Type": "application/json; charset=UTF-8",
+      ...headers,
+    };
     const response = await fetch(url, {
       method,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "x-goog-user-project": projectId,
-        "Content-Type": "application/json; charset=UTF-8",
-        ...headers,
-      },
+      headers: Object.fromEntries(Object.entries(merged).filter(([, value]) => value !== null)),
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     const text = await response.text();
@@ -147,7 +150,9 @@ async function main() {
   });
 
   await step("Blaze plan (billing)", async () => {
-    const info = await call("GET", `https://cloudbilling.googleapis.com/v1/${P}/billingInfo`);
+    const noQuota = { "x-goog-user-project": null };
+    const info = await call("GET", `https://cloudbilling.googleapis.com/v1/${P}/billingInfo`, undefined, noQuota);
+    if (info.status !== 200) fail("Reading billing", info);
     if (info.json.billingEnabled) {
       blaze = true;
       return `linked to ${info.json.billingAccountName}`;
@@ -157,7 +162,14 @@ async function main() {
       return "manual: no open billing account linked";
     }
     const name = billingAccount.startsWith("billingAccounts/") ? billingAccount : `billingAccounts/${billingAccount}`;
-    const result = await call("PUT", `https://cloudbilling.googleapis.com/v1/${P}/billingInfo`, { billingAccountName: name });
+    const account = await call("GET", `https://cloudbilling.googleapis.com/v1/${name}`, undefined, noQuota);
+    if (account.status !== 200) fail(`Reading ${name}`, account);
+    if (!account.json.open) {
+      manual.push(`Billing account ${name} is not open yet: finish its setup at https://console.cloud.google.com/billing, then rerun.`);
+      return "manual: billing account not open yet";
+    }
+    const result = await call("PUT", `https://cloudbilling.googleapis.com/v1/${P}/billingInfo`,
+      { billingAccountName: name }, noQuota);
     if (result.status !== 200) fail("Linking billing", result);
     blaze = true;
     return `linked to ${name}`;
