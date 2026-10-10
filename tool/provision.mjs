@@ -65,6 +65,7 @@ function readDeployment(id) {
     region,
     firestoreLocation: config.firebase?.firestoreLocation ?? region,
     phone: config.features?.authentication !== false && config.features?.phoneVerification !== false,
+    appleId: config.stores?.appleId ?? "",
   };
 }
 
@@ -244,8 +245,10 @@ async function main() {
       const result = await call("GET", `https://firebase.googleapis.com/v1beta1/${P}/${collection}/${apps[platform]}/config`);
       if (result.status !== 200) fail(`Downloading the ${platform} config`, result);
       const file = path.join(dir, result.json.configFilename);
-      const content = Buffer.from(result.json.configFileContents, "base64");
-      if (!fs.existsSync(file) || !fs.readFileSync(file).equals(content)) {
+      const content = Buffer.from(result.json.configFileContents, "base64").toString("utf8");
+      // Compare without line endings: a Windows checkout has CRLF.
+      const normalize = (text) => text.replace(/\r\n/g, "\n");
+      if (!fs.existsSync(file) || normalize(fs.readFileSync(file, "utf8")) !== normalize(content)) {
         fs.writeFileSync(file, content);
         written.push(result.json.configFilename);
       }
@@ -259,18 +262,23 @@ async function main() {
     if (current.status !== 200) fail("Reading Remote Config", current);
     const template = current.json;
     const parameters = template.parameters ?? {};
-    const defaults = {
-      minimum_app_version: "0.0.0",
-      android_store_url: `https://play.google.com/store/apps/details?id=${d.appId}`,
-    };
-    const added = Object.keys(defaults).filter((key) => !parameters[key]);
-    if (added.length === 0) return "up to date";
-    for (const key of added) parameters[key] = { defaultValue: { value: defaults[key] }, valueType: "STRING" };
+    // The minimum version is only seeded; it is raised by hand at end of support.
+    const seeded = { minimum_app_version: "0.0.0" };
+    // Store links follow the deployment file.
+    const derived = { android_store_url: `https://play.google.com/store/apps/details?id=${d.appId}` };
+    if (d.appleId) derived.ios_store_url = `https://apps.apple.com/app/id${d.appleId}`;
+    else manual.push("Remote Config: set stores.appleId in deployment.json once the App Store Connect app exists, then rerun.");
+    const changed = [
+      ...Object.keys(seeded).filter((key) => !parameters[key]),
+      ...Object.keys(derived).filter((key) => parameters[key]?.defaultValue?.value !== derived[key]),
+    ];
+    if (changed.length === 0) return "up to date";
+    const values = { ...seeded, ...derived };
+    for (const key of changed) parameters[key] = { defaultValue: { value: values[key] }, valueType: "STRING" };
     delete template.version;
     const result = await call("PUT", url, { ...template, parameters }, { "If-Match": current.etag ?? "*" });
     if (result.status !== 200) fail("Publishing Remote Config", result);
-    if (!parameters.ios_store_url) manual.push("Remote Config: add ios_store_url (https://apps.apple.com/app/id<Apple ID>) once the App Store Connect app exists.");
-    return `published ${added.join(", ")}`;
+    return `published ${changed.join(", ")}`;
   });
 
   await step("Deploy service account", async () => {
