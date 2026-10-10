@@ -102,7 +102,9 @@ to shared files.
 - [x] Shared or dedicated Firebase project? Dedicated, customer-owned, one per deployment.
 - [x] Where do customer deployment files live? In one private repository per customer, fetched at build time, so no customer sees another.
 - [x] Who deploys a customer's environment? The customer's own technical team, with our guides; we never get access.
-- [x] How do customers get access? The repository stays personal; each customer computer and Codemagic application gets a read-only deploy key, and the guides are read in that copy (never published).
+- [ ] **Decide before the first customer:** how customers get access and read the guides. Current state: the repository stays personal; each customer computer and Codemagic application gets a read-only deploy key, and the guides are read in that copy. Options discussed:
+  - give access to Codemagic only (no customer computers), with the guides delivered as a Codemagic "Guides" workflow artifact or emailed each release, and the Firebase setup as a Codemagic workflow or in the console;
+  - publish the documentation (for example a public docs repository synced from `main`).
 - [ ] Which reverse domain do we use for app identifiers (`<our-reverse-domain>.<customer-id>`)?
 - [ ] Is the first real customer expected before v2.0? If so, which parts of the manifest work move earlier?
 - [ ] Which languages beyond EN/FR are needed, and are they in scope for the shared skeleton?
