@@ -30,6 +30,9 @@ Architecture and requirements:
 - [Customer Deployment and Bug-Fix Guide](CUSTOMER_DEPLOYMENT.md) — dedicated
   customer deployments, support triage, code versus configuration fixes, and
   release/rollback procedures.
+- [Customer Prerequisites and Readiness Check](CUSTOMER_PREREQUISITES.md) —
+  what to collect from a customer (accounts, access, app content) and how to
+  validate it before a deployment starts.
 - [Release, Upgrade, and Support Policy](RELEASE_AND_SUPPORT.md) — version
   numbers, upgrading every customer to each release, supported versions, and
   end of support.

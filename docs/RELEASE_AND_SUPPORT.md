@@ -49,9 +49,10 @@ Each release is:
 This is enforced: `backend-deploy`, `android-release`, and `ios-release`
 run `node tool/deployment.mjs release-check`, which stops a customer build
 unless the commit has the tag `v<version>` of `frontend/pubspec.yaml` and no
-local changes. Our own deployments are marked `"internal": true` in their
-deployment file and can build any commit, so `dev` and `test` can try a
-release candidate before it is tagged.
+local changes. `dev` and `test` are marked `"internal": true` in their
+deployment file and can build any commit, so QA can test a release candidate
+before it is tagged. `demo` is ours but not internal: it shows only released
+versions.
 
 ## 3. Release flow for a new version
 
@@ -59,7 +60,10 @@ For each release, the release operator follows these steps in order.
 
 ### Step 1: Prepare (once per release)
 
-- [ ] Tag created and `CHANGELOG.md` upgrade notes written.
+- [ ] The release candidate on `main` is deployed to `test` and the QA team
+      has signed it off.
+- [ ] Tag created on that same commit and `CHANGELOG.md` upgrade notes
+      written.
 - [ ] `node tool/deployment.mjs list` shows every deployment as valid at the
       tag.
 - [ ] New deployment-file fields have defaults, so existing deployment files
@@ -76,12 +80,16 @@ healthy for the stated time.
 
 | Wave | Deployments | Wait before next wave |
 | --- | --- | --- |
-| 0 | `dev`, `test` | Smoke test passes |
+| 0 | `demo` | Smoke test passes with all modules on |
 | 1 | Customer staging projects (`<customer>-staging`) | Customer acceptance where required |
 | 2 | One pilot customer production | 2 days with no new crash or error trend (patch: 1 day) |
 | 3 | All other customer production deployments | — |
 
-A security release (§4) may skip the waiting times, but not wave 0.
+`test` is not a wave: QA has already signed off the release there before it
+was tagged (Step 1). `dev` follows development, not releases.
+
+A security release (§4) may skip the waiting times, but not QA on `test` or
+wave 0.
 
 ### Step 3: Upgrade one deployment
 
@@ -240,6 +248,7 @@ deployment that is past a deadline is escalated to the product owner.
 - [ ] Tag `vX.Y.Z` on `main`, `CHANGELOG.md` with upgrade notes
 - [ ] All deployment files valid at the tag
 - [ ] Announcement with upgrade deadline and end-of-support date sent
+- [ ] QA sign-off on `test` before tagging
 - [ ] Wave 0 → 3 completed and verified
 - [ ] Register updated for every deployment
 - [ ] `minimum_app_version` raised where §5 requires it

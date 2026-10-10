@@ -85,6 +85,10 @@ actual register and credentials in approved access-controlled systems.
    Apple/Google developer accounts, Firebase billing, APNs, App Check, domains,
    and store listings.
 
+6. Collect the prerequisites and pass the readiness check in
+   [CUSTOMER_PREREQUISITES.md](CUSTOMER_PREREQUISITES.md). Nothing in Step 2
+   starts before the check is **Go**.
+
 ### Step 2: Create the deployment
 
 Follow [DEPLOYMENT.md](DEPLOYMENT.md) §4. In policy terms:
@@ -358,6 +362,7 @@ embed a signing secret in the mobile application.
 
 ### New customer
 
+- [ ] Readiness check passed (Go) and recorded ([CUSTOMER_PREREQUISITES.md](CUSTOMER_PREREQUISITES.md))
 - [ ] Scope, acceptance, support, and license recorded
 - [ ] App identifiers and distribution ownership confirmed
 - [ ] Built from the latest release tag, recorded in the register

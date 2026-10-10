@@ -5,7 +5,9 @@ Every deployment is described by **one file**,
 app to it, and the same `codemagic.yaml` builds every deployment. Customers
 own every secret and all user data; this repository holds only public values.
 
-For contracts, support, and bug-fix policy, see
+Before a customer deployment starts, collect and validate its prerequisites:
+[CUSTOMER_PREREQUISITES.md](CUSTOMER_PREREQUISITES.md). For contracts,
+support, and bug-fix policy, see
 [CUSTOMER_DEPLOYMENT.md](CUSTOMER_DEPLOYMENT.md). For upgrading deployments to
 a new version and end of support, see
 [RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md).
@@ -21,14 +23,32 @@ a new version and end of support, see
 | Google Play listing, upload keystore | Customer's Play Console and Codemagic team | Customer |
 | Build secrets and the deploy credential | Customer's Codemagic team | Customer |
 
-The repository includes three deployments:
+### Our three environments
 
-- `example`: placeholder Firebase values (`demo-skeleton`). Use it for tests,
-  CI, and local runs against the Firebase emulators. It never reaches a real
-  backend.
-- `dev`: our development deployment (`whatsapp-bot-f57a8`).
-- `test`: our test deployment (`medsalem-skeleton-test`), the first wave of
-  every release rollout; phone verification is off.
+Besides customer deployments, we always run three environments of our own.
+Each is a deployment with its own Firebase project, owned and paid for by us,
+in our own Google, Apple, Google Play, and Codemagic accounts.
+
+| Deployment | Used by | Built from | Modules | Distribution |
+| --- | --- | --- | --- | --- |
+| `dev` | Developers | Any commit (`"internal": true`) | What is being developed | Debug builds, Play internal track, TestFlight internal |
+| `test` | QA team | The release candidate on `main` before it is tagged, and fixes (`"internal": true`) | Same as the deployment under test | Play internal track, TestFlight internal |
+| `demo` | Sales, and any customer or prospect | **Only the latest release tag** (not internal) | **All modules on** | Play open or closed testing, TestFlight public link |
+
+- `demo` shows exactly what customers get, so `release-check` applies to it
+  as to a customer. Its data is synthetic: demo accounts only, reset when
+  needed. Never put real customer data in it.
+- On `test`, QA signs off a release candidate before it is tagged
+  ([RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md) §3).
+- All modules on means `demo` needs Firebase phone sign-in, so its project
+  is on the Blaze plan.
+
+The repository also has `example`: placeholder Firebase values
+(`demo-skeleton`) for tests, CI, and local runs against the Firebase
+emulators. It never reaches a real backend.
+
+Current state: `dev` still uses the shared `whatsapp-bot-f57a8` project, and
+`demo` does not exist yet ([ROADMAP.md](ROADMAP.md) v1.1).
 
 ## 2. The deployment file
 
@@ -69,7 +89,7 @@ The repository includes three deployments:
 | Field | Required | Used for |
 | --- | --- | --- |
 | `deploymentId` | Yes | Must equal the folder name. Lowercase letters, digits, `-`. |
-| `internal` | No | `true` only for our own deployments (`dev`, `test`, `example`), which may be built from any commit. Customer deployments leave it out: their release workflows run only on the release tag. Default `false`. |
+| `internal` | No | `true` only for `dev`, `test`, and `example`, which may be built from any commit. Customer deployments and `demo` leave it out: their release workflows run only on the release tag. Default `false`. |
 | `appName` | Yes | Home-screen name on Android and iOS, and the in-app title. 1-30 characters. |
 | `appId` | Yes | Android application ID **and** iOS bundle ID. Chosen by us, permanent after the first store release. |
 | `firebase.projectId` | Yes | The customer's Firebase project. Backend deploys go only here. |
@@ -131,7 +151,11 @@ Practices:
 Build a new customer from the latest release tag
 ([RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md)).
 
-### Step 1: Customer accounts (customer owns them, we help set them up)
+**Do not start until the readiness check has passed.** Every prerequisite,
+account, and access below is collected and validated first, as described in
+[CUSTOMER_PREREQUISITES.md](CUSTOMER_PREREQUISITES.md).
+
+### Step 1: Customer accounts (customer owns them, validated in the readiness check)
 
 1. **Google account and billing.** The customer provides a Google account or
    Google Cloud organization and a Cloud Billing account with their own
@@ -254,6 +278,7 @@ first release is rolled out.
 | App logic | `node tool/deployment.mjs use example`, then `cd frontend && flutter analyze && flutter test` |
 | Backend logic and rules | `cd backend/functions && npm ci && npm test && npm run test:rules` |
 | Full app without a real backend | Start the emulators (`cd backend/functions && npm exec firebase -- emulators:start --config ../firebase.json --project demo-skeleton --only auth,firestore,functions,storage`), then `node tool/deployment.mjs use example` and `cd frontend && flutter run --dart-define-from-file=deployment.g.json --dart-define=FIREBASE_EMULATOR_HOST=10.0.2.2` (`localhost` for iOS simulators) |
+| A release candidate | The `test` deployment, by the QA team, before the release is tagged |
 | A customer's real setup | A customer staging project as its own deployment (for example `acme-staging`), with synthetic accounts only, before `acme-prod` |
 
 ## 6. Command reference
