@@ -30,12 +30,13 @@ Architecture and requirements:
 - [Customer Deployment and Bug-Fix Guide](CUSTOMER_DEPLOYMENT.md) — dedicated
   customer deployments, support triage, code versus configuration fixes, and
   release/rollback procedures.
-- [Customer Prerequisites and Readiness Check](CUSTOMER_PREREQUISITES.md) —
-  what to collect from a customer (accounts, access, app content) and how to
-  validate it before a deployment starts.
-- [Customer Account Setup](customer-setup/README.md) — step-by-step guides
-  for the customer: Codemagic, Google Cloud and Firebase, Apple, and Google
-  Play, either giving us access or doing the setup themselves.
+- [Customer Onboarding](CUSTOMER_PREREQUISITES.md) — our side of a new
+  customer: contract, repository access, register, support. We never access
+  a customer's accounts.
+- [Customer Deployment Guides](customer-setup/README.md) — step-by-step
+  guides for the customer's technical team: Codemagic, deployment
+  repository, Google Cloud and Firebase, Apple, Google Play, first release,
+  upgrades, and an FAQ.
 - [Deployment Runbook and Timings](DEPLOYMENT_RUNBOOK.md) — every deployment
   step, manual or automated, with estimated and measured times.
 - [Release, Upgrade, and Support Policy](RELEASE_AND_SUPPORT.md) — version

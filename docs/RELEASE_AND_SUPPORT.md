@@ -1,10 +1,12 @@
 # Release, Upgrade, and Support Policy
 
-This guide is for the deployment team. It defines how a new version reaches
-every customer, which versions we support, and when support for an old
-version ends.
+This guide is for our team. It defines how we release a new version, how
+customers upgrade to it, which versions we support, and when support for an
+old version ends.
 
-How to set up a customer is in [DEPLOYMENT.md](DEPLOYMENT.md). Ownership,
+Customers deploy and upgrade their own environments, following
+[customer-setup/](customer-setup/README.md); the upgrade steps they follow are
+in [customer guide 7](customer-setup/7-upgrades-and-changes.md). Ownership,
 bug triage, and incident handling are in
 [CUSTOMER_DEPLOYMENT.md](CUSTOMER_DEPLOYMENT.md).
 
@@ -12,12 +14,11 @@ bug triage, and incident handling are in
 
 - There is **one codebase and one version line**: the `main` branch and the
   release tags made from it (`v1.1.0`, `v1.2.0`, ...).
-- **Every customer is upgraded to every new version.** A customer can be
-  behind for a short, defined time (§4), never permanently.
+- **Every customer upgrades to every new version**, with its own team. A
+  customer can be behind for a short, defined time (§4), never permanently.
 - **No customer branches, no customer forks, no customer-only builds.** A
-  customer's difference from another customer is only its
-  `deployments/<id>/` folder: the deployment file, its public Firebase files,
-  and the module switches.
+  customer's difference from another customer is only its deployment folder:
+  the deployment file, its public Firebase files, and the module switches.
 - **Fixes are made once, on `main`, and shipped in the next version.** We do
   not patch an old version for one customer. The fix for an old version is
   the upgrade.
@@ -56,69 +57,55 @@ versions.
 
 ## 3. Release flow for a new version
 
-For each release, the release operator follows these steps in order.
-
-### Step 1: Prepare (once per release)
+### Step 1: Prepare (our team, once per release)
 
 - [ ] The release candidate on `main` is deployed to `test` and the QA team
       has signed it off.
 - [ ] Tag created on that same commit and `CHANGELOG.md` upgrade notes
-      written.
-- [ ] `node tool/deployment.mjs list` shows every deployment as valid at the
+      written for a customer's technical team: every new setting, command, or
+      console step, and whether `minimum_app_version` must be raised.
+- [ ] `node tool/deployment.mjs list` shows our deployments as valid at the
       tag.
-- [ ] New deployment-file fields have defaults, so existing deployment files
-      work unchanged. If a customer needs a non-default value, update their
-      file on `main` before tagging.
-- [ ] Release announcement sent to every customer contact: version, what
-      changed, upgrade deadline (§4), and the end-of-support date of the
-      version being replaced (§5).
+- [ ] New deployment-file fields have defaults, so customers' existing
+      deployment files work unchanged.
 
-### Step 2: Roll out in waves
+### Step 2: Deploy our demo
 
-Upgrade deployments in this order. Start a wave only when the previous one is
-healthy for the stated time.
+Deploy `demo` from the tag by following the customer guides
+([customer guide 7](customer-setup/7-upgrades-and-changes.md)), and smoke test
+it with all modules on. This proves the upgrade notes before customers use
+them. A security release may shorten the smoke test, but never skips QA on
+`test` or the `demo` deployment.
 
-| Wave | Deployments | Wait before next wave |
-| --- | --- | --- |
-| 0 | `demo` | Smoke test passes with all modules on |
-| 1 | Customer staging projects (`<customer>-staging`) | Customer acceptance where required |
-| 2 | One pilot customer production | 2 days with no new crash or error trend (patch: 1 day) |
-| 3 | All other customer production deployments | — |
+### Step 3: Announce
 
-`test` is not a wave: QA has already signed off the release there before it
-was tagged (Step 1). `dev` follows development, not releases.
+Email every customer's technical contact:
 
-A security release (§4) may skip the waiting times, but not QA on `test` or
-wave 0.
+- the version tag and what changed;
+- the upgrade notes;
+- the upgrade deadline (§4);
+- the end-of-support date of the version being replaced (§5);
+- whether `minimum_app_version` must be raised once the new version is in
+  both stores.
 
-### Step 3: Upgrade one deployment
+### Step 4: Customers upgrade
 
-For each deployment, in the customer's Codemagic team, start each workflow on
-the release tag (in **Start new build**, choose the tag, not a branch):
+Each customer's team upgrades with
+[customer guide 7](customer-setup/7-upgrades-and-changes.md): backend first,
+then apps, then store publishing, then reports the version to us. We
+recommend each customer keeps a staging deployment and upgrades it first.
 
-1. **Backend first.** Run `backend-deploy`. The new backend must keep working
-   with the app version users still have installed.
-2. **Apps.** Run `android-release` and `ios-release`. Then promote the build
-   from the Play internal track and from TestFlight to production in the
-   customer's store accounts, using staged rollout where available.
-3. **Verify** on a real device with a test account: sign-in, the changed
-   features, push notification. Check Crashlytics and the Functions logs.
-4. **Record** in the deployment register: version, tag, commit, build
-   numbers, date, operator, and customer acceptance (if required).
-5. **After the store release is live**, raise `minimum_app_version` in the
-   customer's Remote Config when §5 requires it. Never raise it before the new
-   build can be downloaded from both stores.
+We answer questions, and never run the upgrade for a customer.
 
-### Step 4: Close the release
+### Step 5: Follow up
 
-- [ ] Every deployment in the register shows the new version, or has an
-      approved deferral with a date (§4).
-- [ ] Customers who are late have been contacted.
+- [ ] Each customer's reported version is recorded in the register.
+- [ ] Customers who have not reported by their deadline are reminded.
 
 ## 4. Upgrade deadlines
 
-The deadline counts from the day the version is tagged. The customer agrees
-to these deadlines in their contract; we schedule the work.
+The deadline counts from the day the version is announced. The customer
+agrees to these deadlines in its contract, and its team does the upgrade.
 
 | Release type | Every production deployment upgraded within |
 | --- | --- |
@@ -135,8 +122,8 @@ security fixes cannot be deferred.
 
 **Skipping versions.** A customer who is more than one version behind is
 upgraded directly to the latest version, not one version at a time. The
-upgrade notes of every version in between are applied together, and the
-upgrade is tested on the customer's staging project first.
+upgrade notes of every version in between are applied together, preferably
+on the customer's staging deployment first.
 
 ## 5. Supported versions and end of support
 
@@ -169,10 +156,13 @@ users still run an old app. The `minimum_app_version` Remote Config value
 makes the old app show a blocking "update required" screen that opens the
 store.
 
-| When | Set `minimum_app_version` in that customer's Firebase project to |
+The customer sets it in its own Firebase project; our release announcement
+says when.
+
+| When | Set `minimum_app_version` to |
 | --- | --- |
 | A security fix is live in both stores | The fixed version, right away |
-| A version reaches end of support | The oldest version still supported for that customer |
+| A version reaches end of support | The oldest version still supported |
 | A backend change no longer works with an older app | The first app version that works with it, **before** deploying that backend |
 
 Before raising it, check that `android_store_url` and `ios_store_url` are set
@@ -194,75 +184,65 @@ If a production deployment reaches the end-of-support date of its version:
 
 ## 6. What a customer can and cannot get
 
-| Customer asks for | We do |
+| Customer asks for | Answer |
 | --- | --- |
-| Their name, colors, links, region, modules on or off | Change their deployment file; ships with the next release, or a configuration-only release of the current version |
-| A setting that changes how a feature behaves | Add a general option to the deployment file (with a default), named after the capability, in a normal release |
+| Their name, colors, links, region, modules on or off | Their team changes their deployment file and rebuilds on their current tag ([customer guide 7](customer-setup/7-upgrades-and-changes.md#a-change-of-your-settings)) |
+| A setting that changes how a feature behaves | We add a general option to the deployment file (with a default), named after the capability, in a normal release |
 | A new feature | Product owner decides. If accepted, it becomes a product module that any customer can turn on, released in a minor version |
 | A fix only for them, on their old version | Not possible. The fix is made on `main` and they receive it by upgrading |
 | To stay on an old version | Allowed until its end-of-support date (§5), then the deployment is unsupported |
 | Code written only for them | Not possible. Never write `if (deploymentId == ...)` or customer names in code |
+| That we deploy or upgrade for them, or access their accounts | Not possible. We support them with the guides, the FAQ, and answers |
 
 **Configuration-only release.** Changing a deployment file (for example a new
-link or a module switched off) does not need a new version: commit the change
-to `main`, then rebuild that customer from the **same tag they are on** with
-the updated deployment folder. Record it in the register as the same version
-with a new build number. If the change touches code, it waits for the next
-version.
+link or a module switched off) does not need a new version: the customer's
+team commits it to its deployment repository and rebuilds from the **same
+tag** it runs. If the change needs code, it waits for a version.
 
-## 7. Deployment register
+## 7. Version register
 
-Every deployment has one row in the deployment register (kept in the
-access-controlled system described in
-[CUSTOMER_DEPLOYMENT.md](CUSTOMER_DEPLOYMENT.md) §2). For this policy it must
-show at least:
+The customer register ([CUSTOMER_PREREQUISITES.md](CUSTOMER_PREREQUISITES.md)
+§3) records, per customer, for this policy:
 
 | Field | Example |
 | --- | --- |
-| Deployment ID | `acme` |
-| Current version and tag | `1.2.1`, `v1.2.1` |
-| Build numbers | Android 57, iOS 57 |
-| Backend version deployed | `1.2.1`, 2026-11-03 |
-| `minimum_app_version` | `1.2.0` |
+| Reported version | `1.2.1`, published 2026-11-03 |
 | Support status | Current / Previous until 2026-12-30 / Unsupported |
 | Upgrade deadline for the latest release | 2026-11-17 |
 | Deferral | none, or reason and date approved by the product owner |
-| Last upgrade | 2026-11-03, operator, customer acceptance reference |
 
-Review the register at the end of every release and once a month. Any
-deployment that is past a deadline is escalated to the product owner.
+Review it at the end of every release and once a month. Any customer past a
+deadline is reminded, then escalated to the product owner.
 
 ## 8. Roles
 
 | Role | In this process |
 | --- | --- |
 | Product owner | Approves releases, deferrals, and feature requests; owns end-of-support decisions |
-| Release operator | Tags, rolls out the waves, upgrades each deployment, keeps the register up to date |
-| Customer owner | Announces releases and end-of-support dates to the customer, collects acceptance, handles late customers |
-| Developer / on-call | Fixes on `main`, writes changelog and upgrade notes, supports the operator during rollout |
+| Release operator | Tags, deploys `test` and `demo`, sends the announcement |
+| Customer owner | Follows up on reported versions and deadlines; handles late customers |
+| Developer / on-call | Fixes on `main`, writes the changelog and upgrade notes, answers customer questions |
+| Customer's technical team | Upgrades its own deployments and reports the version |
 
 ## 9. Checklists
 
 ### Each release
 
-- [ ] Tag `vX.Y.Z` on `main`, `CHANGELOG.md` with upgrade notes
-- [ ] All deployment files valid at the tag
-- [ ] Announcement with upgrade deadline and end-of-support date sent
 - [ ] QA sign-off on `test` before tagging
-- [ ] Wave 0 → 3 completed and verified
-- [ ] Register updated for every deployment
-- [ ] `minimum_app_version` raised where §5 requires it
+- [ ] Tag `vX.Y.Z` on `main`, `CHANGELOG.md` with upgrade notes for customers
+- [ ] Our deployments valid at the tag; `demo` deployed from it with the customer guides
+- [ ] Announcement sent: upgrade deadline, end-of-support date, `minimum_app_version` instruction
+- [ ] Customers' reported versions recorded
 
-### Each deployment upgrade
+### Each upgrade of our own environments
 
-- [ ] Built from the release tag
+- [ ] Built from the release tag (`demo`), or from `main` (`dev`, `test`)
 - [ ] Backend deployed before the apps
-- [ ] Android and iOS released and promoted
+- [ ] Android and iOS released
 - [ ] Tested on a device; Crashlytics and Functions logs clean
-- [ ] Register row updated
 
 ### Monthly
 
-- [ ] Every deployment on Current or Previous
+- [ ] Every customer on Current or Previous
 - [ ] Reminders sent for versions reaching end of support within 30 days
-- [ ] Overdue deployments escalated
+- [ ] Overdue customers escalated

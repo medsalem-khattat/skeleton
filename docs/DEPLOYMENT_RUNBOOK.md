@@ -1,14 +1,15 @@
 # Deployment Runbook and Timings
 
-This runbook is for the deployment team. It lists every step of a
-deployment, who or what does it, and how long it takes, and it records
-measured times so each deployment can be faster than the last. The detailed
-instructions are in [DEPLOYMENT.md](DEPLOYMENT.md) and
-[customer-setup/](customer-setup/README.md).
+This runbook is for our team. It lists every step of deploying one of **our
+own** environments (`dev`, `test`, `demo`), who or what does it, and how
+long it takes, and it records measured times so each deployment can be faster
+than the last. Customers deploy their own environments with
+[customer-setup/](customer-setup/README.md), whose guide list gives their time
+estimates; the improvements we find here go into those guides. Technical
+reference: [DEPLOYMENT.md](DEPLOYMENT.md).
 
-It assumes the shared accounts already exist (Codemagic team, Apple Developer,
-Google Play, an open Cloud Billing account). For a customer, the readiness
-check ([CUSTOMER_PREREQUISITES.md](CUSTOMER_PREREQUISITES.md)) comes first.
+It assumes our shared accounts already exist (Codemagic team, Apple
+Developer, Google Play, an open Cloud Billing account).
 
 ## 1. Steps
 
@@ -49,16 +50,16 @@ Fill in one column per deployment. "—" means the step was already done.
 | 3 | Billing | blocked: no open billing account | | |
 | 4 | Authentication Get started | not needed | | |
 | 5 | Provision | 33 s (Storage waits for billing) | | |
-| 6 | Deploy key | | | |
+| 6 | Deploy key | done (not timed) | | |
 | 7 | APNs key | | | |
-| 8 | Commit | | | |
-| 9 | App ID | | | |
-| 10 | App Store Connect app | | | |
-| 11 | Play app | | | |
-| 12 | Codemagic | | | |
-| 13 | Backend | | | |
-| 14 | Android | | | |
-| 15 | First Play upload | | | |
+| 8 | Commit | 1 min | | |
+| 9 | App ID | done (not timed) | | |
+| 10 | App Store Connect app | done (not timed) | | |
+| 11 | Play app | done (not timed) | | |
+| 12 | Codemagic | done (not timed) | | |
+| 13 | Backend | waits for billing | | |
+| 14 | Android | done, published (not timed) | | |
+| 15 | First Play upload | done (not timed) | | |
 | 16 | iOS | | | |
 | 17 | Smoke test | | | |
 | | **Total hands-on** | | | |
@@ -72,5 +73,6 @@ Apply them between deployments, then measure again.
 | I1 | `tool/provision.mjs`: Firebase setup by command instead of console (steps 2–5) | ~40 min → under 1 min | Done: 33 s on `dev` |
 | I2 | Our Codemagic team: `ios_signing`, `google_play`, and the keystore as **team** groups shared by all our applications, so each new environment only needs `deployment` and `firebase_deploy` | ~5 min per environment | To do in the Codemagic console |
 | I3 | Create Codemagic groups and variables with the Codemagic API (step 12), so secrets are pushed from where they are created | ~5 min | Needs a Codemagic API token to try |
+| I6 | Time every step on `test` and `demo` (start and end of each workflow), so the table is complete | — | To do |
 | I4 | Register the App ID and its capabilities from Codemagic with the `app-store-connect` CLI (step 9) | ~3 min | To do |
 | I5 | One trigger instead of three: start backend, Android, and iOS together, or trigger our environments automatically (`dev` on push to `main`, `demo` on a release tag) | ~2 min per release, and no forgotten workflow | To do |

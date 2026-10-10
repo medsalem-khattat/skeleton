@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Sets up a deployment's Firebase project from its deployment.json: the
-// console work of docs/customer-setup/2-google-cloud-firebase.md (Part 2B),
+// console work of docs/customer-setup/3-google-cloud-firebase.md (Step 3B),
 // in minutes. Safe to run again: every step checks first and skips what is
 // already done, and the summary lists what is left by hand.
 //
