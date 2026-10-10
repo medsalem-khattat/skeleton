@@ -69,6 +69,7 @@ The repository includes three deployments:
 | Field | Required | Used for |
 | --- | --- | --- |
 | `deploymentId` | Yes | Must equal the folder name. Lowercase letters, digits, `-`. |
+| `internal` | No | `true` only for our own deployments (`dev`, `test`, `example`), which may be built from any commit. Customer deployments leave it out: their release workflows run only on the release tag. Default `false`. |
 | `appName` | Yes | Home-screen name on Android and iOS, and the in-app title. 1-30 characters. |
 | `appId` | Yes | Android application ID **and** iOS bundle ID. Chosen by us, permanent after the first store release. |
 | `firebase.projectId` | Yes | The customer's Firebase project. Backend deploys go only here. |
@@ -201,9 +202,9 @@ Paste it and delete the local file.
 
 ### Step 5: Deploy the backend
 
-Run the `backend-deploy` workflow in the customer's Codemagic team. It checks
-the deployment and refuses to run unless the service account belongs to
-`firebase.projectId`. It then runs the backend tests and deploys the Cloud
+Run the `backend-deploy` workflow in the customer's Codemagic team, on the
+release tag. It checks the deployment and refuses to run unless the service
+account belongs to `firebase.projectId` and the build is on the release tag. It then runs the backend tests and deploys the Cloud
 Functions, Firestore rules, and Storage rules.
 
 Locally, signed in with an account the customer granted access to:
@@ -264,7 +265,8 @@ Run from the repository root:
 | `node tool/deployment.mjs list` | Lists deployments and whether each one is valid |
 | `node tool/deployment.mjs check <id>` | Validates the file, the Firebase files, and the secret scan |
 | `node tool/deployment.mjs use <id>` | Checks, then writes the app's generated files (`frontend/deployment.g.json`, Firebase files, Android `deployment.properties`, iOS `Deployment.xcconfig`) |
-| `node tool/deployment.mjs deploy-backend <id>` | Checks, then deploys Functions and rules to `firebase.projectId` |
+| `node tool/deployment.mjs deploy-backend <id>` | Checks, runs `release-check`, then deploys Functions and rules to `firebase.projectId` |
+| `node tool/deployment.mjs release-check <id>` | For a customer deployment, stops unless the commit has the tag `v<version>` of `frontend/pubspec.yaml` and no uncommitted changes. Internal deployments pass |
 
 The generated files are git-ignored. Switch deployments by running `use`
 again; never edit the generated files.

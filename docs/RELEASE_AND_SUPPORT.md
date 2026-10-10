@@ -46,6 +46,13 @@ Each release is:
 3. tagged `vX.Y.Z` on that commit. Every customer build of that version is
    made from this tag, never from a branch.
 
+This is enforced: `backend-deploy`, `android-release`, and `ios-release`
+run `node tool/deployment.mjs release-check`, which stops a customer build
+unless the commit has the tag `v<version>` of `frontend/pubspec.yaml` and no
+local changes. Our own deployments are marked `"internal": true` in their
+deployment file and can build any commit, so `dev` and `test` can try a
+release candidate before it is tagged.
+
 ## 3. Release flow for a new version
 
 For each release, the release operator follows these steps in order.
@@ -78,7 +85,8 @@ A security release (§4) may skip the waiting times, but not wave 0.
 
 ### Step 3: Upgrade one deployment
 
-For each deployment, in the customer's Codemagic team, with the tag selected:
+For each deployment, in the customer's Codemagic team, start each workflow on
+the release tag (in **Start new build**, choose the tag, not a branch):
 
 1. **Backend first.** Run `backend-deploy`. The new backend must keep working
    with the app version users still have installed.

@@ -1,5 +1,6 @@
 {
   "deploymentId": "test",
+  "internal": true,
   "appName": "Skeleton Test",
   "appId": "com.medsalem.skeletontest",
   "firebase": {

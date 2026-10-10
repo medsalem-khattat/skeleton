@@ -6,6 +6,7 @@
 //   node tool/deployment.mjs check  [id]
 //   node tool/deployment.mjs use    [id]
 //   node tool/deployment.mjs deploy-backend [id]
+//   node tool/deployment.mjs release-check  [id]
 //
 // [id] defaults to the DEPLOYMENT_ID environment variable.
 // Secrets never live in this repository; this script refuses to continue if
@@ -113,6 +114,9 @@ function load(id) {
   const api = config.api ?? {};
   api.baseUrl ??= "";
   check(api.baseUrl === "" || /^https:\/\/\S+$/.test(api.baseUrl), "api.baseUrl must be empty or an https URL.");
+
+  config.internal ??= false;
+  check(typeof config.internal === "boolean", "internal must be true or false.");
 
   config.seedColor ??= "#3F51B5";
   check(/^#[0-9A-Fa-f]{6}$/.test(config.seedColor), "seedColor must look like #3F51B5.");
@@ -258,8 +262,44 @@ function use(id) {
   console.log("Run the app with: cd frontend && flutter run --dart-define-from-file=deployment.g.json");
 }
 
+function git(...args) {
+  try {
+    return execFileSync("git", args, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch {
+    fail(`git ${args.join(" ")} failed; release builds need a git checkout.`);
+  }
+}
+
+/**
+ * Customer deployments are built only from the release tag of the version in
+ * pubspec.yaml (docs/RELEASE_AND_SUPPORT.md). Internal deployments may build
+ * from any commit.
+ */
+function releaseCheck(config) {
+  const id = config.deploymentId;
+  if (config.internal) {
+    console.log(`Deployment "${id}" is internal; any commit may be built.`);
+    return;
+  }
+  const pubspec = fs.readFileSync(path.join(frontend, "pubspec.yaml"), "utf8");
+  const version = pubspec.match(/^version:\s*(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)(?:\+\d+)?\s*$/m)?.[1]
+    ?? fail("frontend/pubspec.yaml has no version such as 1.2.0+1.");
+  const expected = `v${version}`;
+  const tags = process.env.CM_TAG ? [process.env.CM_TAG] : git("tag", "--points-at", "HEAD").split("\n");
+  if (!tags.includes(expected)) {
+    fail(`Deployment "${id}" is built only from release tag ${expected} (the version in pubspec.yaml), `
+      + `but this commit is ${tags.filter(Boolean).join(", ") || "untagged"}. `
+      + "Start the build on the release tag; see docs/RELEASE_AND_SUPPORT.md.");
+  }
+  if (git("status", "--porcelain", "--untracked-files=no") !== "") {
+    fail(`Deployment "${id}" is built only from release tag ${expected} without local changes; commit or discard them.`);
+  }
+  console.log(`Deployment "${id}" is building release ${expected}.`);
+}
+
 function deployBackend(id) {
   const config = load(id);
+  releaseCheck(config);
   // Firebase loads functions/.env.<projectId> at deploy time (git-ignored).
   fs.writeFileSync(
     path.join(root, "backend", "functions", `.env.${config.firebase.projectId}`),
@@ -305,8 +345,9 @@ try {
     }
     case "use": use(deploymentIdFrom(arg)); break;
     case "deploy-backend": deployBackend(deploymentIdFrom(arg)); break;
+    case "release-check": releaseCheck(load(deploymentIdFrom(arg))); break;
     default:
-      console.error("Usage: node tool/deployment.mjs <list|check|use|deploy-backend> [deployment-id]");
+      console.error("Usage: node tool/deployment.mjs <list|check|use|deploy-backend|release-check> [deployment-id]");
       process.exit(2);
   }
 } catch (error) {

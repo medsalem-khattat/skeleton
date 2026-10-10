@@ -50,6 +50,10 @@ billed by the customer. See [docs/CUSTOMER_DEPLOYMENT.md](docs/CUSTOMER_DEPLOYME
 - `ios-release` fetches signing files for the deployment's app ID with the
   Codemagic CLI and publishes with the customer's App Store Connect API key.
 - Release builds take the version from `pubspec.yaml` only.
+- `backend-deploy`, `android-release`, and `ios-release` build a customer
+  deployment only from the release tag `v<version>` (`node tool/deployment.mjs
+  release-check`). Deployments marked `"internal": true` (`dev`, `test`,
+  `example`) may build any commit.
 
 ### Upgrade order
 

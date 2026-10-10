@@ -338,7 +338,8 @@ defined in [RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md). In short:
 Already in place: a validated deployment file per customer
 (`deployments/<id>/deployment.json`), CI that builds from it with an explicit
 `DEPLOYMENT_ID`, customer-owned secret groups, a guard that rejects a deploy
-credential for the wrong Firebase project, a secret scan, and client,
+credential for the wrong Firebase project, a guard that builds customer
+deployments only from the release tag, a secret scan, and client,
 Functions, and rules tests on every change. Still to add:
 
 1. A build matrix for supported module combinations.

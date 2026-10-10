@@ -1,5 +1,6 @@
 {
   "deploymentId": "dev",
+  "internal": true,
   "appName": "Skeleton",
   "appId": "com.yourname.skeleton",
   "firebase": {

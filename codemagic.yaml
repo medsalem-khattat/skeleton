@@ -11,9 +11,17 @@
 #   google_play      GCLOUD_SERVICE_ACCOUNT_CREDENTIALS (secure)
 # Code signing identity: the Android upload keystore with reference name
 # upload_keystore.
+#
+# The release workflows build a customer deployment only from the release tag
+# of the version in frontend/pubspec.yaml (start the build on tag vX.Y.Z).
+# Deployments marked "internal" may build from any commit.
+# See docs/RELEASE_AND_SUPPORT.md.
 
 definitions:
   scripts:
+    - &release_check
+      name: Check release tag
+      script: node tool/deployment.mjs release-check "$DEPLOYMENT_ID"
     - &use_deployment
       name: Select deployment
       script: node tool/deployment.mjs use "$DEPLOYMENT_ID"
@@ -126,6 +134,7 @@ workflows:
     scripts:
       - name: Check deployment and deploy credential
         script: node tool/deployment.mjs check "$DEPLOYMENT_ID"
+      - *release_check
       - *backend_install
       - *backend_build
       - *backend_test_functions
@@ -155,6 +164,7 @@ workflows:
       android_signing:
         - upload_keystore
     scripts:
+      - *release_check
       - *use_deployment
       - *frontend_install
       - *frontend_analyze
@@ -187,6 +197,7 @@ workflows:
         - deployment
         - ios_signing
     scripts:
+      - *release_check
       - *use_deployment
       - *frontend_install
       - *frontend_analyze
