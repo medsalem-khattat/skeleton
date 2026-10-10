@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyDdkfA2n0o73hNP7rFFQSJ7wjBi1mRV5Rs</string>
+	<key>GCM_SENDER_ID</key>
+	<string>644586440386</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.medsalem.skeletondev</string>
+	<key>PROJECT_ID</key>
+	<string>medsalem-skeleton-dev</string>
+	<key>STORAGE_BUCKET</key>
+	<string>medsalem-skeleton-dev.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:644586440386:ios:d568fa97efcfbb259a1d5b</string>
+</dict>
+</plist>

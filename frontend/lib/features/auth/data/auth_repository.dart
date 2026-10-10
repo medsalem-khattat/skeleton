@@ -130,9 +130,8 @@ class AuthRepository {
                 smsCode: smsCode.trim(),
               )
             : null);
-    if (verifiedPhoneCredential == null) {
-      throw StateError('A verified phone credential is required.');
-    }
+    // Phone proof is required only when phone verification is enabled; the
+    // registration screen enforces that before calling here.
 
     final cred = await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
@@ -144,8 +143,10 @@ class AuthRepository {
     User linkedUser;
     try {
       await user.updateDisplayName(name.trim());
-      linkedUser =
-          (await user.linkWithCredential(verifiedPhoneCredential)).user ?? user;
+      linkedUser = user;
+      if (verifiedPhoneCredential case final phone?) {
+        linkedUser = (await user.linkWithCredential(phone)).user ?? user;
+      }
     } catch (error, stackTrace) {
       try {
         await user.delete();

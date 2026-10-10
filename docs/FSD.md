@@ -62,7 +62,7 @@ workflows. Those are product features to be added to a clone.
 
 | ID | Requirement |
 |---|---|
-| F-001 | The app owner can enable or disable supported modules at build time through `AppFeatures.current`. |
+| F-001 | The app owner can enable or disable supported modules per deployment through the `features` section of `deployments/<id>/deployment.json`, applied at build time. |
 | F-002 | The app validates module combinations before startup and fails with a clear configuration error if there is no valid landing screen. |
 | F-003 | A disabled module must not be reachable through normal navigation or a direct route. |
 | F-004 | Authentication-dependent modules, including Profile, Notification Inbox, and Device Authentication, are unavailable when Authentication is disabled. |
@@ -81,7 +81,7 @@ workflows. Those are product features to be added to a clone.
 
 | ID | Requirement |
 |---|---|
-| F-020 | A guest can register with a name, email, password, and an SMS-verified phone number. |
+| F-020 | A guest can register with a name, email, and password, plus an SMS-verified phone number when the deployment enables `phoneVerification`. |
 | F-021 | Phone numbers used for verification are expected in E.164 format. |
 | F-022 | A newly registered account must verify its email before accessing authenticated app destinations. |
 | F-023 | A guest can sign in with email and password, or request a password reset link. |
@@ -119,7 +119,7 @@ workflows. Those are product features to be added to a clone.
 | F-050 | Push permission is requested from Settings rather than at app startup. |
 | F-051 | A signed-in device with permission and enabled preferences can register an FCM token under that user's private Firestore path. |
 | F-052 | A user can enable or disable push delivery through their notification preference. |
-| F-053 | A password change performed through the app writes a user-facing inbox record. A Cloud Function trigger sends a push to eligible registered devices and removes invalid tokens. |
+| F-053 | A password change performed through the app is recorded in the user's inbox by a trusted Cloud Function; clients cannot create inbox records. A Cloud Function trigger sends a push in the user's app language (English or French) to eligible registered devices and removes invalid tokens. |
 | F-054 | The inbox lists a bounded set of the user's newest notifications. Opening an item marks it read and displays its detail. |
 | F-055 | Opening a push routes to the matching inbox item when the inbox module is enabled. If the user is signed out, login and email verification occur before the requested notification destination is restored. |
 | F-056 | A push notification is not guaranteed to arrive. The inbox record is the in-app confirmation; the current implementation is not a security audit log. Password changes performed outside this app are not recorded. |

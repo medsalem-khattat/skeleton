@@ -38,7 +38,7 @@ Future<void> bootstrapFirebase(AppFeatures features) async {
     FirebaseFirestore.instance.useFirestoreEmulator(emulatorHost, 8080);
     FirebaseStorage.instance.useStorageEmulator(emulatorHost, 9199);
     FirebaseFunctions.instanceFor(
-      region: 'us-central1',
+      region: AppConfig.functionsRegion,
     ).useFunctionsEmulator(emulatorHost, 5001);
   }
 

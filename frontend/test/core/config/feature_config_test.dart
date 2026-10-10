@@ -21,6 +21,22 @@ void main() {
     expect(() => features.validate(), returnsNormally);
   });
 
+  test('phone verification depends on authentication', () {
+    expect(const AppFeatures().phoneVerificationEnabled, isTrue);
+    expect(
+      const AppFeatures(phoneVerification: false).phoneVerificationEnabled,
+      isFalse,
+    );
+    expect(
+      const AppFeatures(
+        authentication: false,
+        pushNotifications: false,
+        crashReporting: false,
+      ).phoneVerificationEnabled,
+      isFalse,
+    );
+  });
+
   test('standalone language settings work without authentication', () {
     const features = AppFeatures(
       authentication: false,

@@ -7,7 +7,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "deploy": "firebase deploy --config ../firebase.json --only functions",
+    "deploy": "firebase deploy --config ../firebase.json --only functions,firestore:rules,storage",
+    "test": "npm run build && node --test test/functions.test.cjs",
     "test:rules:unit": "node --test test/rules.test.cjs",
     "test:rules": "firebase emulators:exec --config ../firebase.json --project demo-skeleton --only firestore,storage \"npm run test:rules:unit\""
   },

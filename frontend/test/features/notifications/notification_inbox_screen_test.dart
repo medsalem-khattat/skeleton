@@ -263,7 +263,7 @@ class _FakeNotificationInboxRepository implements NotificationInboxRepository {
       );
 
   @override
-  Future<void> recordPasswordChanged() async {}
+  Future<void> recordPasswordChanged({required String languageCode}) async {}
 
   @override
   Future<void> markRead(String notificationId) async {

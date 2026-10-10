@@ -73,7 +73,9 @@ class _AccountSecurityScreenState extends ConsumerState<AccountSecurityScreen> {
     try {
       await ref
           .read(notificationInboxRepositoryProvider)
-          .recordPasswordChanged();
+          .recordPasswordChanged(
+            languageCode: Localizations.localeOf(context).languageCode,
+          );
       if (mounted) {
         showMessage(context, l10n.passwordChanged);
       }
@@ -222,14 +224,16 @@ class _AccountSecurityScreenState extends ConsumerState<AccountSecurityScreen> {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _changeEmail(user?.email ?? ''),
                 ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.phone_android),
-                  title: Text(l10n.changePhoneNumber),
-                  subtitle: Text(user?.phoneNumber ?? l10n.phoneNumberNotSet),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _changePhoneNumber,
-                ),
+                if (features.phoneVerificationEnabled) ...[
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.phone_android),
+                    title: Text(l10n.changePhoneNumber),
+                    subtitle: Text(user?.phoneNumber ?? l10n.phoneNumberNotSet),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: _changePhoneNumber,
+                  ),
+                ],
               ],
             ),
           ),

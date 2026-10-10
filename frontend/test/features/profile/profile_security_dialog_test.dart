@@ -197,7 +197,7 @@ class _FakeNotificationInboxRepository implements NotificationInboxRepository {
       const Stream.empty();
 
   @override
-  Future<void> recordPasswordChanged() async {
+  Future<void> recordPasswordChanged({required String languageCode}) async {
     passwordChangedRecords++;
   }
 

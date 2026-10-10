@@ -1,62 +1,48 @@
 import { initializeApp } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import { getStorage } from "firebase-admin/storage";
-import { getMessaging, MulticastMessage } from "firebase-admin/messaging";
+import { getMessaging } from "firebase-admin/messaging";
 import { logger } from "firebase-functions";
+import { defineString } from "firebase-functions/params";
+import * as functionsV1 from "firebase-functions/v1";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { HttpsError, onCall } from "firebase-functions/v2/https";
+
+import { requireRecentAuthentication } from "./auth";
 import {
-  CallableRequest,
-  HttpsError,
-  onCall,
-} from "firebase-functions/v2/https";
+  buildPasswordChangedMessage,
+  normalizeLanguage,
+  staleTokenIndexes,
+} from "./push";
 
 initializeApp();
 
-const invalidTokenCodes = new Set([
-  "messaging/invalid-registration-token",
-  "messaging/registration-token-not-registered",
-]);
-const recentAuthWindowSeconds = 5 * 60;
+// Set per deployment (firebase.functionsRegion); tool/deployment.mjs writes
+// it to .env.<projectId> before deploying.
+const region = defineString("FUNCTIONS_REGION", { default: "us-central1" });
 
-function requireRecentAuthentication(
-  request: CallableRequest<unknown>,
-): string {
-  if (!request.auth) {
-    throw new HttpsError("unauthenticated", "Sign in to continue.");
-  }
-  const authTime = request.auth.token.auth_time;
-  const ageSeconds = Date.now() / 1000 - Number(authTime);
-  if (
-    typeof authTime !== "number" ||
-    !Number.isFinite(ageSeconds) ||
-    ageSeconds < 0 ||
-    ageSeconds > recentAuthWindowSeconds
-  ) {
-    throw new HttpsError(
-      "failed-precondition",
-      "Recent authentication is required.",
-    );
-  }
-  return request.auth.uid;
+/** Removes the user's Firestore subtree and profile photos. Idempotent. */
+async function deleteUserData(uid: string): Promise<void> {
+  await Promise.all([
+    getFirestore().recursiveDelete(getFirestore().collection("users").doc(uid)),
+    getStorage().bucket().deleteFiles({ prefix: `users/${uid}/profile/` }),
+  ]);
 }
 
 export const deleteAccount = onCall(
   {
-    region: "us-central1",
+    region,
     timeoutSeconds: 300,
     enforceAppCheck: true,
   },
   async (request) => {
     const uid = requireRecentAuthentication(request);
-    const userRef = getFirestore().collection("users").doc(uid);
     try {
-      await Promise.all([
-        getFirestore().recursiveDelete(userRef),
-        getStorage().bucket().deleteFiles({ prefix: `users/${uid}/profile/` }),
-      ]);
+      await deleteUserData(uid);
       await getAuth().deleteUser(uid);
     } catch (error) {
+      if ((error as { code?: string }).code === "auth/user-not-found") return;
       logger.error("Account deletion failed.", { uid, error });
       throw new HttpsError(
         "internal",
@@ -66,9 +52,20 @@ export const deleteAccount = onCall(
   },
 );
 
+/**
+ * Removes leftover data when an Auth user is deleted outside the app, for
+ * example from the Firebase console, so no orphaned personal data remains.
+ */
+export const cleanupDeletedUser = functionsV1
+  .region(region)
+  .auth.user()
+  .onDelete(async (user) => {
+    await deleteUserData(user.uid);
+  });
+
 export const revokeAllSessions = onCall(
   {
-    region: "us-central1",
+    region,
     timeoutSeconds: 300,
     enforceAppCheck: true,
   },
@@ -91,10 +88,36 @@ export const revokeAllSessions = onCall(
   },
 );
 
+/**
+ * Writes the password-change inbox record. Clients cannot create inbox
+ * records; they call this right after reauthenticating and changing the
+ * password, so a recent sign-in is required.
+ */
+export const recordPasswordChange = onCall(
+  {
+    region,
+    enforceAppCheck: true,
+  },
+  async (request) => {
+    const uid = requireRecentAuthentication(request);
+    const data = request.data as { languageCode?: unknown } | undefined;
+    await getFirestore()
+      .collection("users")
+      .doc(uid)
+      .collection("notifications")
+      .add({
+        type: "password_changed",
+        createdAt: FieldValue.serverTimestamp(),
+        isRead: false,
+        languageCode: normalizeLanguage(data?.languageCode),
+      });
+  },
+);
+
 export const sendInboxPush = onDocumentCreated(
   {
     document: "users/{userId}/notifications/{notificationId}",
-    region: "us-central1",
+    region,
   },
   async (event) => {
     const notification = event.data?.data();
@@ -112,37 +135,21 @@ export const sendInboxPush = onDocumentCreated(
     const tokenDocuments = tokenSnapshot.docs.filter(
       (document) => document.id.length > 0 && !document.id.includes("/"),
     );
+    const language = normalizeLanguage(notification.languageCode);
 
     for (let start = 0; start < tokenDocuments.length; start += 500) {
       const batch = tokenDocuments.slice(start, start + 500);
-      const message: MulticastMessage = {
-        tokens: batch.map((document) => document.id),
-        notification: {
-          title: "Password changed",
-          body: "Your account password was changed successfully.",
-        },
-        data: { notificationId },
-        android: {
-          priority: "high",
-          notification: {
-            channelId: "push_notifications",
-            sound: "default",
-          },
-        },
-        apns: {
-          headers: { "apns-priority": "10" },
-          payload: { aps: { sound: "default" } },
-        },
-      };
-      const result = await getMessaging().sendEachForMulticast(message);
-      const staleTokens = batch.filter((_, index) => {
-        const response = result.responses[index];
-        return (
-          !response.success &&
-          invalidTokenCodes.has(response.error?.code ?? "")
-        );
-      });
+      const result = await getMessaging().sendEachForMulticast(
+        buildPasswordChangedMessage(
+          batch.map((document) => document.id),
+          notificationId,
+          language,
+        ),
+      );
 
+      const staleTokens = staleTokenIndexes(result.responses).map(
+        (index) => batch[index],
+      );
       if (staleTokens.length > 0) {
         const writes = getFirestore().batch();
         staleTokens.forEach((document) => writes.delete(document.ref));

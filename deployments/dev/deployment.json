@@ -1,0 +1,34 @@
+{
+  "deploymentId": "dev",
+  "internal": true,
+  "appName": "Skeleton Dev",
+  "appId": "com.medsalem.skeletondev",
+  "firebase": {
+    "projectId": "medsalem-skeleton-dev",
+    "authActionHost": "medsalem-skeleton-dev.firebaseapp.com",
+    "functionsRegion": "europe-west1"
+  },
+  "links": {
+    "privacyPolicyUrl": "",
+    "termsOfServiceUrl": "",
+    "supportEmail": "",
+    "authActionContinueUrl": ""
+  },
+  "api": {
+    "baseUrl": ""
+  },
+  "seedColor": "#3F51B5",
+  "features": {
+    "authentication": true,
+    "phoneVerification": true,
+    "home": true,
+    "profile": true,
+    "settings": true,
+    "appearanceSettings": true,
+    "languageSettings": true,
+    "deviceAuthentication": true,
+    "pushNotifications": true,
+    "notificationInbox": true,
+    "crashReporting": true
+  }
+}

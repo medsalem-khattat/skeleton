@@ -1,0 +1,34 @@
+{
+  "deploymentId": "test",
+  "internal": true,
+  "appName": "Skeleton Test",
+  "appId": "com.medsalem.skeletontest",
+  "firebase": {
+    "projectId": "medsalem-skeleton-test",
+    "authActionHost": "medsalem-skeleton-test.firebaseapp.com",
+    "functionsRegion": "europe-west1"
+  },
+  "links": {
+    "privacyPolicyUrl": "",
+    "termsOfServiceUrl": "",
+    "supportEmail": "",
+    "authActionContinueUrl": ""
+  },
+  "api": {
+    "baseUrl": ""
+  },
+  "seedColor": "#3F51B5",
+  "features": {
+    "authentication": true,
+    "phoneVerification": false,
+    "home": true,
+    "profile": true,
+    "settings": true,
+    "appearanceSettings": true,
+    "languageSettings": true,
+    "deviceAuthentication": true,
+    "pushNotifications": true,
+    "notificationInbox": true,
+    "crashReporting": true
+  }
+}

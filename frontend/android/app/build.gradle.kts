@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
@@ -24,9 +26,20 @@ val hasReleaseSigning = listOf(
     releaseKeyAlias,
     releaseKeyPassword,
 ).all { !it.isNullOrBlank() }
-val authActionHost = providers.gradleProperty("authActionHost")
-    .orElse(providers.environmentVariable("AUTH_ACTION_HOST"))
-    .getOrElse("whatsapp-bot-f57a8.firebaseapp.com")
+// Written by `node tool/deployment.mjs use <id>` from
+// deployments/<id>/deployment.json; never edit it by hand.
+val deploymentFile = rootProject.file("deployment.properties")
+val deployment = Properties().apply {
+    check(deploymentFile.isFile) {
+        "No deployment selected. From the repository root run: " +
+            "node tool/deployment.mjs use <deployment-id>"
+    }
+    deploymentFile.reader(Charsets.UTF_8).use { load(it) }
+}
+fun deploymentValue(key: String): String =
+    requireNotNull(deployment.getProperty(key)?.takeIf { it.isNotBlank() }) {
+        "deployment.properties is missing $key. Rerun node tool/deployment.mjs use <deployment-id>."
+    }
 
 android {
     namespace = "com.yourname.skeleton"
@@ -44,12 +57,13 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.yourname.skeleton"
+        applicationId = deploymentValue("appId")
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        manifestPlaceholders["authActionHost"] = authActionHost
+        manifestPlaceholders["appName"] = deploymentValue("appName")
+        manifestPlaceholders["authActionHost"] = deploymentValue("authActionHost")
     }
 
     signingConfigs {

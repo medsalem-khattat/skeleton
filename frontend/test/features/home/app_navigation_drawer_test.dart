@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:skeleton/core/config/app_version.dart';
 import 'package:skeleton/features/auth/application/auth_providers.dart';
 import 'package:skeleton/features/home/presentation/home_shell.dart';
 import 'package:skeleton/features/profile/application/profile_providers.dart';
@@ -60,6 +61,7 @@ void main() {
       ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(preferences),
+          appVersionProvider.overrideWith((ref) async => '1.0.0'),
           authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
           profileProvider.overrideWith(
             (ref) => Stream.value(

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/config/app_config.dart';
+import '../../../core/config/app_version.dart';
 import '../../../core/config/feature_providers.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../l10n/app_localizations.dart';
@@ -189,12 +189,11 @@ class AppNavigationDrawer extends ConsumerWidget {
               ),
             ),
             const Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Center(
-                child: Text('${l10n.version} ${AppConfig.appVersion}'),
+            if (ref.watch(appVersionProvider).value case final version?)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Center(child: Text('${l10n.version} $version')),
               ),
-            ),
           ],
         ),
       ),

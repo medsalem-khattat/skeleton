@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../config/app_config.dart';
+
 final firebaseAuthProvider = Provider<FirebaseAuth>(
   (ref) => FirebaseAuth.instance,
 );
@@ -13,7 +15,7 @@ final firestoreProvider = Provider<FirebaseFirestore>(
 );
 
 final firebaseFunctionsProvider = Provider<FirebaseFunctions>(
-  (ref) => FirebaseFunctions.instanceFor(region: 'us-central1'),
+  (ref) => FirebaseFunctions.instanceFor(region: AppConfig.functionsRegion),
 );
 
 final firebaseStorageProvider = Provider<FirebaseStorage>(

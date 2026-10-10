@@ -9,20 +9,33 @@ customer or to every customer.
 The recommended model is **one shared product codebase with customer-specific
 configuration and isolated deployments**:
 
-- Maintain the platform core and standard modules in one canonical repository.
+- Maintain the platform core and standard modules in one canonical repository,
+  with one version line: `main` and the release tags made from it.
 - Give every customer their own app identifiers, Firebase project, credentials,
   release configuration, and deployment record.
-- Pin each customer release to a known platform version and commit.
-- Put customer-only behavior in an isolated extension/module or configuration
-  layer, not in shared core code.
-- Keep customer changes out of the shared product unless they are approved as
-  reusable roadmap features.
+- Build each customer release from a release tag, and upgrade every customer
+  to every new version within the deadlines in
+  [RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md).
+- Express customer differences only as configuration in
+  `deployments/<id>/`: identity, links, branding, region, and module
+  switches. Never as customer branches, forks, or customer-specific code.
+- A customer request that configuration cannot cover becomes a product
+  feature (a module or option any customer can enable) once the product
+  owner approves it, or is declined.
 
-The current repository is configured for one Firebase project and one iOS
-bundle identifier in places such as `frontend/lib/firebase_options.dart`,
-`frontend/firebase.json`, `backend/firebase.json`, and `codemagic.yaml`. It does **not** yet provide a
-customer-matrix build system or automated per-customer deployment. Follow
-these steps manually until that automation is designed and implemented.
+**One deployment = one Firebase project = one backend.** Every deployment gets
+its own Firebase project. The customer owns that project and pays its Firebase
+billing; no two deployments ever share a project, a database, or Cloud
+Functions. As part of each deployment, we create the customer's Firebase
+project under the customer's account and choose the app identifiers (see
+[Step 3](#step-3-create-the-customer-owned-firebase-project)).
+
+Each deployment is one file, `deployments/<id>/deployment.json`, plus its
+public Firebase client files. One `codemagic.yaml` builds every deployment,
+and every secret stays in the customer's accounts. The technical steps are in
+[DEPLOYMENT.md](DEPLOYMENT.md); this guide covers ownership, policy, and
+support. Versioning, upgrade deadlines, supported versions, and end of
+support are in [RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md).
 
 ## 2. Ownership and deployment records
 
@@ -43,9 +56,11 @@ Maintain a private deployment register outside source control. Record at least:
 | Contract/license | Plan, licensed modules, dates, support level, user/device limits |
 | App identity | Display name, Android application ID, iOS bundle ID |
 | Firebase environment | Project ID per environment (development/staging/production) |
-| Release | Platform version/tag, commit SHA, customer extension version, build number |
-| Enabled modules | Standard and customer-specific modules, with dependencies |
+| Firebase ownership | Customer Google account or organization that owns each project, customer billing account, our granted IAM roles and when they were granted |
+| Release | Version/tag, commit SHA, build numbers, backend deploy date |
+| Enabled modules | Module switches from the deployment file |
 | Deployment state | Planned, testing, submitted, released, rolled back/forward-fixed |
+| Support status | Current, Previous (with end-of-support date), or Unsupported; upgrade deadline and any approved deferral ([RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md) §7) |
 | Approvals | Customer acceptance and internal release approval |
 
 Never put customer secrets, signing credentials, service account keys, or
@@ -58,9 +73,9 @@ actual register and credentials in approved access-controlled systems.
 
 1. Record the customer requirements and expected user workflows.
 2. Identify which requested capabilities are:
-   - already supported standard modules;
-   - new reusable platform roadmap items; or
-   - customer-specific extensions/integrations.
+   - already supported standard modules or deployment-file settings;
+   - new product features to propose to the product owner; or
+   - out of scope (declined, or run by the customer outside the app).
 3. Define acceptance criteria, supported platforms, languages, environments,
    data residency/retention requirements, support level, and release cadence.
 4. Agree how licensed modules and contract expiry are handled. Do not treat
@@ -70,67 +85,77 @@ actual register and credentials in approved access-controlled systems.
    Apple/Google developer accounts, Firebase billing, APNs, App Check, domains,
    and store listings.
 
-### Step 2: Create the customer configuration
+6. Collect the prerequisites and pass the readiness check in
+   [CUSTOMER_PREREQUISITES.md](CUSTOMER_PREREQUISITES.md). Nothing in Step 2
+   starts before the check is **Go**.
 
-1. Start from a reviewed platform tag, not an arbitrary developer branch.
-2. Assign a stable customer identifier and unique app display name.
-3. Choose unique Android application and iOS bundle identifiers. Confirm the
-   customer owns or controls the related store listings.
-4. Set branding and supported module switches. Validate module dependencies
-   and landing destinations.
-5. Keep customer-only code isolated in an extension package or module. Avoid
-   editing shared core just to customize text, color, URLs, or enabled modules.
-6. Record the exact base platform tag and customer extension version.
+### Step 2: Create the deployment
 
-Do not create an untracked long-lived fork for ordinary customization. If an
-exceptional core divergence is unavoidable, document its owner, reason,
-upstream synchronization plan, and expiry/review date.
+Follow [DEPLOYMENT.md](DEPLOYMENT.md) §4. In policy terms:
 
-### Step 3: Provision isolated services
+1. Start from the latest release tag, not a developer branch or an older
+   version.
+2. Assign a stable customer identifier (the deployment ID) and a unique app
+   display name.
+3. We choose the app identifier, the same for Android and iOS, for example
+   `<our-reverse-domain>.<customer-id>`. It must be unique, is permanent once
+   the app is published, and is recorded in the deployment register before
+   the Firebase apps are registered. Confirm the customer owns or controls
+   the related store listings.
+4. Branding, links, and module switches go in
+   `deployments/<id>/deployment.json`; `node tool/deployment.mjs check <id>`
+   validates module dependencies and landing destinations.
+5. Do not write customer-specific code. A need that the deployment file
+   cannot express becomes a general option or module in the product (see
+   [RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md) §6).
+6. Record the release tag in the deployment register.
 
-For each customer, create separate Firebase projects for development/staging
-and production when the customer/support model requires environment isolation.
-At minimum:
+Never fork the repository or keep a branch for a customer, not even
+temporarily.
 
-1. Register separate Android and iOS apps in the customer Firebase project.
-2. Enable only the required Firebase products and providers.
-3. Generate app configuration with FlutterFire and commit only the generated
-   public app configuration that belongs in source control.
-4. Deploy reviewed Firestore and Storage rules. Merge rules into existing
-   projects instead of replacing unrelated production rules.
-5. Deploy only the required Cloud Functions. Review region, IAM, billing,
-   App Check, and external-function coexistence before deployment.
-6. Configure Firebase Remote Config values and test update behavior.
-7. Configure domains, Android App Links, iOS Associated Domains, APNs, and
-   Apple provisioning entitlements when the enabled features require them.
-8. Register production App Check providers and validate tokens before
-   enforcing App Check for a Firebase product.
-9. Seed no real user data into test environments. Use synthetic test accounts.
+### Step 3: Create the customer-owned Firebase project
 
-Refer to [README.md](README.md) for the repository's current Firebase setup,
-emulator, email-link, App Check, and signing details.
+Each deployment has its own backend: a Firebase project that the customer
+owns and pays for. The customer creates it, or we create it with their access,
+following [customer-setup/2-google-cloud-firebase.md](customer-setup/2-google-cloud-firebase.md);
+it is validated in the readiness check:
+
+1. **Customer account.** Use the customer's Google account or Google Cloud
+   organization. If the customer has none, create one with the customer, in
+   the customer's name and with the customer's contact address. Never create
+   the project under our own account.
+2. **Billing.** The customer provides a Cloud Billing account with their own
+   payment method. Cloud Functions require the Blaze plan.
+3. **Project.** Created under the customer's account (`<customer-id>-prod`)
+   and linked to the customer's billing account. When the support model
+   requires environment isolation, also create `<customer-id>-staging` as a
+   separate deployment.
+4. **Our access.** The customer grants our team the narrowest IAM roles needed
+   (for example **Firebase Admin**) and stays the project **Owner**. Record the
+   roles and the date in the deployment register; the customer removes them
+   when the support agreement ends.
+5. Seed no real user data into test environments. Use synthetic test accounts.
 
 ### Step 4: Configure release credentials and CI
 
-1. Create a separate Codemagic application/environment group for the customer
-   and environment. Limit access to staff who need it.
-2. Add that customer's signing credentials and store/API integrations through
-   Codemagic secure variables/integrations. Do not commit credentials.
-3. Configure workflow values for bundle/application ID, Firebase target,
-   distribution channel, build number, and customer feature configuration.
-4. Confirm the workflow builds the intended customer configuration and cannot
-   accidentally deploy to another customer's Firebase project.
-5. Run dependency installation, static analysis, client tests, Functions build,
-   Firebase rules tests, and the platform release build.
-6. Check the produced artifact identity and signing profile before submission.
-   For iOS, confirm the provisioning profile includes the entitlements declared
-   by the app.
+All secrets are created in and stay in the customer's accounts; see
+[DEPLOYMENT.md](DEPLOYMENT.md) §3 for the full inventory.
 
-The current `codemagic.yaml` has a single configured customer identity. Until
-the workflows are parameterized, use a reviewed customer-specific workflow
-configuration or explicitly update and review the relevant configuration
-before each build. Never rely on an implicit environment value that can point
-to the wrong customer project.
+1. The workflows run in a Codemagic team owned by the customer, with our
+   staff invited as members. Limit membership to staff who need it. The
+   customer's deployment folder comes from its own private repository
+   (`DEPLOYMENT_REPO`), so the team can read no other customer's deployment.
+2. The customer's signing credentials, App Store Connect key, and Firebase
+   deploy credential are stored only there, as secure variables or code
+   signing identities. They go there straight from where they are created,
+   by the customer or by us, and are never sent to anyone or committed.
+3. The `deployment` group's `DEPLOYMENT_ID` selects the deployment;
+   `backend-deploy` refuses to run unless the deploy credential belongs to
+   that deployment's Firebase project.
+4. Every build runs dependency installation, static analysis, client tests,
+   and, for the backend, Functions and rules tests.
+5. Check the produced artifact identity and signing profile before submission.
+   `ios-release` verifies the profile's entitlements automatically.
 
 ### Step 5: Verify, accept, and release
 
@@ -179,7 +204,7 @@ Severity is based on impact and risk, not on how many customers reported it.
 A defect affecting one customer can still be critical; a broad defect with a
 workaround may be high or medium under the support agreement.
 
-## 5. Decide: customer-only fix or all-customer fix
+## 5. Decide: code fix or configuration fix
 
 Use the following decision sequence:
 
@@ -192,28 +217,28 @@ Use the following decision sequence:
    - Yes: fix shared platform code and test across the supported module/config
      matrix. Release the fix to all affected customers, each on its own approved
      schedule.
-3. **Is it caused by a customer-only module, data mapping, integration,
-   branding/configuration, or customer-specific environment?**
-   - Yes: implement the fix in that isolated customer extension/configuration.
-     Do not alter shared core unless a reusable defect is found.
+3. **Is it caused only by the customer's deployment file or their
+   environment (Firebase, store, Apple/Google account settings)?**
+   - Yes: correct that configuration (§6.3). If the code fails only with that
+     customer's combination of settings, it is a shared defect: fix it on
+     `main` (§6.1).
 4. **Is the behavior intended differently by contract or customer
    configuration?**
    - Yes: treat it as a requirement/change request, not automatically as a
      platform bug. Confirm acceptance criteria and license/support scope.
-5. **Is the same issue likely to recur for other customers?**
-   - If so, consider a configurable standard capability or a shared feature
-     after product review. Do not copy customer-specific data or business rules
-     into the core by default.
+5. **Is the customer on an old version?**
+   - Check whether the defect is already fixed in the current version. If so,
+     the remedy is the upgrade. We do not patch old versions.
 
 ### Deployment choice matrix
 
-| Cause/impact | Code/configuration location | Release scope |
+| Cause/impact | Where the change is made | Release scope |
 |---|---|---|
-| Shared core defect | Canonical platform repository | Patch every affected supported customer deployment; stagger if operationally necessary. |
-| Customer extension defect | That customer's isolated extension | Patch that customer's deployment only. |
-| Customer environment/configuration error | Customer environment/deployment config | Correct and validate that environment; no app release unless code changes are needed. |
-| New customer-requested behavior | Extension or approved shared roadmap feature | Customer-only unless product owner approves standardization. |
-| Shared security/data-integrity defect | Shared core/backend; contain via server/config if possible | All affected deployments; prioritize regardless of release calendar. |
+| Code defect, whichever customer reported it | `main` | Next patch release, rolled out to every deployment ([RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md) §3). |
+| Customer deployment-file error | `deployments/<id>/` on `main` | Configuration-only rebuild of that customer on their current tag. |
+| Customer environment error (Firebase, stores, accounts) | The customer's console | Correct and verify; no app release. |
+| New customer-requested behavior | Product feature on `main`, if the product owner approves | Next minor release; every customer can enable it. |
+| Security/data-integrity defect | `main`; contain via server/config first if possible | Security patch, all deployments within 3 working days. |
 | Third-party outage or store issue | Operational response or vendor escalation | Communicate scope and workaround; release only if a code fix is justified. |
 
 ## 6. Bug-fix and release procedure
@@ -227,46 +252,37 @@ Use the following decision sequence:
 3. Fix the defect on the canonical platform branch with a regression test.
 4. Run analysis, unit/widget tests, Functions build, security-rules tests, and
    relevant platform builds.
-5. Review customer extensions/configurations for compatibility.
-6. Merge the fix into the canonical release line. Backport the same reviewed
-   fix to any still-supported release lines that need it; avoid parallel
-   hand-edited variants.
-7. Build a candidate from a tagged commit.
+5. Check every deployment file for compatibility
+   (`node tool/deployment.mjs list`).
+6. Merge the fix into `main`. There are no other release lines to backport
+   to: customers on older versions get the fix by upgrading.
+7. Tag a patch release and build from that tag.
 8. Deploy backend/rules changes to staging first. For incompatible schema or
    API changes, use an expand/migrate/contract sequence:
    - add backward-compatible fields/API first;
    - deploy clients/backend that tolerate old and new formats;
    - migrate data if required;
    - remove old behavior only after supported clients no longer depend on it.
-9. Release to each affected customer using that customer's configuration,
-   credentials, Firebase project, and distribution channel.
+9. Roll the release out to every deployment in waves, following
+   [RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md) §3, starting with the
+   customers affected.
 10. Verify and record each deployment separately. A merged code fix is not
     deployed to a customer until that customer's release is built and promoted.
 
-### 6.2 Customer-only fix
+### 6.2 Defect reported on an unsupported version
 
-1. Verify that the defect is confined to the customer's extension or
-   environment.
-2. Branch from the exact customer release tag/commit currently deployed.
-3. Make the smallest isolated change in the customer extension/configuration;
-   do not silently change shared platform behavior.
-4. Add regression tests for the customer's scenario and any shared interface
-   that the extension consumes.
-5. Check that the patch does not expose customer data, secrets, identifiers, or
-   code to other customer builds.
-6. Build and test only against that customer's staging environment and
-   configuration, while still running all relevant shared tests.
-7. Obtain customer acceptance when the contract/process requires it.
-8. Release a customer-specific version with a traceable tag/build number.
-9. Record the fix and monitor the deployment.
-10. If the root cause reveals a shared defect, upstream the fix into the
-    canonical platform and follow the shared-platform process for other
-    deployments.
+1. Reproduce on the current version.
+2. If it does not reproduce there, the fix is the upgrade: schedule it with
+   the customer.
+3. If it does reproduce, fix it on `main` (§6.1); the customer receives it
+   with the upgrade.
 
 ### 6.3 Configuration-only correction
 
 1. Confirm the expected configuration against the approved customer record.
-2. Change only the target customer's environment/configuration.
+2. Change only the target customer's environment or deployment file. A
+   deployment-file change is committed to `main` and rebuilt from the tag the
+   customer is on ([RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md) §6).
 3. Review access, impact, and rollback values before publishing.
 4. Test against staging or a safe test account.
 5. Publish, verify behavior, and record who changed what and when.
@@ -312,37 +328,34 @@ not for protecting customer data or server operations.
 
 ## 8. Customer support and maintenance policy
 
-- Support applies to the versions and modules included in the customer's
-  agreement. State the supported release window and end-of-support process.
-- Separate defect correction from feature requests, paid customization,
-  integration changes, and environment administration.
-- For customer-specific modules, record code ownership, support owner,
-  dependency versions, and compatibility with platform upgrades.
-- Before a platform release, run compatibility tests for each supported
-  extension and module configuration.
-- When a customer is several platform versions behind, estimate and schedule
-  upgrades; do not assume every intermediate migration is safe without tests.
-- A customer can defer routine releases according to the agreement, but
-  security fixes and end-of-support expectations need a documented escalation
-  path.
+Supported versions, upgrade deadlines, deferrals, and end of support are
+defined in [RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md). In short:
+
+- Only the current version and, for 60 days after a new minor or major
+  version, the previous one are supported. Fixes ship only in new versions.
+- Every customer is upgraded to every release; security fixes within 3
+  working days.
+- A deployment that stays on a version past its end-of-support date is
+  unsupported until it is upgraded.
+- Separate defect correction from feature requests, integration changes, and
+  environment administration. Feature requests become product features or are
+  declined; there is no paid customer-only code.
 
 ## 9. Recommended automation to add later
 
-The repository currently needs additional deployment engineering before
-customer scale. A future implementation should add:
+Already in place: a validated deployment file per customer
+(`deployments/<id>/deployment.json`), CI that builds from it with an explicit
+`DEPLOYMENT_ID`, customer deployment folders in per-customer repositories,
+customer-owned secret groups, a `readiness-check` workflow, a guard that rejects a deploy
+credential for the wrong Firebase project, a guard that builds customer
+deployments only from the release tag, a secret scan, and client,
+Functions, and rules tests on every change. Still to add:
 
-1. A typed, validated customer manifest containing non-secret identifiers,
-   enabled modules, environment references, and release channels.
-2. CI workflows that build from a manifest and require explicit customer and
-   environment selection.
-3. Per-customer secret groups/permissions and guardrails that reject a
-   mismatched app ID/Firebase project.
-4. A build matrix for supported module combinations and customer extensions.
-5. Automated client, Functions, and emulator rules tests for every candidate.
-6. Artifact provenance recording commit SHA, manifest version, dependency
-   lockfiles, and build number.
-7. Staging promotion and human approval before production deployment.
-8. A deployment register/inventory for customer app versions and Firebase
+1. A build matrix for supported module combinations.
+2. Artifact provenance recording commit SHA, deployment file version,
+   dependency lockfiles, and build number.
+3. Staging promotion and human approval before production deployment.
+4. A deployment register/inventory for customer app versions and Firebase
    backend versions.
 
 Do not add a customer license server or remote entitlement enforcement without
@@ -354,10 +367,13 @@ embed a signing secret in the mobile application.
 
 ### New customer
 
+- [ ] Readiness check passed (Go) and recorded ([CUSTOMER_PREREQUISITES.md](CUSTOMER_PREREQUISITES.md))
 - [ ] Scope, acceptance, support, and license recorded
 - [ ] App identifiers and distribution ownership confirmed
-- [ ] Customer extension boundary and base platform version recorded
-- [ ] Firebase projects and providers provisioned
+- [ ] Built from the latest release tag, recorded in the register
+- [ ] App identifier chosen and recorded
+- [ ] Firebase project created under the customer's account, linked to the customer's billing account (Blaze), our IAM roles recorded
+- [ ] Firebase providers provisioned
 - [ ] Rules, Functions, App Check, Remote Config, and domains reviewed
 - [ ] CI credentials isolated and workflow target verified
 - [ ] Staging acceptance completed
@@ -365,23 +381,20 @@ embed a signing secret in the mobile application.
 - [ ] Production release and backend versions recorded
 - [ ] Monitoring and support contacts ready
 
-### Shared bug fix
+### Bug fix
 
 - [ ] Severity and affected customer/version matrix assessed
-- [ ] Regression test added and relevant checks pass
-- [ ] Compatibility with active extensions verified
-- [ ] Candidate built from a tagged commit
+- [ ] Reproduced on the current version
+- [ ] Fixed on `main` with a regression test; relevant checks pass
+- [ ] Every deployment file still valid
+- [ ] Patch release tagged and built from the tag
 - [ ] Staging backend/client validation completed
-- [ ] Every affected customer deployment scheduled and tracked
+- [ ] Every deployment upgraded within the deadline and recorded
 - [ ] Store rollout/forward-fix strategy ready
-- [ ] Release records and monitoring updated
 
-### Customer-only bug fix
+### Configuration correction
 
-- [ ] Root cause proven customer-specific
-- [ ] Patch based on the deployed customer commit
-- [ ] Shared interfaces and common tests remain passing
-- [ ] No customer-only data/configuration leaks into other builds
-- [ ] Staging validation and customer acceptance completed as required
-- [ ] Customer release tagged and deployed
-- [ ] Shared root cause upstreamed if discovered
+- [ ] Expected value confirmed against the customer record
+- [ ] Deployment file or customer console changed, nothing else
+- [ ] Rebuilt from the customer's current tag if the deployment file changed
+- [ ] Verified and recorded

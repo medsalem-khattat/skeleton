@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/config/feature_providers.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/validators.dart';
@@ -96,7 +97,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Future<void> _submit() async {
     final l10n = AppLocalizations.of(context);
-    if (_autoVerifiedCredential == null &&
+    final phoneRequired = ref
+        .read(appFeaturesProvider)
+        .phoneVerificationEnabled;
+    if (phoneRequired &&
+        _autoVerifiedCredential == null &&
         (_verificationId == null || _sentPhoneNumber == null)) {
       showMessage(context, l10n.phoneRegistrationRequired);
       return;
@@ -109,9 +114,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           name: _name.text,
           email: _email.text,
           password: _password.text,
-          phoneCredential: _autoVerifiedCredential,
-          verificationId: _verificationId,
-          smsCode: _smsCode.text.trim().isEmpty ? null : _smsCode.text.trim(),
+          phoneCredential: phoneRequired ? _autoVerifiedCredential : null,
+          verificationId: phoneRequired ? _verificationId : null,
+          smsCode: !phoneRequired || _smsCode.text.trim().isEmpty
+              ? null
+              : _smsCode.text.trim(),
         );
   }
 
@@ -125,6 +132,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       }
     });
     final loading = ref.watch(authControllerProvider).isLoading;
+    final phoneRequired = ref
+        .watch(appFeaturesProvider)
+        .phoneVerificationEnabled;
 
     return Scaffold(
       appBar: AppBar(
@@ -143,11 +153,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      l10n.phoneRegistrationInstructions,
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: AppSpacing.md),
+                    if (phoneRequired) ...[
+                      Text(
+                        l10n.phoneRegistrationInstructions,
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: AppSpacing.md),
+                    ],
                     AppTextField(
                       controller: _name,
                       label: l10n.fullName,
@@ -182,60 +194,62 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       obscure: true,
                       textInputAction: TextInputAction.done,
                     ),
-                    SizedBox(height: AppSpacing.md),
-                    AppTextField(
-                      controller: _phoneNumber,
-                      label: l10n.phoneNumber,
-                      enabled: !loading,
-                      keyboardType: TextInputType.phone,
-                      textInputAction: TextInputAction.done,
-                      autofillHints: const [AutofillHints.telephoneNumber],
-                      validator: (value) => _phoneNumberError(value, l10n),
-                      onChanged: (value) {
-                        if (_sentPhoneNumber != null &&
-                            _normalizePhone(value) != _sentPhoneNumber) {
-                          setState(() {
-                            _verificationId = null;
-                            _sentPhoneNumber = null;
-                            _resendToken = null;
-                            _autoVerifiedCredential = null;
-                            _smsCode.clear();
-                          });
-                        }
-                      },
-                    ),
-                    SizedBox(height: AppSpacing.sm),
-                    if (_autoVerifiedCredential == null)
-                      AppButton(
-                        label: _verificationId == null
-                            ? l10n.sendVerificationCode
-                            : l10n.resendVerificationCode,
-                        onPressed: () =>
-                            _sendPhoneCode(resend: _verificationId != null),
-                        loading: loading,
-                      )
-                    else
-                      Text(
-                        l10n.phoneAutomaticallyVerified,
-                        textAlign: TextAlign.center,
-                      ),
-                    if (_verificationId != null &&
-                        _autoVerifiedCredential == null) ...[
-                      SizedBox(height: AppSpacing.sm),
+                    if (phoneRequired) ...[
+                      SizedBox(height: AppSpacing.md),
                       AppTextField(
-                        controller: _smsCode,
-                        label: l10n.smsVerificationCode,
-                        keyboardType: TextInputType.number,
+                        controller: _phoneNumber,
+                        label: l10n.phoneNumber,
+                        enabled: !loading,
+                        keyboardType: TextInputType.phone,
                         textInputAction: TextInputAction.done,
-                        autofillHints: const [AutofillHints.oneTimeCode],
-                        validator: (value) {
-                          if (value?.trim().isNotEmpty == true &&
-                              RegExp(r'^\d{6}$').hasMatch(value!.trim())) {
-                            return null;
+                        autofillHints: const [AutofillHints.telephoneNumber],
+                        validator: (value) => _phoneNumberError(value, l10n),
+                        onChanged: (value) {
+                          if (_sentPhoneNumber != null &&
+                              _normalizePhone(value) != _sentPhoneNumber) {
+                            setState(() {
+                              _verificationId = null;
+                              _sentPhoneNumber = null;
+                              _resendToken = null;
+                              _autoVerifiedCredential = null;
+                              _smsCode.clear();
+                            });
                           }
-                          return l10n.phoneVerificationCodeRequired;
                         },
                       ),
+                      SizedBox(height: AppSpacing.sm),
+                      if (_autoVerifiedCredential == null)
+                        AppButton(
+                          label: _verificationId == null
+                              ? l10n.sendVerificationCode
+                              : l10n.resendVerificationCode,
+                          onPressed: () =>
+                              _sendPhoneCode(resend: _verificationId != null),
+                          loading: loading,
+                        )
+                      else
+                        Text(
+                          l10n.phoneAutomaticallyVerified,
+                          textAlign: TextAlign.center,
+                        ),
+                      if (_verificationId != null &&
+                          _autoVerifiedCredential == null) ...[
+                        SizedBox(height: AppSpacing.sm),
+                        AppTextField(
+                          controller: _smsCode,
+                          label: l10n.smsVerificationCode,
+                          keyboardType: TextInputType.number,
+                          textInputAction: TextInputAction.done,
+                          autofillHints: const [AutofillHints.oneTimeCode],
+                          validator: (value) {
+                            if (value?.trim().isNotEmpty == true &&
+                                RegExp(r'^\d{6}$').hasMatch(value!.trim())) {
+                              return null;
+                            }
+                            return l10n.phoneVerificationCodeRequired;
+                          },
+                        ),
+                      ],
                     ],
                     SizedBox(height: AppSpacing.lg),
                     AppButton(
