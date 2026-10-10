@@ -1,6 +1,6 @@
 # Skeleton — Product Roadmap
 
-As of 2026-10-08.
+As of 2026-10-10.
 
 ## Deployment model (decided)
 
@@ -12,11 +12,16 @@ deployment is one file, `deployments/<id>/deployment.json`, and every secret
 stays in the customer's accounts and Codemagic team. The procedure is in
 [DEPLOYMENT.md](DEPLOYMENT.md).
 
+**One version line (decided).** No customer forks, branches, or
+customer-specific code. Every customer is upgraded to every release; only the
+current and previous versions are supported. See
+[RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md).
+
 ## Where the skeleton stands today
 
 Skeleton is a reusable Flutter + Firebase starter. Its foundation is complete.
-The repository holds two deployments: `example` (placeholder values, local
-emulators, CI) and `dev` (`whatsapp-bot-f57a8`, `com.yourname.skeleton`).
+The repository holds three deployments: `example` (placeholder values, local
+emulators, CI), `test` (`medsalem-skeleton-test`), and `dev` (`whatsapp-bot-f57a8`, `com.yourname.skeleton`).
 
 | Area | What ships today |
 | --- | --- |
@@ -28,7 +33,7 @@ emulators, CI) and `dev` (`whatsapp-bot-f57a8`, `com.yourname.skeleton`).
 | Localization | English and French, including push text |
 | Tests | 96 Flutter tests; 5 Functions unit tests; 5 emulator rules tests |
 | CI/CD | One `codemagic.yaml` for every deployment: `frontend-ci`, `backend-ci` (automatic, our team); `backend-deploy`, `android-release`, `ios-release` (manual, customer's team) |
-| Docs | README, FSD, TSD, feature guide, rename guide, customer deployment guide, this roadmap, `CHANGELOG.md` |
+| Docs | README, FSD, TSD, feature guide, rename guide, deployment guide, customer deployment guide, release and support policy, this roadmap, `CHANGELOG.md` |
 
 ## Gaps and risks
 
@@ -85,7 +90,6 @@ to shared files.
 - [ ] Add a build matrix for the supported module combinations, reusing the `AppFeatures.validate()` rules
 - [ ] Record artifact provenance (commit SHA, manifest version, lockfiles, build number) and keep a deployment register of versions per customer
 - [ ] Add staging promotion with human approval before production deploys
-- [ ] Add a customer extension boundary: a package or module slot for customer-only code, kept out of `lib/core`
 - [ ] Design first, then build: remote kill switches and staged rollout ([TSD](TSD.md) §11), and server-side entitlements for licensed modules ([CUSTOMER_DEPLOYMENT.md](CUSTOMER_DEPLOYMENT.md) §9)
 
 ## Open questions

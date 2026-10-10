@@ -233,8 +233,8 @@ objects, or push tokens.
 ## 9. Feature extension procedure
 
 1. Write the feature's functional requirements, failure behavior, and
-   acceptance tests. Decide if it belongs in the reusable skeleton or a
-   product-specific module.
+   acceptance tests. Every feature is part of the product and is enabled per
+   deployment with a module switch; there are no customer-specific modules.
 2. Create `frontend/lib/features/<name>/` and add only the layers required by the
    feature.
 3. Define typed models and a repository/service interface. Keep SDK details in
@@ -261,9 +261,10 @@ example.
 
 For the operational lifecycle of dedicated customer configurations, bug
 triage, customer-only/shared fixes, releases, and recovery, see
-[CUSTOMER_DEPLOYMENT.md](CUSTOMER_DEPLOYMENT.md). The current repository is
-configured for one Firebase project and does not yet implement a customer
-deployment matrix.
+[CUSTOMER_DEPLOYMENT.md](CUSTOMER_DEPLOYMENT.md); for versions, upgrades, and
+end of support, see [RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md). Each
+deployment is configured by `deployments/<id>/deployment.json`; a build matrix
+over module combinations is not implemented yet.
 
 ## 10. Quality and verification
 

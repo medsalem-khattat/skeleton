@@ -28,8 +28,11 @@ Architecture and requirements:
 - [Deployment Guide](DEPLOYMENT.md) — the deployment file, secrets strategy,
   step-by-step customer setup, and testing.
 - [Customer Deployment and Bug-Fix Guide](CUSTOMER_DEPLOYMENT.md) — dedicated
-  customer deployments, support triage, customer-only versus shared fixes, and
+  customer deployments, support triage, code versus configuration fixes, and
   release/rollback procedures.
+- [Release, Upgrade, and Support Policy](RELEASE_AND_SUPPORT.md) — version
+  numbers, upgrading every customer to each release, supported versions, and
+  end of support.
 - [Product Roadmap](ROADMAP.md) — current gaps and the plan for the next
   versions.
 
@@ -266,7 +269,8 @@ with the current password before updating the Firebase phone credential.
 New accounts must verify their email address before accessing app screens.
 The verification screen lets users resend the link or refresh the verification
 status after opening it.
-Registration requires a phone number in E.164 format (for example
+When `phoneVerification` is enabled, registration requires a phone number in
+E.164 format (for example
 `+14155552671`) and SMS verification. After the code is verified, the phone
 credential is linked to the new email/password account. Users continue to sign
 in with their email and password, and must still verify their email before
@@ -358,9 +362,9 @@ feature-specific models, providers, and UI stay with their feature.
 To create a deployment for a customer (Firebase project, app ID, secrets, CI,
 backend deploy, and store releases), follow [DEPLOYMENT.md](DEPLOYMENT.md).
 Each deployment has its own customer-owned Firebase project. Enable
-**Authentication → Email/Password** and **Authentication → Phone** there, and
-create a **Firestore** database. Phone Auth verifies phone numbers during
-registration; login remains email/password. Configure allowed SMS regions,
+**Authentication → Email/Password** there (plus **Authentication → Phone** when
+`phoneVerification` is on), and create a **Firestore** database. Phone Auth
+verifies phone numbers during registration; login remains email/password. Configure allowed SMS regions,
 the Android SHA-1/SHA-256 signing fingerprints, and APNs for iOS phone auth.
 
 ### Run the checks

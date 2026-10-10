@@ -42,7 +42,8 @@ cd ../backend/functions && npm ci && npm test && npm run test:rules
 To deploy for a customer, follow [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md):
 parameters, secrets strategy, step-by-step setup, and testing. Ownership,
 support, and bug-fix policy are in
-[docs/CUSTOMER_DEPLOYMENT.md](docs/CUSTOMER_DEPLOYMENT.md). See
+[docs/CUSTOMER_DEPLOYMENT.md](docs/CUSTOMER_DEPLOYMENT.md); upgrades and end of
+support in [docs/RELEASE_AND_SUPPORT.md](docs/RELEASE_AND_SUPPORT.md). See
 [`docs/README.md`](docs/README.md) for feature details, the
 [FSD](docs/FSD.md), [TSD](docs/TSD.md), and
 [feature guide](docs/HOW_TO_ADD_A_FEATURE.md) for architecture, and

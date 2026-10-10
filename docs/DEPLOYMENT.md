@@ -6,7 +6,9 @@ app to it, and the same `codemagic.yaml` builds every deployment. Customers
 own every secret and all user data; this repository holds only public values.
 
 For contracts, support, and bug-fix policy, see
-[CUSTOMER_DEPLOYMENT.md](CUSTOMER_DEPLOYMENT.md).
+[CUSTOMER_DEPLOYMENT.md](CUSTOMER_DEPLOYMENT.md). For upgrading deployments to
+a new version and end of support, see
+[RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md).
 
 ## 1. What a deployment is
 
@@ -19,12 +21,14 @@ For contracts, support, and bug-fix policy, see
 | Google Play listing, upload keystore | Customer's Play Console and Codemagic team | Customer |
 | Build secrets and the deploy credential | Customer's Codemagic team | Customer |
 
-The repository includes two deployments:
+The repository includes three deployments:
 
 - `example`: placeholder Firebase values (`demo-skeleton`). Use it for tests,
   CI, and local runs against the Firebase emulators. It never reaches a real
   backend.
 - `dev`: our development deployment (`whatsapp-bot-f57a8`).
+- `test`: our test deployment (`medsalem-skeleton-test`), the first wave of
+  every release rollout; phone verification is off.
 
 ## 2. The deployment file
 
@@ -35,7 +39,8 @@ The repository includes two deployments:
   "appId": "com.ourcompany.acme",
   "firebase": {
     "projectId": "acme-prod",
-    "authActionHost": "acme-prod.firebaseapp.com"
+    "authActionHost": "acme-prod.firebaseapp.com",
+    "functionsRegion": "europe-west1"
   },
   "links": {
     "privacyPolicyUrl": "https://acme.example/privacy",
@@ -68,6 +73,7 @@ The repository includes two deployments:
 | `appId` | Yes | Android application ID **and** iOS bundle ID. Chosen by us, permanent after the first store release. |
 | `firebase.projectId` | Yes | The customer's Firebase project. Backend deploys go only here. |
 | `firebase.authActionHost` | No | Host for email action links (Android App Links, iOS Associated Domains). Defaults to `<projectId>.firebaseapp.com`. |
+| `firebase.functionsRegion` | No | Region of the Cloud Functions, used by the backend deploy and the app's callable calls. Default `us-central1`. |
 | `links.*` | No | Privacy policy, terms, support email, and a custom email-action URL. Empty values are hidden in the app. |
 | `api.baseUrl` | No | Optional REST API used by `core/network/api_client.dart`. |
 | `seedColor` | No | Material 3 color seed, `#RRGGBB`. Default `#3F51B5`. |
@@ -121,6 +127,9 @@ Practices:
 
 ## 4. Deploy a new customer
 
+Build a new customer from the latest release tag
+([RELEASE_AND_SUPPORT.md](RELEASE_AND_SUPPORT.md)).
+
 ### Step 1: Customer accounts (customer owns them, we help set them up)
 
 1. **Google account and billing.** The customer provides a Google account or
@@ -139,8 +148,8 @@ Practices:
 1. Choose the app ID: `<our-reverse-domain>.<customer-id>`. It is the same for
    Android and iOS and permanent after the first release.
 2. In the customer's Firebase project, register the Android and iOS apps with
-   that ID and enable Authentication (Email/Password, Phone), Firestore,
-   Storage, and Remote Config.
+   that ID and enable Authentication (Email/Password, and Phone when
+   `phoneVerification` is on), Firestore, Storage, and Remote Config.
 3. Generate the public Firebase files, then move them into the deployment
    folder (the app locations are git-ignored and rewritten by `use`):
 
@@ -209,7 +218,8 @@ App Check providers, and authorize `firebase.authActionHost` for Auth.
 
 ### Step 6: Release the apps
 
-Run `android-release` and `ios-release` in the customer's Codemagic team. Both
+Run `android-release` and `ios-release` in the customer's Codemagic team, on
+the release tag. Both
 select the deployment, run analysis and tests, and build with
 `--dart-define-from-file=deployment.g.json`. The version comes from
 `frontend/pubspec.yaml`, and the build number from Codemagic.
