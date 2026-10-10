@@ -107,6 +107,9 @@ function load(id) {
   firebase.functionsRegion ??= "us-central1";
   check(/^[a-z]+-[a-z]+\d+$/.test(firebase.functionsRegion),
     "firebase.functionsRegion must be a Cloud Functions region such as europe-west1.");
+  firebase.firestoreLocation ??= firebase.functionsRegion;
+  check(/^[a-z][a-z0-9-]*[0-9]$/.test(firebase.firestoreLocation),
+    "firebase.firestoreLocation must be a Firestore location such as europe-west1 or eur3.");
 
   const links = config.links ?? {};
   for (const key of ["privacyPolicyUrl", "termsOfServiceUrl", "authActionContinueUrl"]) {

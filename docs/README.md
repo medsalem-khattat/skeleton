@@ -36,6 +36,8 @@ Architecture and requirements:
 - [Customer Account Setup](customer-setup/README.md) — step-by-step guides
   for the customer: Codemagic, Google Cloud and Firebase, Apple, and Google
   Play, either giving us access or doing the setup themselves.
+- [Deployment Runbook and Timings](DEPLOYMENT_RUNBOOK.md) — every deployment
+  step, manual or automated, with estimated and measured times.
 - [Release, Upgrade, and Support Policy](RELEASE_AND_SUPPORT.md) — version
   numbers, upgrading every customer to each release, supported versions, and
   end of support.

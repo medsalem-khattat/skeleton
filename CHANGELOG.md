@@ -67,6 +67,12 @@ billed by the customer. See [docs/CUSTOMER_DEPLOYMENT.md](docs/CUSTOMER_DEPLOYME
   It uploads to TestFlight without submitting for beta review, and finds
   provisioning profiles in the Xcode 16 location.
 - `android-release` uploads to the Play Console internal testing track.
+- New `tool/provision.mjs` sets up a deployment's Firebase project from its
+  deployment file in under a minute (apps, config files, Firestore, Storage,
+  sign-in methods, Remote Config, deploy service account). New optional
+  `firebase.firestoreLocation` field.
+- The `dev` deployment moved to its own project, `medsalem-skeleton-dev`,
+  with app ID `com.medsalem.skeletondev`.
 - New `readiness-check` workflow proves, before a customer's first
   deployment, that every secret in their Codemagic team works.
 - Release builds take the version from `pubspec.yaml` only.

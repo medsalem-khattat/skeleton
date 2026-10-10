@@ -1,12 +1,12 @@
 {
   "deploymentId": "dev",
   "internal": true,
-  "appName": "Skeleton",
-  "appId": "com.yourname.skeleton",
+  "appName": "Skeleton Dev",
+  "appId": "com.medsalem.skeletondev",
   "firebase": {
-    "projectId": "whatsapp-bot-f57a8",
-    "authActionHost": "whatsapp-bot-f57a8.firebaseapp.com",
-    "functionsRegion": "us-central1"
+    "projectId": "medsalem-skeleton-dev",
+    "authActionHost": "medsalem-skeleton-dev.firebaseapp.com",
+    "functionsRegion": "europe-west1"
   },
   "links": {
     "privacyPolicyUrl": "",

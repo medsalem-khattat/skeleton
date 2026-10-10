@@ -65,7 +65,8 @@ and the first release is tagged `v1.1.0`.
 - [x] One deployment file per deployment, generated native identity, customer-owned secrets (G11, pulled forward)
 - [ ] Verify the new CLI-based iOS signing on the first `ios-release` run
 - [ ] Add `CM_PUBLISH_EMAIL` to each customer's `deployment` group (G2)
-- [ ] Move the `dev` deployment from `whatsapp-bot-f57a8` to a dedicated project: replace the two files in `deployments/dev/firebase/` and update `deployments/dev/deployment.json`
+- [x] Move the `dev` deployment from `whatsapp-bot-f57a8` to a dedicated project (`medsalem-skeleton-dev`, `com.medsalem.skeletondev`)
+- [ ] Link billing (Blaze) on `dev`, `test`, and `demo`; both current billing accounts are closed
 - [ ] Create the `demo` deployment: its own Firebase project on Blaze, all modules on, not internal; distribute through Play open/closed testing and a TestFlight public link
 - [ ] Prepare our own accounts for the three environments (Google Cloud billing, Apple Developer, Play Console, Codemagic), see [DEPLOYMENT.md](DEPLOYMENT.md) §1
 - [ ] Deploy the new functions and rules to that project, then release the app (the new app needs `recordPasswordChange` deployed first)

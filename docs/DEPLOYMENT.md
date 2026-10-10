@@ -51,8 +51,9 @@ The repository also has `example`: placeholder Firebase values
 (`demo-skeleton`) for tests, CI, and local runs against the Firebase
 emulators. It never reaches a real backend.
 
-Current state: `dev` still uses the shared `whatsapp-bot-f57a8` project, and
-`demo` does not exist yet ([ROADMAP.md](ROADMAP.md) v1.1).
+Current state: `dev` uses `medsalem-skeleton-dev` (waiting for billing), and
+`demo` does not exist yet ([ROADMAP.md](ROADMAP.md) v1.1). Progress and
+timings: [DEPLOYMENT_RUNBOOK.md](DEPLOYMENT_RUNBOOK.md).
 
 ## 2. The deployment file
 
@@ -99,6 +100,7 @@ Current state: `dev` still uses the shared `whatsapp-bot-f57a8` project, and
 | `firebase.projectId` | Yes | The customer's Firebase project. Backend deploys go only here. |
 | `firebase.authActionHost` | No | Host for email action links (Android App Links, iOS Associated Domains). Defaults to `<projectId>.firebaseapp.com`. |
 | `firebase.functionsRegion` | No | Region of the Cloud Functions, used by the backend deploy and the app's callable calls. Default `us-central1`. |
+| `firebase.firestoreLocation` | No | Location of the Firestore database and Storage bucket that `tool/provision.mjs` creates; permanent once created. Default: `functionsRegion`. |
 | `links.*` | No | Privacy policy, terms, support email, and a custom email-action URL. Empty values are hidden in the app. |
 | `api.baseUrl` | No | Optional REST API used by `core/network/api_client.dart`. |
 | `seedColor` | No | Material 3 color seed, `#RRGGBB`. Default `#3F51B5`. |
@@ -188,6 +190,27 @@ At the end of the readiness check:
 Plus the Android keystore under **Code signing identities** with the
 reference name `upload_keystore`.
 
+### Firebase setup by command
+
+With access to the Firebase project (our own environments, or a customer's
+Option A), `tool/provision.mjs` does the console work of
+[guide 2, Part 2B](customer-setup/2-google-cloud-firebase.md#part-2b-do-the-setup-yourself-about-1-hour)
+in under a minute, from `deployment.json`:
+
+```sh
+cd backend/functions && npm ci && cd ../..
+node tool/provision.mjs <id> [--create] [--billing-account <ID>]
+```
+
+It creates the project (`--create`), links billing, enables the APIs, sets
+the sign-in methods, creates Firestore and the Storage bucket, registers the
+Android and iOS apps, writes their config files into
+`deployments/<id>/firebase/`, publishes the Remote Config defaults, and
+creates the `codemagic-deploy` service account with its roles. It can be run
+again at any time, and ends with the list of steps left by hand (the deploy
+key, the APNs key). It uses your `firebase login`. Timings are tracked in
+[DEPLOYMENT_RUNBOOK.md](DEPLOYMENT_RUNBOOK.md).
+
 ### Step 2: The customer's deployment repository
 
 Done during the readiness check
@@ -271,6 +294,7 @@ Run from the repository root:
 | `node tool/deployment.mjs fetch <id>` | With `DEPLOYMENT_REPO` (and `DEPLOYMENT_REPO_SSH_KEY`), clones the customer's deployment repository into `deployments/<id>/` and checks it. Without it, confirms the deployment is one of ours |
 | `node tool/deployment.mjs use <id>` | Checks, then writes the app's generated files (`frontend/deployment.g.json`, Firebase files and options, Android `deployment.properties`, iOS `Deployment.xcconfig`) |
 | `node tool/deployment.mjs deploy-backend <id>` | Checks, runs `release-check`, then deploys Functions and rules to `firebase.projectId` |
+| `node tool/provision.mjs <id> [--create] [--billing-account <ID>]` | Sets up the deployment's Firebase project and writes its config files (see §4) |
 | `node tool/deployment.mjs release-check <id>` | For a customer deployment, stops unless the commit has the tag `v<version>` of `frontend/pubspec.yaml` and no uncommitted changes. Internal deployments pass |
 
 The generated files are git-ignored. Switch deployments by running `use`

@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "288613814192",
-    "project_id": "whatsapp-bot-f57a8",
-    "storage_bucket": "whatsapp-bot-f57a8.firebasestorage.app"
+    "project_number": "644586440386",
+    "project_id": "medsalem-skeleton-dev",
+    "storage_bucket": "medsalem-skeleton-dev.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:288613814192:android:4dd21f8e321d6a4eea9075",
+        "mobilesdk_app_id": "1:644586440386:android:914827912eb276139a1d5b",
         "android_client_info": {
-          "package_name": "com.yourname.skeleton"
+          "package_name": "com.medsalem.skeletondev"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBKtqUTju1k3zxEQRImYPruOmpjBPWxsk8"
+          "current_key": "AIzaSyDaPlsd9tj_GHnson1NWRq_Mo7iR6Eo7nw"
         }
       ],
       "services": {
