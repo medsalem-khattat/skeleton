@@ -107,7 +107,7 @@ When the tests pass and the store setup tasks are done:
 
 ## Step 8: Tell us
 
-Email us the version you published and the date. We use it to send you the
+Email [medsalemkhattat@gmail.com](mailto:medsalemkhattat@gmail.com) the version you published and the date. We use it to send you the
 right release and end-of-support notices.
 
 ## Check

@@ -35,7 +35,7 @@ message, and ask them to replace the secret
    - the guides of [customer-setup/](customer-setup/README.md) (export the
      folder to PDF: they cannot read the repository before step 3);
    - the release tag to start from (the latest);
-   - our support email address.
+   - our support email address, medsalemkhattat@gmail.com.
 
    Point out the two long lead times: Apple organization enrollment (1–3
    weeks) and Google Play organization verification (several days).

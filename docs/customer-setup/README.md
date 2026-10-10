@@ -17,7 +17,7 @@ these guides, the [FAQ](FAQ.md), and answers to your questions.
 | The app's source code, at each release | Read-only access to our repository (guide 1, Step 3) |
 | Releases | A version tag such as `v1.2.0`, with release notes and upgrade notes |
 | Build and deployment automation | The workflows in Codemagic and the tools in the repository |
-| Documentation and support | These guides, the [FAQ](FAQ.md), and answers by email |
+| Documentation and support | These guides, the [FAQ](FAQ.md), and answers by email at [medsalemkhattat@gmail.com](mailto:medsalemkhattat@gmail.com) |
 
 ## What your team needs
 
@@ -76,7 +76,7 @@ differs slightly from the guide, look for the closest match, or check the
 ## Getting help
 
 1. Look in the [FAQ](FAQ.md): it covers the common errors of each step.
-2. Write to us with the guide and step number, what you did, and the error
+2. Write to [medsalemkhattat@gmail.com](mailto:medsalemkhattat@gmail.com) with the guide and step number, what you did, and the error
    message or the log of the failed Codemagic build. Build logs never show
    your secrets.
 3. Never send us passwords, keys, key files, or screenshots that show them.

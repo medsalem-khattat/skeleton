@@ -34,7 +34,7 @@ secret.
 
    It creates two files: `codemagic_source_key` (private, a **secret**) and
    `codemagic_source_key.pub` (public).
-2. Send us `codemagic_source_key.pub` by email, with your company name. We add
+2. Send `codemagic_source_key.pub` to [medsalemkhattat@gmail.com](mailto:medsalemkhattat@gmail.com), with your company name. We add
    it as a **read-only** key on our repository and confirm, usually within
    one working day.
 3. Keep `codemagic_source_key` for Step 4. Do not send it to anyone.

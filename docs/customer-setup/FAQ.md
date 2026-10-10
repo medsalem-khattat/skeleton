@@ -1,7 +1,7 @@
 # Frequently Asked Questions
 
 Questions from technical teams deploying the app for the first time, by
-topic. If yours is not here, write to us with the guide and step number and
+topic. If yours is not here, write to [medsalemkhattat@gmail.com](mailto:medsalemkhattat@gmail.com) with the guide and step number and
 the error message (see [Getting help](README.md#getting-help)).
 
 ## General
