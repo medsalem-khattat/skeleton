@@ -18,6 +18,15 @@ billed by the customer. See [docs/CUSTOMER_DEPLOYMENT.md](docs/CUSTOMER_DEPLOYME
 - Builds take `--dart-define-from-file=deployment.g.json`.
 - New `example` deployment with placeholder values for tests, CI, and the
   local emulators; the previous configuration is the `dev` deployment.
+- New `test` deployment (`medsalem-skeleton-test`), our first rollout wave.
+- New `firebase.functionsRegion` field (default `us-central1`): the region
+  the backend deploys to and the app calls.
+- New `features.phoneVerification` switch (default on). Off, registration
+  uses email only and Account security hides the phone change, so the
+  project does not need Firebase phone sign-in.
+- The iOS URL scheme for phone-auth reCAPTCHA is generated per deployment.
+- New `internal` field marks our own deployments (`dev`, `test`,
+  `example`); see CI below.
 - Secrets live only in the customer's accounts and Codemagic team (groups
   `deployment`, `firebase_deploy`, `ios_signing`; keystore
   `upload_keystore`). See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
@@ -49,14 +58,25 @@ billed by the customer. See [docs/CUSTOMER_DEPLOYMENT.md](docs/CUSTOMER_DEPLOYME
   credential belongs to a different project than the deployment file.
 - `ios-release` fetches signing files for the deployment's app ID with the
   Codemagic CLI and publishes with the customer's App Store Connect API key.
+  It uploads to TestFlight without submitting for beta review, and finds
+  provisioning profiles in the Xcode 16 location.
+- `android-release` uploads to the Play Console internal testing track.
 - Release builds take the version from `pubspec.yaml` only.
 - `backend-deploy`, `android-release`, and `ios-release` build a customer
   deployment only from the release tag `v<version>` (`node tool/deployment.mjs
   release-check`). Deployments marked `"internal": true` (`dev`, `test`,
   `example`) may build any commit.
 
-### Upgrade order
+### Upgrade notes
 
-Deploy the backend before releasing the app: the new app calls
-`recordPasswordChange`, and the new rules reject the old app's direct inbox
-write.
+1. After pulling, run `node tool/deployment.mjs use <id>`: the Firebase
+   client files are now generated from `deployments/<id>/`.
+2. In the deployment's Codemagic team, create the groups `deployment`,
+   `firebase_deploy`, `ios_signing`, and `google_play`, and the
+   `upload_keystore` signing identity ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) §4).
+3. Start every workflow on the tag `v1.1.0`.
+4. Deploy the backend before releasing the app: the new app calls
+   `recordPasswordChange`, and the new rules reject the old app's direct
+   inbox write.
+5. If `phoneVerification` is on, enable the Phone provider in the
+   deployment's Firebase project (Blaze plan).
