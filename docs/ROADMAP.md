@@ -69,7 +69,8 @@ and the first release is tagged `v1.1.0`.
 - [ ] Add `CM_PUBLISH_EMAIL` to each customer's `deployment` group (G2)
 - [x] Move the `dev` deployment from `whatsapp-bot-f57a8` to a dedicated project (`medsalem-skeleton-dev`, `com.medsalem.skeletondev`)
 - [ ] Link billing (Blaze) on `dev`, `test`, and `demo`; both current billing accounts are closed
-- [ ] Create the `demo` deployment: its own Firebase project on Blaze, all modules on, not internal; distribute through Play open/closed testing and a TestFlight public link
+- [x] Create the `demo` deployment: `medsalem-skeleton-demo`, `com.medsalem.skeletondemo`, all modules on, not internal
+- [ ] `test` and `demo`: store apps, Codemagic applications, and builds (`demo` from the `v1.1.0` tag); distribute `demo` through Play open/closed testing and a TestFlight public link
 - [ ] Prepare our own accounts for the three environments (Google Cloud billing, Apple Developer, Play Console, Codemagic), see [DEPLOYMENT.md](DEPLOYMENT.md) §1
 - [ ] Deploy the new functions and rules to that project, then release the app (the new app needs `recordPasswordChange` deployed first)
 - [ ] Tag `v1.1.0`
