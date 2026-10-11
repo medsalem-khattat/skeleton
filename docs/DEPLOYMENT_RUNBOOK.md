@@ -1,4 +1,22 @@
-done, works (not timed) | # | Step | How | Estimate |
+# Deployment Runbook and Timings
+
+This runbook is for our team. It lists every step of deploying one of **our
+own** environments (`dev`, `test`, `demo`), who or what does it, and how
+long it takes, and it records measured times so each deployment can be faster
+than the last. Customers deploy their own environments with
+[customer-setup/](customer-setup/README.md), whose guide list gives their time
+estimates; the improvements we find here go into those guides. Technical
+reference: [DEPLOYMENT.md](DEPLOYMENT.md).
+
+It assumes our shared accounts already exist (Codemagic team, Apple
+Developer, Google Play, an open Cloud Billing account).
+
+## 1. Steps
+
+**Auto** = a command or Codemagic workflow does it. **Manual** = a person in a
+console. Times are hands-on time; machine time is listed separately.
+
+| # | Step | How | Estimate |
 | --- | --- | --- | --- |
 | 1 | Write `deployment.json` (ID, name, app ID, project, region, modules) | Manual, from `deployments/example/` | 3 min |
 | 2 | Create the Firebase project | Auto: `node tool/provision.mjs <id> --create` | 0.5 min |
@@ -32,17 +50,17 @@ Fill in one column per deployment. "—" means the step was already done.
 | 3 | Billing | blocked: no open billing account | blocked | blocked |
 | 4 | Authentication Get started | not needed | not needed | needed (new project) |
 | 5 | Provision | 33 s (Storage waits for billing) | 17 s | 9 s on the last run; 4 runs while fixing three script issues (below) |
-| 6 | Deploy key | done (not timed) | | |
-| 7 | APNs key | | | |
+| 6 | Deploy key | done (not timed) | not yet | |
+| 7 | APNs key | | done (not timed) | |
 | 8 | Commit | 1 min | 1 min (with `demo`) | 1 min (with `test`) |
-| 9 | App ID | done (not timed) | | |
-| 10 | App Store Connect app | done (not timed) | | |
-| 11 | Play app | done (not timed) | | |
-| 12 | Codemagic | done (not timed) | | |
-| 13 | Backend | waits for billing | | |
-| 14 | Android | done, published (not timed) | | |
-| 15 | First Play upload | done (not timed) | | |
-| 16 | iOS | | | |
+| 9 | App ID | done (not timed) | done (not timed) | |
+| 10 | App Store Connect app | done (not timed) | done (not timed) | |
+| 11 | Play app | done (not timed) | done (not timed) | |
+| 12 | Codemagic | done (not timed) | done (not timed) | |
+| 13 | Backend | waits for billing | waits for billing | waits for billing |
+| 14 | Android | done, published (not timed) | done, works (not timed) | |
+| 15 | First Play upload | done (not timed) | done (not timed) | |
+| 16 | iOS | | done, works (not timed) | |
 | 17 | Smoke test | | | |
 | | **Total hands-on** | | | |
 
