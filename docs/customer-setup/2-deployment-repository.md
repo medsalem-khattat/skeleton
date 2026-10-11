@@ -70,6 +70,7 @@ the line `"internal": true,`. Then set:
 | --- | --- | --- |
 | `authentication` | Sign-up, sign-in, email verification, password reset | Most modules need it |
 | `phoneVerification` | SMS-verified phone number at sign-up | Sends SMS, billed by Google |
+| `rememberEmail` | "Remember my email" on the login screen | Stores only the email, on the device |
 | `home` | Home screen | |
 | `profile` | Name and photo | |
 | `settings`, `appearanceSettings`, `languageSettings` | Settings screens: theme and language | |

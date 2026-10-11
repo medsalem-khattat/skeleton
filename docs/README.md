@@ -55,6 +55,7 @@ run `node tool/deployment.mjs use <id>` and rebuild.
 |---|---|---|
 | Authentication | Email/password sign-in, registration, verification, password reset | Firebase Auth |
 | Phone verification | SMS-verified phone number at registration and in Account security | Authentication, Firebase Phone Auth (Blaze plan) |
+| Remember email | "Remember my email" on the login screen; the email is stored on the device only | Authentication, local preferences |
 | Email action links | In-app email verification, recovery, and password reset | Authentication and verified Android/iOS app-link domains |
 | Home | Anonymous or authenticated landing screen | None |
 | Onboarding | First-run introduction | Local preferences |

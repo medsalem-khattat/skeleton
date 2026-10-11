@@ -17,6 +17,7 @@
   "email": "Email",
   "password": "Password",
   "signIn": "Sign in",
+  "rememberEmail": "Remember my email",
   "forgotPassword": "Forgot password?",
   "verifyEmailTitle": "Verify your email",
   "verifyEmailInstructions": "Before you can use the app, verify your email address using the link we sent you.",

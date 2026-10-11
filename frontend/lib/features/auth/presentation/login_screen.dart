@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../core/config/feature_providers.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/validators.dart';
@@ -11,6 +12,7 @@ import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_snackbar.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../application/auth_providers.dart';
+import '../application/remembered_email_controller.dart';
 import '../data/auth_repository.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -24,6 +26,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  late bool _rememberEmail;
+
+  @override
+  void initState() {
+    super.initState();
+    final remembered = ref.read(appFeaturesProvider).rememberEmailEnabled
+        ? ref.read(rememberedEmailProvider)
+        : null;
+    _email.text = remembered ?? '';
+    _rememberEmail = remembered != null;
+  }
 
   @override
   void dispose() {
@@ -34,10 +47,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    // On success the router redirects to home automatically.
-    await ref
+    final email = _email.text;
+    final rememberEnabled = ref.read(appFeaturesProvider).rememberEmailEnabled;
+    final remember = _rememberEmail;
+    // Read before signing in: on success the router redirects to home
+    // automatically, and this screen may be gone when signIn returns.
+    final rememberedEmail = ref.read(rememberedEmailProvider.notifier);
+    final signedIn = await ref
         .read(authControllerProvider.notifier)
-        .signIn(_email.text, _password.text);
+        .signIn(email, _password.text);
+    if (!signedIn || !rememberEnabled) return;
+    // Not remembering the email never blocks signing in.
+    if (remember) {
+      await rememberedEmail.remember(email.trim());
+    } else {
+      await rememberedEmail.forget();
+    }
   }
 
   @override
@@ -50,6 +75,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     });
     final loading = ref.watch(authControllerProvider).isLoading;
+    final rememberEnabled = ref.watch(appFeaturesProvider).rememberEmailEnabled;
 
     return Scaffold(
       body: SafeArea(
@@ -90,6 +116,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       autofillHints: const [AutofillHints.password],
                       onSubmitted: (_) => _submit(),
                     ),
+                    if (rememberEnabled)
+                      CheckboxListTile(
+                        value: _rememberEmail,
+                        onChanged: (value) =>
+                            setState(() => _rememberEmail = value ?? false),
+                        title: Text(l10n.rememberEmail),
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: EdgeInsets.zero,
+                      ),
                     SizedBox(height: AppSpacing.lg),
                     AppButton(
                       label: l10n.signIn,

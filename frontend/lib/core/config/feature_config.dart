@@ -13,6 +13,7 @@ class AppFeatures {
   const AppFeatures({
     this.authentication = true,
     this.phoneVerification = true,
+    this.rememberEmail = true,
     this.home = true,
     this.profile = true,
     this.settings = true,
@@ -31,6 +32,10 @@ class AppFeatures {
     ),
     phoneVerification: bool.fromEnvironment(
       'FEATURE_PHONE_VERIFICATION',
+      defaultValue: true,
+    ),
+    rememberEmail: bool.fromEnvironment(
+      'FEATURE_REMEMBER_EMAIL',
       defaultValue: true,
     ),
     home: bool.fromEnvironment('FEATURE_HOME', defaultValue: true),
@@ -67,6 +72,9 @@ class AppFeatures {
   /// Registration requires an SMS-verified phone number, and users can change
   /// it in Account security. Firebase phone sign-in needs the Blaze plan.
   final bool phoneVerification;
+
+  /// The login screen offers to remember the email address on the device.
+  final bool rememberEmail;
   final bool home;
   final bool profile;
   final bool settings;
@@ -78,6 +86,8 @@ class AppFeatures {
   final bool crashReporting;
 
   bool get phoneVerificationEnabled => authentication && phoneVerification;
+
+  bool get rememberEmailEnabled => authentication && rememberEmail;
 
   bool get profileEnabled => authentication && profile;
 

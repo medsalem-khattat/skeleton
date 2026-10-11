@@ -37,6 +37,22 @@ void main() {
     );
   });
 
+  test('remember email depends on authentication', () {
+    expect(const AppFeatures().rememberEmailEnabled, isTrue);
+    expect(
+      const AppFeatures(rememberEmail: false).rememberEmailEnabled,
+      isFalse,
+    );
+    expect(
+      const AppFeatures(
+        authentication: false,
+        pushNotifications: false,
+        crashReporting: false,
+      ).rememberEmailEnabled,
+      isFalse,
+    );
+  });
+
   test('standalone language settings work without authentication', () {
     const features = AppFeatures(
       authentication: false,

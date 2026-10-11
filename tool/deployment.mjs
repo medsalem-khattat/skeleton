@@ -39,6 +39,7 @@ const firebaseFiles = {
 const featureDefines = {
   authentication: "FEATURE_AUTHENTICATION",
   phoneVerification: "FEATURE_PHONE_VERIFICATION",
+  rememberEmail: "FEATURE_REMEMBER_EMAIL",
   home: "FEATURE_HOME",
   profile: "FEATURE_PROFILE",
   settings: "FEATURE_SETTINGS",
