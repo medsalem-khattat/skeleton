@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Sets up a deployment's Firebase project from its deployment.json: the
-// console work of docs/customer-setup/2-google-cloud-firebase.md (Part 2B),
+// console work of docs/customer-setup/3-google-cloud-firebase.md (Step 3B),
 // in minutes. Safe to run again: every step checks first and skips what is
 // already done, and the summary lists what is left by hand.
 //
@@ -94,14 +94,24 @@ function client(token, projectId) {
       "Content-Type": "application/json; charset=UTF-8",
       ...headers,
     };
-    const response = await fetch(url, {
-      method,
-      headers: Object.fromEntries(Object.entries(merged).filter(([, value]) => value !== null)),
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
-    const text = await response.text();
-    const json = text ? JSON.parse(text) : {};
-    return { status: response.status, json, etag: response.headers.get("etag") };
+    // An API that was just enabled answers 403 "has not been used ... or it is
+    // disabled" for a minute or two: wait and retry instead of failing.
+    for (let attempt = 0; ; attempt++) {
+      const response = await fetch(url, {
+        method,
+        headers: Object.fromEntries(Object.entries(merged).filter(([, value]) => value !== null)),
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+      const text = await response.text();
+      const json = text ? JSON.parse(text) : {};
+      const propagating = response.status === 403 && /has not been used|it is disabled/.test(json.error?.message ?? "");
+      if (propagating && attempt < 12) {
+        if (attempt === 0) console.log("  (waiting for a newly enabled Google API to become ready...)");
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+        continue;
+      }
+      return { status: response.status, json, etag: response.headers.get("etag") };
+    }
   };
 }
 
@@ -143,9 +153,16 @@ async function main() {
     const { status } = await call("GET", `https://firebase.googleapis.com/v1beta1/${P}`);
     if (status === 200) return "exists";
     if (!create) throw new ProvisionError(`Project ${d.projectId} not found; pass --create to create it.`);
-    execFileSync("npx", ["--no-install", "firebase", "projects:create", d.projectId,
-      "--display-name", d.appName, "--non-interactive"],
-    { cwd: functionsDir, stdio: "inherit", shell: process.platform === "win32" });
+    // Run the CLI's script with node, without a shell, so a display name with
+    // spaces stays one argument on Windows.
+    try {
+      execFileSync(process.execPath, [require.resolve("firebase-tools/lib/bin/firebase.js"),
+        "projects:create", d.projectId, "--display-name", d.appName, "--non-interactive"],
+      { cwd: functionsDir, stdio: "inherit" });
+    } catch {
+      throw new ProvisionError(`Creating project ${d.projectId} failed; see the Firebase CLI output above. `
+        + "A project ID must be free worldwide: choose another firebase.projectId if it is taken.");
+    }
     return "created";
   });
 
@@ -207,10 +224,12 @@ async function main() {
   });
 
   await step("Firestore", async () => {
-    const url = `https://firestore.googleapis.com/v1/${P}/databases/(default)`;
-    const current = await call("GET", url);
-    if (current.status === 200) return `exists in ${current.json.locationId}`;
-    if (current.status !== 404) fail("Reading Firestore", current);
+    // List instead of reading (default): a missing database can answer 403
+    // rather than 404.
+    const listed = await call("GET", `https://firestore.googleapis.com/v1/${P}/databases`);
+    if (listed.status !== 200) fail("Reading Firestore", listed);
+    const current = (listed.json.databases ?? []).find((db) => db.name.endsWith("/databases/(default)"));
+    if (current) return `exists in ${current.locationId}`;
     const result = await call("POST", `https://firestore.googleapis.com/v1/${P}/databases?databaseId=(default)`,
       { type: "FIRESTORE_NATIVE", locationId: d.firestoreLocation });
     if (result.status !== 200) fail("Creating Firestore", result);
@@ -317,7 +336,13 @@ async function main() {
         if (binding) binding.members.push(member);
         else bindings.push({ role, members: [member] });
       }
-      const result = await call("POST", `${iam}:setIamPolicy`, { policy: { ...policy.json, bindings } });
+      // A service account created seconds ago may not be visible to IAM yet.
+      let result;
+      for (let attempt = 0; attempt < 12; attempt++) {
+        result = await call("POST", `${iam}:setIamPolicy`, { policy: { ...policy.json, bindings } });
+        if (!(result.status === 400 && /does not exist/.test(result.json.error?.message ?? ""))) break;
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
       if (result.status !== 200) fail("Granting the deploy roles", result);
       outcome += `, granted ${missing.length} role(s)`;
     }

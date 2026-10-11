@@ -6,7 +6,9 @@ As of 2026-10-10.
 
 **One deployment = one Firebase project = one backend.** Each deployment gets
 its own Firebase project, owned by the customer and billed to the customer's
-own Firebase/Cloud Billing account. As part of each deployment we create that
+own Firebase/Cloud Billing account. Customers deploy themselves (decided
+2026-10-10): we never access a customer's accounts and support them with the
+customer guides and FAQ only. Previously: as part of each deployment we created that
 project under the customer's account and choose the app identifier. Each
 deployment is one `deployment.json` (ours in `deployments/`, each customer's in its own private repository), and every secret
 stays in the customer's accounts and Codemagic team. The procedure is in
@@ -32,7 +34,7 @@ emulators, CI), `test` (`medsalem-skeleton-test`), and `dev` (`whatsapp-bot-f57a
 | Data | `users/{uid}` with `notifications` and `fcmTokens` subcollections; avatars under `users/{uid}/profile/` |
 | Localization | English and French, including push text |
 | Tests | 96 Flutter tests; 5 Functions unit tests; 5 emulator rules tests |
-| CI/CD | One `codemagic.yaml` for every deployment: `frontend-ci`, `backend-ci` (automatic, our team); `backend-deploy`, `android-release`, `ios-release` (manual, customer's team) |
+| CI/CD | One `codemagic.yaml` for every deployment: `frontend-ci`, `backend-ci` (automatic, our team); `readiness-check`, `backend-deploy`, `android-release`, `ios-release` (manual, run by each environment's owner) |
 | Docs | README, FSD, TSD, feature guide, rename guide, deployment guide, customer deployment guide, release and support policy, this roadmap, `CHANGELOG.md` |
 
 ## Gaps and risks
@@ -67,7 +69,8 @@ and the first release is tagged `v1.1.0`.
 - [ ] Add `CM_PUBLISH_EMAIL` to each customer's `deployment` group (G2)
 - [x] Move the `dev` deployment from `whatsapp-bot-f57a8` to a dedicated project (`medsalem-skeleton-dev`, `com.medsalem.skeletondev`)
 - [ ] Link billing (Blaze) on `dev`, `test`, and `demo`; both current billing accounts are closed
-- [ ] Create the `demo` deployment: its own Firebase project on Blaze, all modules on, not internal; distribute through Play open/closed testing and a TestFlight public link
+- [x] Create the `demo` deployment: `medsalem-skeleton-demo`, `com.medsalem.skeletondemo`, all modules on, not internal
+- [ ] `test` and `demo`: store apps, Codemagic applications, and builds (`demo` from the `v1.1.0` tag); distribute `demo` through Play open/closed testing and a TestFlight public link
 - [ ] Prepare our own accounts for the three environments (Google Cloud billing, Apple Developer, Play Console, Codemagic), see [DEPLOYMENT.md](DEPLOYMENT.md) §1
 - [ ] Deploy the new functions and rules to that project, then release the app (the new app needs `recordPasswordChange` deployed first)
 - [ ] Tag `v1.1.0`
@@ -99,6 +102,10 @@ to shared files.
 
 - [x] Shared or dedicated Firebase project? Dedicated, customer-owned, one per deployment.
 - [x] Where do customer deployment files live? In one private repository per customer, fetched at build time, so no customer sees another.
+- [x] Who deploys a customer's environment? The customer's own technical team, with our guides; we never get access.
+- [ ] **Decide before the first customer:** how customers get access and read the guides. Current state: the repository stays personal; each customer computer and Codemagic application gets a read-only deploy key, and the guides are read in that copy. Options discussed:
+  - give access to Codemagic only (no customer computers), with the guides delivered as a Codemagic "Guides" workflow artifact or emailed each release, and the Firebase setup as a Codemagic workflow or in the console;
+  - publish the documentation (for example a public docs repository synced from `main`).
 - [ ] Which reverse domain do we use for app identifiers (`<our-reverse-domain>.<customer-id>`)?
 - [ ] Is the first real customer expected before v2.0? If so, which parts of the manifest work move earlier?
 - [ ] Which languages beyond EN/FR are needed, and are they in scope for the shared skeleton?

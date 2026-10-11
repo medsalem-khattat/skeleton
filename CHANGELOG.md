@@ -75,7 +75,16 @@ billed by the customer. See [docs/CUSTOMER_DEPLOYMENT.md](docs/CUSTOMER_DEPLOYME
 - The `dev` deployment moved to its own project, `medsalem-skeleton-dev`,
   with app ID `com.medsalem.skeletondev`.
 - New `readiness-check` workflow proves, before a customer's first
-  deployment, that every secret in their Codemagic team works.
+  release, that every secret in their Codemagic team works.
+
+### Customer deployment
+
+- Customers deploy and upgrade their own environments with the step-by-step
+  guides in `docs/customer-setup/` (Codemagic, deployment repository, Google
+  Cloud and Firebase, Apple, Google Play, first release, upgrades) and an
+  FAQ. We never access a customer's accounts.
+- A customer's deployment repository is the customer's own; Codemagic and the
+  customer's computers read this repository with read-only deploy keys.
 - Release builds take the version from `pubspec.yaml` only.
 - `backend-deploy`, `android-release`, and `ios-release` build a customer
   deployment only from the release tag `v<version>` (`node tool/deployment.mjs

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "572884104125",
+    "project_id": "medsalem-skeleton-demo",
+    "storage_bucket": "medsalem-skeleton-demo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:572884104125:android:ef47c036efafb64c4198d4",
+        "android_client_info": {
+          "package_name": "com.medsalem.skeletondemo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkedY00kKUJMSmKaf3wCUaH9K7BnyXIgI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

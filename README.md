@@ -42,8 +42,10 @@ cd frontend && flutter analyze && flutter test
 cd ../backend/functions && npm ci && npm test && npm run test:rules
 ```
 
-To deploy for a customer, follow [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md):
-parameters, secrets strategy, step-by-step setup, and testing. Ownership,
+Customers deploy their own environments with the step-by-step guides in
+[docs/customer-setup/](docs/customer-setup/README.md). The technical reference
+(parameters, secrets, tools, testing) is
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Ownership,
 support, and bug-fix policy are in
 [docs/CUSTOMER_DEPLOYMENT.md](docs/CUSTOMER_DEPLOYMENT.md); upgrades and end of
 support in [docs/RELEASE_AND_SUPPORT.md](docs/RELEASE_AND_SUPPORT.md). See
