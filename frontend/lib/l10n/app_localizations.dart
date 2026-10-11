@@ -200,6 +200,12 @@ abstract class AppLocalizations {
   /// **'Sign in'**
   String get signIn;
 
+  /// No description provided for @rememberEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember my email'**
+  String get rememberEmail;
+
   /// No description provided for @forgotPassword.
   ///
   /// In en, this message translates to:

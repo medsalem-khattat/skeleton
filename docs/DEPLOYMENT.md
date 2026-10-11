@@ -81,6 +81,7 @@ timings: [DEPLOYMENT_RUNBOOK.md](DEPLOYMENT_RUNBOOK.md).
   "features": {
     "authentication": true,
     "phoneVerification": true,
+    "rememberEmail": true,
     "home": true,
     "profile": true,
     "settings": true,

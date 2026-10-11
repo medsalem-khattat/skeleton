@@ -53,6 +53,9 @@ billed by the customer. See [docs/CUSTOMER_DEPLOYMENT.md](docs/CUSTOMER_DEPLOYME
 
 ### App
 
+- New `rememberEmail` module (default on): "Remember my email" on the login
+  screen. Only the email is stored, on the device, after a successful sign-in.
+
 - The drawer shows the installed version from the package metadata.
 - Removed the unused `firebase_analytics` dependency.
 

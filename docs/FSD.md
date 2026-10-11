@@ -85,6 +85,7 @@ workflows. Those are product features to be added to a clone.
 | F-021 | Phone numbers used for verification are expected in E.164 format. |
 | F-022 | A newly registered account must verify its email before accessing authenticated app destinations. |
 | F-023 | A guest can sign in with email and password, or request a password reset link. |
+| F-028 | When the deployment enables `rememberEmail`, the login screen offers "Remember my email". After a successful sign-in with it checked, the email (never the password) is stored on the device and prefilled, with the box checked, on the next visit; signing in with it unchecked removes the stored email. A failed sign-in changes nothing, and failing to store the email never blocks sign-in. |
 | F-024 | A user can resend email verification and refresh verification status in the app. |
 | F-025 | Firebase email action links support verification, email recovery, and password reset through the app's action screen when the platform domain association is configured. |
 | F-026 | A signed-in user can sign out. If push is enabled, the app removes the current device token before ending the session; if token removal fails, the operation reports failure and does not complete sign-out. |

@@ -17,6 +17,7 @@
   "email": "E-mail",
   "password": "Mot de passe",
   "signIn": "Se connecter",
+  "rememberEmail": "Se souvenir de mon e-mail",
   "forgotPassword": "Mot de passe oublié ?",
   "verifyEmailTitle": "Vérifiez votre adresse e-mail",
   "verifyEmailInstructions": "Avant d’utiliser l’application, vérifiez votre adresse e-mail avec le lien que nous vous avons envoyé.",
