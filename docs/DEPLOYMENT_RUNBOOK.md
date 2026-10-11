@@ -45,22 +45,22 @@ Fill in one column per deployment. "—" means the step was already done.
 
 | # | Step | `dev` | `test` | `demo` |
 | --- | --- | --- | --- | --- |
-| 1 | `deployment.json` | 2 min | | |
-| 2 | Create project | 25 s | — | |
-| 3 | Billing | blocked: no open billing account | | |
-| 4 | Authentication Get started | not needed | | |
-| 5 | Provision | 33 s (Storage waits for billing) | | |
-| 6 | Deploy key | done (not timed) | | |
-| 7 | APNs key | | | |
-| 8 | Commit | 1 min | | |
-| 9 | App ID | done (not timed) | | |
-| 10 | App Store Connect app | done (not timed) | | |
-| 11 | Play app | done (not timed) | | |
-| 12 | Codemagic | done (not timed) | | |
-| 13 | Backend | waits for billing | | |
-| 14 | Android | done, published (not timed) | | |
-| 15 | First Play upload | done (not timed) | | |
-| 16 | iOS | | | |
+| 1 | `deployment.json` | 2 min | — (existed) | 1 min (copied from `dev`, all modules on) |
+| 2 | Create project | 25 s | — | 24 s |
+| 3 | Billing | blocked: no open billing account | blocked | blocked |
+| 4 | Authentication Get started | not needed | not needed | needed (new project) |
+| 5 | Provision | 33 s (Storage waits for billing) | 17 s | 9 s on the last run; 4 runs while fixing three script issues (below) |
+| 6 | Deploy key | done (not timed) | not yet | |
+| 7 | APNs key | | done (not timed) | |
+| 8 | Commit | 1 min | 1 min (with `demo`) | 1 min (with `test`) |
+| 9 | App ID | done (not timed) | done (not timed) | |
+| 10 | App Store Connect app | done (not timed) | done (not timed) | |
+| 11 | Play app | done (not timed) | done (not timed) | |
+| 12 | Codemagic | done (not timed) | done (not timed) | |
+| 13 | Backend | waits for billing | waits for billing | waits for billing |
+| 14 | Android | done, published (not timed) | done, works (not timed) | |
+| 15 | First Play upload | done (not timed) | done (not timed) | |
+| 16 | iOS | | done, works (not timed) | |
 | 17 | Smoke test | | | |
 | | **Total hands-on** | | | |
 
@@ -73,6 +73,9 @@ Apply them between deployments, then measure again.
 | I1 | `tool/provision.mjs`: Firebase setup by command instead of console (steps 2–5) | ~40 min → under 1 min | Done: 33 s on `dev` |
 | I2 | Our Codemagic team: `ios_signing`, `google_play`, and the keystore as **team** groups shared by all our applications, so each new environment only needs `deployment` and `firebase_deploy` | ~5 min per environment | To do in the Codemagic console |
 | I3 | Create Codemagic groups and variables with the Codemagic API (step 12), so secrets are pushed from where they are created | ~5 min | Needs a Codemagic API token to try |
+| I7 | provision.mjs: create a project with a display name containing spaces on Windows (no shell) | a failed run | Done (found on `demo`) |
+| I8 | provision.mjs: wait for newly enabled APIs and a newly created service account instead of failing | 2 reruns | Done (found on `demo`) |
+| I9 | provision.mjs: detect a missing Firestore database by listing (a new project answers 403, not 404) | 1 rerun | Done (found on `demo`) |
 | I6 | Time every step on `test` and `demo` (start and end of each workflow), so the table is complete | — | To do |
 | I4 | Register the App ID and its capabilities from Codemagic with the `app-store-connect` CLI (step 9) | ~3 min | To do |
 | I5 | One trigger instead of three: start backend, Android, and iOS together, or trigger our environments automatically (`dev` on push to `main`, `demo` on a release tag) | ~2 min per release, and no forgotten workflow | To do |

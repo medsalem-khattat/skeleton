@@ -54,8 +54,8 @@ The repository also has `example`: placeholder Firebase values
 (`demo-skeleton`) for tests, CI, and local runs against the Firebase
 emulators. It never reaches a real backend.
 
-Current state: `dev` uses `medsalem-skeleton-dev` (waiting for billing), and
-`demo` does not exist yet ([ROADMAP.md](ROADMAP.md) v1.1). Progress and
+Current state: `dev` (`medsalem-skeleton-dev`), `test` (`medsalem-skeleton-test`), and
+`demo` (`medsalem-skeleton-demo`) are set up; all three wait for billing ([ROADMAP.md](ROADMAP.md) v1.1). Progress and
 timings: [DEPLOYMENT_RUNBOOK.md](DEPLOYMENT_RUNBOOK.md).
 
 ## 2. The deployment file
