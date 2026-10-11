@@ -8,6 +8,9 @@
     "authActionHost": "medsalem-skeleton-dev.firebaseapp.com",
     "functionsRegion": "europe-west1"
   },
+  "stores": {
+    "appleId": "6821400066"
+  },
   "links": {
     "privacyPolicyUrl": "",
     "termsOfServiceUrl": "",

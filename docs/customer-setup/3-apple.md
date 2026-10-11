@@ -71,7 +71,7 @@ from [guide 1](1-codemagic.md).
    Access**.
 3. Click **Create**.
 4. Open **App Information** and note the **Apple ID** (a number). You send it
-   to us; it is used for the store link.
+   to us; it is used for the update screen's store link.
 
 ### Step 3: Create the push notification key
 

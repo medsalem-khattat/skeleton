@@ -70,7 +70,8 @@ billed by the customer. See [docs/CUSTOMER_DEPLOYMENT.md](docs/CUSTOMER_DEPLOYME
 - New `tool/provision.mjs` sets up a deployment's Firebase project from its
   deployment file in under a minute (apps, config files, Firestore, Storage,
   sign-in methods, Remote Config, deploy service account). New optional
-  `firebase.firestoreLocation` field.
+  `firebase.firestoreLocation` and `stores.appleId` fields; the store links
+  in Remote Config follow the deployment file.
 - The `dev` deployment moved to its own project, `medsalem-skeleton-dev`,
   with app ID `com.medsalem.skeletondev`.
 - New `readiness-check` workflow proves, before a customer's first

@@ -124,6 +124,11 @@ function load(id) {
   api.baseUrl ??= "";
   check(api.baseUrl === "" || /^https:\/\/\S+$/.test(api.baseUrl), "api.baseUrl must be empty or an https URL.");
 
+  const stores = config.stores ?? {};
+  stores.appleId ??= "";
+  check(stores.appleId === "" || /^\d{6,12}$/.test(stores.appleId),
+    "stores.appleId must be empty or the app's numeric Apple ID from App Store Connect.");
+
   config.internal ??= false;
   check(typeof config.internal === "boolean", "internal must be true or false.");
 
@@ -207,7 +212,7 @@ function load(id) {
   }
 
   if (errors.length > 0) fail(`Deployment "${id}" is invalid:\n  - ${errors.join("\n  - ")}`);
-  return { ...config, firebase, links, api, features, firebaseApps };
+  return { ...config, firebase, links, api, stores, features, firebaseApps };
 }
 
 function findSecrets(dir) {
