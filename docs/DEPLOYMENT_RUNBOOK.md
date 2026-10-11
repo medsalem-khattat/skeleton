@@ -1,22 +1,4 @@
-# Deployment Runbook and Timings
-
-This runbook is for our team. It lists every step of deploying one of **our
-own** environments (`dev`, `test`, `demo`), who or what does it, and how
-long it takes, and it records measured times so each deployment can be faster
-than the last. Customers deploy their own environments with
-[customer-setup/](customer-setup/README.md), whose guide list gives their time
-estimates; the improvements we find here go into those guides. Technical
-reference: [DEPLOYMENT.md](DEPLOYMENT.md).
-
-It assumes our shared accounts already exist (Codemagic team, Apple
-Developer, Google Play, an open Cloud Billing account).
-
-## 1. Steps
-
-**Auto** = a command or Codemagic workflow does it. **Manual** = a person in a
-console. Times are hands-on time; machine time is listed separately.
-
-| # | Step | How | Estimate |
+done, works (not timed) | # | Step | How | Estimate |
 | --- | --- | --- | --- |
 | 1 | Write `deployment.json` (ID, name, app ID, project, region, modules) | Manual, from `deployments/example/` | 3 min |
 | 2 | Create the Firebase project | Auto: `node tool/provision.mjs <id> --create` | 0.5 min |
